@@ -30,6 +30,7 @@ export default function ProjectsPage() {
         <Button
           size="lg"
           className="gap-1.5"
+          nativeButton={false}
           render={<Link href="/projects/new" />}>
           <PlusIcon />
           Create your first project
