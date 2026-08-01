@@ -3,9 +3,9 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useActiveProjectStore } from "@/store/active-project";
-import { AppSidebar } from "./components/sidebar";
+import { ProjectSidebar } from "./components/sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardTopbar } from "./components/topbar";
+import { ProjectTopbar } from "./components/topbar";
 
 export default function DashboardLayout({
   children,
@@ -25,9 +25,9 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <ProjectSidebar />
       <SidebarInset>
-        <DashboardTopbar />
+        <ProjectTopbar />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </SidebarInset>
     </SidebarProvider>
