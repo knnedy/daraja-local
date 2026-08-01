@@ -17,14 +17,16 @@ import {
 } from "@/lib/schemas/project";
 import { useRouter } from "next/navigation";
 import { useCreateProject } from "@/hooks/use-create-project";
+import { useActiveProjectStore } from "@/store/active-project";
 
 export default function NewProjectPage() {
   const router = useRouter();
+  const setActiveProject = useActiveProjectStore((s) => s.setActiveProject);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<CreateProjectInput>({
     resolver: zodResolver(createProjectSchema),
   });
@@ -33,7 +35,8 @@ export default function NewProjectPage() {
 
   async function onSubmit(values: CreateProjectInput) {
     const project = await createProject.mutateAsync(values);
-    router.push(`/projects/${project.slug}`);
+    setActiveProject(project.slug, project.name);
+    router.push("/projects/dashboard");
   }
 
   return (
@@ -111,9 +114,9 @@ export default function NewProjectPage() {
 
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={createProject.isPending}
               className="mt-1 w-full gap-1.5">
-              {isSubmitting ? "Creating…" : "Create project"}
+              {createProject.isPending ? "Creating…" : "Create project"}
               <ArrowRightIcon className="size-4" />
             </Button>
 
