@@ -33,7 +33,7 @@ export function CredentialPreview() {
           <div key={row.label}>
             <div className="flex items-center justify-between py-2.5">
               <div className="flex items-center gap-2">
-                <row.icon className="size-[15px] text-muted-foreground" />
+                <row.icon className="size-3.75 text-muted-foreground" />
                 <span className="textsize-3.75t-sub">{row.label}</span>
               </div>
               <span className="font-mono text-[13px] text-muted-foreground">
