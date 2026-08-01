@@ -3,9 +3,9 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useActiveProjectStore } from "@/store/active-project";
-import { AppSidebar } from "./components/app-sidebar";
+import { AppSidebar } from "./components/sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardTopbar } from "./components/dashboard-topbar";
+import { DashboardTopbar } from "./components/topbar";
 
 export default function DashboardLayout({
   children,
