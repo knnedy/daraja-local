@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboardIcon,
   KeyIcon,
-  SmartphoneIcon,
   ArrowLeftRightIcon,
   ScrollTextIcon,
   SettingsIcon,
   RadioIcon,
 } from "lucide-react";
+import { RxDashboard } from "react-icons/rx";
+import { HiOutlineDevicePhoneMobile } from "react-icons/hi2";
 import {
   Sidebar,
   SidebarContent,
@@ -33,12 +33,12 @@ const navGroups = [
       {
         label: "Overview",
         href: "/projects/dashboard",
-        icon: LayoutDashboardIcon,
+        icon: RxDashboard,
       },
       {
         label: "STK Push",
         href: "/projects/dashboard/stk",
-        icon: SmartphoneIcon,
+        icon: HiOutlineDevicePhoneMobile,
       },
       {
         label: "C2B",
@@ -110,7 +110,7 @@ export function ProjectSidebar() {
                         tooltip={item.label}
                         render={<Link href={item.href} />}
                         className={cn(
-                          "relative h-9 gap-2.5 pl-3 text-[13.5px] [&_svg]:size-[18px] group-data-[collapsible=icon]:size-9! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:pl-0",
+                          "relative h-9 gap-2.5 pl-3 text-[13.5px] [&_svg]:size-4.5 group-data-[collapsible=icon]:size-9! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:pl-0",
                           isActive &&
                             "text-green hover:text-green data-active:bg-transparent data-active:text-green before:absolute before:inset-y-1 before:left-0 before:w-[2.5px] before:rounded-r-full before:bg-green group-data-[collapsible=icon]:before:hidden",
                         )}>
@@ -134,7 +134,7 @@ export function ProjectSidebar() {
             <SidebarMenuButton
               tooltip="Settings"
               render={<Link href="/projects/dashboard/settings" />}
-              className="h-9 gap-2.5 pl-3 text-[13.5px] [&_svg]:size-[18px] group-data-[collapsible=icon]:size-9! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:pl-0">
+              className="h-9 gap-2.5 pl-3 text-[13.5px] [&_svg]:size-4.5 group-data-[collapsible=icon]:size-9! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:pl-0">
               <SettingsIcon />
               <span className="group-data-[collapsible=icon]:hidden">
                 Settings
