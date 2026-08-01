@@ -22,17 +22,27 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useActiveProjectStore } from "@/store/active-project";
 
 const navItems = [
-  { label: "Overview", href: "", icon: LayoutDashboardIcon },
-  { label: "Credentials", href: "credentials", icon: KeyIcon },
-  { label: "STK Push", href: "stk", icon: SmartphoneIcon },
-  { label: "C2B", href: "c2b", icon: ArrowLeftRightIcon },
-  { label: "Request log", href: "logs", icon: ScrollTextIcon },
+  { label: "Overview", href: "/projects/dashboard", icon: LayoutDashboardIcon },
+  {
+    label: "Credentials",
+    href: "/projects/dashboard/credentials",
+    icon: KeyIcon,
+  },
+  { label: "STK Push", href: "/projects/dashboard/stk", icon: SmartphoneIcon },
+  { label: "C2B", href: "/projects/dashboard/c2b", icon: ArrowLeftRightIcon },
+  {
+    label: "Request log",
+    href: "/projects/dashboard/logs",
+    icon: ScrollTextIcon,
+  },
 ];
 
-export function AppSidebar({ slug }: { slug: string }) {
+export function AppSidebar() {
   const pathname = usePathname();
+  const name = useActiveProjectStore((s) => s.name);
 
   return (
     <Sidebar collapsible="icon">
@@ -42,7 +52,7 @@ export function AppSidebar({ slug }: { slug: string }) {
             <PlugZapIcon className="size-3.5 text-white" />
           </div>
           <span className="truncate font-mono text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-            {slug}
+            {name}
           </span>
         </div>
       </SidebarHeader>
@@ -52,17 +62,17 @@ export function AppSidebar({ slug }: { slug: string }) {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {
-                const href = item.href
-                  ? `/projects/${slug}/${item.href}`
-                  : `/projects/${slug}`;
-                const isActive = pathname?.startsWith(href);
+                const isActive =
+                  item.href === "/projects/dashboard"
+                    ? pathname === item.href
+                    : pathname?.startsWith(item.href);
 
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       isActive={isActive}
                       tooltip={item.label}
-                      render={<Link href={href} />}>
+                      render={<Link href={item.href} />}>
                       <item.icon />
                       <span>{item.label}</span>
                     </SidebarMenuButton>
@@ -79,7 +89,7 @@ export function AppSidebar({ slug }: { slug: string }) {
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip="Settings"
-              render={<Link href={`/projects/${slug}/settings`} />}>
+              render={<Link href="/projects/dashboard/settings" />}>
               <SettingsIcon />
               <span>Settings</span>
             </SidebarMenuButton>
