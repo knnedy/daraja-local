@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/sidebar";
 
 const navItems = [
-  { label: "Overview", href: "overview", icon: LayoutDashboardIcon },
+  { label: "Overview", href: "", icon: LayoutDashboardIcon },
   { label: "Credentials", href: "credentials", icon: KeyIcon },
   { label: "STK Push", href: "stk", icon: SmartphoneIcon },
   { label: "C2B", href: "c2b", icon: ArrowLeftRightIcon },
@@ -52,7 +52,9 @@ export function AppSidebar({ slug }: { slug: string }) {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {
-                const href = `/projects/${slug}/${item.href}`;
+                const href = item.href
+                  ? `/projects/${slug}/${item.href}`
+                  : `/projects/${slug}`;
                 const isActive = pathname?.startsWith(href);
 
                 return (

@@ -33,7 +33,7 @@ export default function NewProjectPage() {
 
   async function onSubmit(values: CreateProjectInput) {
     const project = await createProject.mutateAsync(values);
-    router.push(`/projects/${project.slug}/overview`);
+    router.push(`/projects/${project.slug}`);
   }
 
   return (
