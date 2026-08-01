@@ -15,8 +15,12 @@ import {
   createProjectSchema,
   type CreateProjectInput,
 } from "@/lib/schemas/project";
+import { useRouter } from "next/navigation";
+import { useCreateProject } from "@/hooks/use-create-project";
 
 export default function NewProjectPage() {
+  const router = useRouter();
+
   const {
     register,
     handleSubmit,
@@ -25,10 +29,11 @@ export default function NewProjectPage() {
     resolver: zodResolver(createProjectSchema),
   });
 
-  // TODO: replace with a mutation against the Go API once the
-  // project creation endpoint exists
+  const createProject = useCreateProject();
+
   async function onSubmit(values: CreateProjectInput) {
-    console.log(values);
+    const project = await createProject.mutateAsync(values);
+    router.push(`/projects/${project.slug}/overview`);
   }
 
   return (
@@ -52,7 +57,7 @@ export default function NewProjectPage() {
               Create a project
             </h1>
             <div className="mb-3 h-0.75 w-8 rounded-full bg-green" />
-            <p className="text-sm leading-relaxed text-sub">
+            <p className="text-sm leading-relaxed text-muted-foreground">
               Daraja Local generates a shortcode, consumer key, secret, and
               passkey for you — just like a real Daraja sandbox app.
             </p>
@@ -70,6 +75,7 @@ export default function NewProjectPage() {
               <Input
                 id="name"
                 placeholder="My ticketing app"
+                className="font-mono text-[13px]"
                 {...register("name")}
               />
               {errors.name && (
