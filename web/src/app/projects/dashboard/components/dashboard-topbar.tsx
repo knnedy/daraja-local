@@ -3,9 +3,11 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { useActiveProjectStore } from "@/store/active-project";
+import { useAppConfigStore } from "@/store/app-config";
 
 export function DashboardTopbar() {
   const name = useActiveProjectStore((s) => s.name);
+  const port = useAppConfigStore((s) => s.port);
 
   return (
     <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-3">
@@ -18,7 +20,7 @@ export function DashboardTopbar() {
           running
         </span>
         <span className="font-mono text-xs text-muted-foreground">
-          localhost:7060
+          localhost:{port}
         </span>
       </div>
     </header>
