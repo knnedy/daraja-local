@@ -1,10 +1,11 @@
-export type NetworkProfile = "stable" | "degraded" | "offline";
-
 export interface Project {
   slug: string;
   name: string;
   shortCode: string;
+  consumerKey: string;
+  consumerSecret: string;
+  passkey: string;
+  callbackBaseUrl: string;
   createdAt: string;
   lastActiveAt: string | null;
-  networkProfile: NetworkProfile;
 }
