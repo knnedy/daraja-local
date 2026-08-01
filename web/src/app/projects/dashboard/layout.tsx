@@ -28,7 +28,15 @@ export default function DashboardLayout({
       <ProjectSidebar />
       <SidebarInset>
         <ProjectTopbar />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main
+          className="flex-1 overflow-y-auto p-6"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, color-mix(in oklch, var(--border) 55%, transparent) 1px, transparent 1px)",
+            backgroundSize: "22px 22px",
+          }}>
+          {children}
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );

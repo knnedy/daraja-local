@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { ChevronRightIcon, MoonIcon, SunIcon } from "lucide-react";
+import { ChevronRightIcon, MoonIcon, RadioIcon, SunIcon } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -30,20 +30,22 @@ export function ProjectTopbar() {
   return (
     <header className="flex h-13 shrink-0 items-center gap-2.5 border-b border-border bg-surface-2 px-5">
       <SidebarTrigger />
-      <Separator orientation="vertical" className="h-4" />
+      <Separator orientation="vertical" className="h-13" />
       <span className="text-xs text-muted-foreground">{name}</span>
       <ChevronRightIcon className="size-3.25 text-muted-foreground" />
       <span className="text-[13px] font-medium text-foreground">{label}</span>
 
-      <div className="ml-auto flex items-center gap-2.5">
-        <span className="flex items-center gap-1.5 rounded-full bg-green-light px-2.5 py-1 text-[11px] font-medium text-green">
-          <span className="size-1.5 rounded-full bg-green" />
-          running
+      <div className="ml-auto flex items-center gap-2">
+        <span className="rounded-md border border-border-strong bg-surface-1 px-2 py-1 font-mono text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          sandbox
         </span>
-        <span className="font-mono text-[11.5px] text-muted-foreground">
-          localhost:{port}
-        </span>
-        <Separator orientation="vertical" className="h-4" />
+        <div className="flex items-center gap-2 rounded-full border border-green-mid bg-green-light px-3 py-1">
+          <RadioIcon className="size-3.25 text-green" />
+          <span className="text-[11px] font-medium text-green">on air</span>
+          <span className="text-[11px] text-green/50">·</span>
+          <span className="font-mono text-[11px] text-green/80">:{port}</span>
+        </div>
+        <Separator orientation="vertical" className="h-13" />
         <Button
           variant="ghost"
           size="icon-sm"

@@ -9,7 +9,7 @@ import {
   ArrowLeftRightIcon,
   ScrollTextIcon,
   SettingsIcon,
-  PlugZapIcon,
+  RadioIcon,
 } from "lucide-react";
 import {
   Sidebar,
@@ -73,20 +73,18 @@ export function ProjectSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="h-13 justify-center border-b border-border">
-        <div className="flex items-center gap-2.5 px-2">
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-green">
-            <PlugZapIcon className="size-3.75 text-white" />
+        <div className="flex items-center gap-2.5 px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+          <div className="relative flex size-7 shrink-0 items-center justify-center rounded-lg border border-green-mid bg-green-light">
+            <RadioIcon className="size-3.75 text-green" />
+            <span className="absolute -right-0.5 -top-0.5 size-1.75 rounded-full bg-green ring-2 ring-sidebar" />
           </div>
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
             <p className="truncate text-[13.5px] font-medium leading-tight text-foreground">
               {name}
             </p>
-            <div className="flex items-center gap-1">
-              <span className="size-1.25 rounded-full bg-green" />
-              <p className="truncate font-mono text-[11px] leading-tight text-muted-foreground">
-                daraja-local
-              </p>
-            </div>
+            <p className="truncate font-mono text-[11px] leading-tight text-muted-foreground">
+              daraja-local
+            </p>
           </div>
         </div>
       </SidebarHeader>
@@ -98,7 +96,7 @@ export function ProjectSidebar() {
               {group.label}
             </SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className="gap-1">
                 {group.items.map((item) => {
                   const isActive =
                     item.href === "/projects/dashboard"
@@ -112,9 +110,9 @@ export function ProjectSidebar() {
                         tooltip={item.label}
                         render={<Link href={item.href} />}
                         className={cn(
-                          "relative pl-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:pl-2",
+                          "relative h-9 gap-2.5 pl-3 text-[13.5px] [&_svg]:size-[18px] group-data-[collapsible=icon]:size-9! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:pl-0",
                           isActive &&
-                            "text-green hover:text-green data-active:bg-transparent data-active:text-green before:absolute before:inset-y-0.5 before:left-0 before:w-[2.5px] before:rounded-r-full before:bg-green group-data-[collapsible=icon]:before:hidden",
+                            "text-green hover:text-green data-active:bg-transparent data-active:text-green before:absolute before:inset-y-1 before:left-0 before:w-[2.5px] before:rounded-r-full before:bg-green group-data-[collapsible=icon]:before:hidden",
                         )}>
                         <item.icon />
                         <span className="group-data-[collapsible=icon]:hidden">
@@ -135,9 +133,12 @@ export function ProjectSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip="Settings"
-              render={<Link href="/projects/dashboard/settings" />}>
+              render={<Link href="/projects/dashboard/settings" />}
+              className="h-9 gap-2.5 pl-3 text-[13.5px] [&_svg]:size-[18px] group-data-[collapsible=icon]:size-9! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:pl-0">
               <SettingsIcon />
-              <span>Settings</span>
+              <span className="group-data-[collapsible=icon]:hidden">
+                Settings
+              </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
