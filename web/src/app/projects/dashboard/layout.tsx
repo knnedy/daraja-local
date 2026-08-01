@@ -1,21 +1,33 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useActiveProjectStore } from "@/store/active-project";
 import { AppSidebar } from "./components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardTopbar } from "./components/dashboard-topbar";
 
-export default async function ProjectLayout({
+export default function DashboardLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const router = useRouter();
+  const slug = useActiveProjectStore((s) => s.slug);
+
+  useEffect(() => {
+    if (!slug) {
+      router.replace("/projects");
+    }
+  }, [slug, router]);
+
+  if (!slug) return null;
 
   return (
     <SidebarProvider>
-      <AppSidebar slug={slug} />
+      <AppSidebar />
       <SidebarInset>
-        <DashboardTopbar slug={slug} />
+        <DashboardTopbar />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </SidebarInset>
     </SidebarProvider>
