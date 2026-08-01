@@ -13,6 +13,7 @@ const stats = [
     icon: ActivityIcon,
     bg: "bg-blue-bg",
     fg: "text-blue",
+    border: "border-blue-border",
   },
   {
     label: "Success rate",
@@ -20,6 +21,7 @@ const stats = [
     icon: CheckIcon,
     bg: "bg-green-light",
     fg: "text-green",
+    border: "border-green-mid",
   },
   {
     label: "Active sessions",
@@ -27,12 +29,13 @@ const stats = [
     icon: BoltIcon,
     bg: "bg-amber-bg",
     fg: "text-amber",
+    border: "border-amber-border",
   },
 ];
 
 export default function OverviewPage() {
   return (
-    <div className="flex flex-col gap-[22px]">
+    <div className="flex flex-col gap-5.5">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="mb-0.5 font-heading text-[21px] font-medium text-foreground">
@@ -42,8 +45,8 @@ export default function OverviewPage() {
             Live stats and recent activity for this project.
           </p>
         </div>
-        <button className="flex h-[34px] items-center gap-1.5 rounded-md bg-green px-3.5 text-[13px] font-medium text-white">
-          <PlayIcon className="size-[15px]" />
+        <button className="flex h-8.5 items-center gap-1.5 rounded-md bg-green px-3.5 text-[13px] font-medium text-white">
+          <PlayIcon className="size-3.75" />
           Trigger STK Push
         </button>
       </div>
@@ -52,17 +55,17 @@ export default function OverviewPage() {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="flex flex-col gap-2.5 rounded-md bg-surface-2 p-4">
-            <div className="flex items-center justify-between">
+            className="flex flex-col gap-3 rounded-md border border-border bg-surface-1 p-4">
+            <div className="flex items-center gap-2">
+              <div
+                className={`flex size-7 items-center justify-center rounded-[7px] border ${stat.border} ${stat.bg}`}>
+                <stat.icon className={`size-3.5 ${stat.fg}`} />
+              </div>
               <span className="text-xs text-muted-foreground">
                 {stat.label}
               </span>
-              <div
-                className={`flex size-6 items-center justify-center rounded-md ${stat.bg}`}>
-                <stat.icon className={`size-[13px] ${stat.fg}`} />
-              </div>
             </div>
-            <span className="text-2xl font-medium text-foreground">
+            <span className="text-[26px] font-medium text-foreground">
               {stat.value}
             </span>
           </div>
@@ -74,10 +77,14 @@ export default function OverviewPage() {
           <span className="text-[13px] font-medium text-foreground">
             Recent activity
           </span>
-          <span className="text-xs text-green">View all</span>
+          <span className="flex items-center gap-1 text-xs text-green">
+            View all
+          </span>
         </div>
-        <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-surface-2 py-11">
-          <AntennaIcon className="size-6 text-muted-foreground" />
+        <div className="flex flex-col items-center justify-center gap-2 rounded-md border border-border bg-surface-1 py-11">
+          <div className="mb-0.5 flex size-10 items-center justify-center rounded-[10px] bg-surface-2">
+            <AntennaIcon className="size-4.75 text-muted-foreground" />
+          </div>
           <span className="text-[13px] text-foreground">No requests yet</span>
           <span className="text-xs text-muted-foreground">
             Trigger an STK Push to see live activity here.

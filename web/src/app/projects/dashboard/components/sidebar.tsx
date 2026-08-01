@@ -24,7 +24,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useActiveProjectStore } from "@/store/active-project";
-import { cn } from "@/lib/utils";
+import { cn, stripTrailingSlash } from "@/lib/utils";
 
 const navGroups = [
   {
@@ -68,10 +68,12 @@ export function ProjectSidebar() {
   const pathname = usePathname();
   const name = useActiveProjectStore((s) => s.name);
 
+  const normalizedPath = pathname ? stripTrailingSlash(pathname) : "";
+
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-border">
-        <div className="flex items-center gap-2.5 px-2 py-1.5">
+      <SidebarHeader className="h-13 justify-center border-b border-border">
+        <div className="flex items-center gap-2.5 px-2">
           <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-green">
             <PlugZapIcon className="size-3.75 text-white" />
           </div>
@@ -100,8 +102,8 @@ export function ProjectSidebar() {
                 {group.items.map((item) => {
                   const isActive =
                     item.href === "/projects/dashboard"
-                      ? pathname === item.href
-                      : pathname?.startsWith(item.href);
+                      ? normalizedPath === item.href
+                      : normalizedPath?.startsWith(item.href);
 
                   return (
                     <SidebarMenuItem key={item.href}>
@@ -110,12 +112,14 @@ export function ProjectSidebar() {
                         tooltip={item.label}
                         render={<Link href={item.href} />}
                         className={cn(
-                          "relative pl-3",
+                          "relative pl-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:pl-2",
                           isActive &&
-                            "text-green hover:text-green data-active:bg-transparent data-active:text-green before:absolute before:inset-y-0.5 before:left-0 before:w-[2.5px] before:rounded-r-full before:bg-green",
+                            "text-green hover:text-green data-active:bg-transparent data-active:text-green before:absolute before:inset-y-0.5 before:left-0 before:w-[2.5px] before:rounded-r-full before:bg-green group-data-[collapsible=icon]:before:hidden",
                         )}>
                         <item.icon />
-                        <span>{item.label}</span>
+                        <span className="group-data-[collapsible=icon]:hidden">
+                          {item.label}
+                        </span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );

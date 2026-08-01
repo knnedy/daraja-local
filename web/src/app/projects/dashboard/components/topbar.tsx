@@ -1,10 +1,14 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { ChevronRightIcon } from "lucide-react";
+import { useTheme } from "next-themes";
+import { ChevronRightIcon, MoonIcon, SunIcon } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useAppConfigStore } from "@/store/app-config";
+import { stripTrailingSlash } from "@/lib/utils";
 
 const labels: Record<string, string> = {
   "/projects/dashboard": "Overview",
@@ -17,14 +21,17 @@ const labels: Record<string, string> = {
 
 export function ProjectTopbar() {
   const pathname = usePathname();
+  const normalizedPath = pathname ? stripTrailingSlash(pathname) : "";
   const name = useActiveProjectStore((s) => s.name);
   const port = useAppConfigStore((s) => s.port);
-  const label = pathname ? (labels[pathname] ?? "") : "";
+  const { theme, setTheme } = useTheme();
+  const label = labels[normalizedPath] ?? "";
 
   return (
-    <header className="flex h-12.5 shrink-0 items-center gap-2.5 border-b border-border bg-surface-2 px-5">
+    <header className="flex h-13 shrink-0 items-center gap-2.5 border-b border-border bg-surface-2 px-5">
       <SidebarTrigger />
-      <span className="font-mono text-xs text-muted-foreground">{name}</span>
+      <Separator orientation="vertical" className="h-4" />
+      <span className="text-xs text-muted-foreground">{name}</span>
       <ChevronRightIcon className="size-3.25 text-muted-foreground" />
       <span className="text-[13px] font-medium text-foreground">{label}</span>
 
@@ -36,6 +43,15 @@ export function ProjectTopbar() {
         <span className="font-mono text-[11.5px] text-muted-foreground">
           localhost:{port}
         </span>
+        <Separator orientation="vertical" className="h-4" />
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+          <SunIcon className="size-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+          <MoonIcon className="absolute size-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
       </div>
     </header>
   );
