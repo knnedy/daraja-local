@@ -39,26 +39,6 @@ const endpoints: Endpoint[] = [
     description: "C2B payment simulation",
     href: "/projects/dashboard/c2b",
   },
-  {
-    method: "POST",
-    path: "/mpesa/b2c/v1/paymentrequest",
-    description: "B2C payment request",
-  },
-  {
-    method: "POST",
-    path: "/mpesa/accountbalance/v1/query",
-    description: "Account balance query",
-  },
-  {
-    method: "POST",
-    path: "/mpesa/transactionstatus/v1/query",
-    description: "Transaction status query",
-  },
-  {
-    method: "POST",
-    path: "/mpesa/reversal/v1/request",
-    description: "Transaction reversal",
-  },
 ];
 
 function MethodBadge({ method }: { method: Endpoint["method"] }) {
@@ -83,7 +63,7 @@ export default function EndpointsCard() {
           Mocked endpoints
         </span>
         <span className="text-xs text-muted-foreground">
-          {endpoints.length} of 9 Daraja endpoints
+          {endpoints.length} endpoints
         </span>
       </div>
       <div>

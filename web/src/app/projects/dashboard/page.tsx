@@ -9,12 +9,6 @@ import EnvCard from "./components/env-card";
 import ProjectDetailsCard from "./components/project-details";
 import StatsCard from "./components/stats-card";
 
-const stats = [
-  { label: "Requests today", value: "0" },
-  { label: "Success rate", value: "—" },
-  { label: "Active sessions", value: "0" },
-];
-
 export default function OverviewPage() {
   return (
     <div className="flex flex-col gap-5">
