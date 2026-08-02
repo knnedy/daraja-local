@@ -3,7 +3,8 @@ import { persist } from "zustand/middleware";
 
 interface ActiveProjectState {
   name: string | null;
-  setActiveProject: (name: string) => void;
+  callbackBaseurl: string | null;
+  setActiveProject: (name: string, callbackBaseurl: string) => void;
   clearActiveProject: () => void;
 }
 
@@ -11,9 +12,13 @@ export const useActiveProjectStore = create<ActiveProjectState>()(
   persist(
     (set) => ({
       name: null,
-      setActiveProject: (name) => set({ name }),
-      clearActiveProject: () => set({ name: null }),
+      callbackBaseurl: null,
+      setActiveProject: (name, callbackBaseurl) =>
+        set({ name, callbackBaseurl }),
+      clearActiveProject: () => set({ name: null, callbackBaseurl: null }),
     }),
-    { name: "daraja-local-active-project" },
+    {
+      name: "daraja-local-active-project",
+    },
   ),
 );

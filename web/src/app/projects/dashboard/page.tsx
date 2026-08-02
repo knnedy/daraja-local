@@ -1,13 +1,13 @@
-// app/projects/dashboard/(overview)/page.tsx
 "use client";
 
 import Link from "next/link";
 import { PlayIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { RecentActivity } from "./components/recent-activity";
-import { EndpointsCard } from "./components/endpoints-card";
+import RecentActivity from "./components/recent-activity";
+import EndpointsCard from "./components/endpoints-card";
 import EnvCard from "./components/env-card";
 import ProjectDetailsCard from "./components/project-details";
+import StatsCard from "./components/stats-card";
 
 const stats = [
   { label: "Requests today", value: "0" },
@@ -36,36 +36,7 @@ export default function OverviewPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <div>
-          <div className="mb-2.5 flex items-center justify-between">
-            <span className="text-[13px] font-medium text-foreground">
-              Environment
-            </span>
-            <span className="text-xs text-muted-foreground">
-              Generated on init — rotate from Credentials
-            </span>
-          </div>
-          <EnvCard />
-        </div>
-        <div>
-          <div className="mb-2.5 text-[13px] font-medium text-foreground">
-            Project details
-          </div>
-          <ProjectDetailsCard />
-        </div>
-      </div>
-
-      <div className="flex items-center gap-8 rounded-lg border border-border bg-surface-1 px-5 py-3">
-        {stats.map((stat) => (
-          <div key={stat.label} className="flex items-baseline gap-2">
-            <span className="text-xs text-muted-foreground">{stat.label}</span>
-            <span className="font-mono text-[15px] font-medium text-foreground">
-              {stat.value}
-            </span>
-          </div>
-        ))}
-      </div>
+      <StatsCard />
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
         <div className="lg:col-span-3">
@@ -79,6 +50,26 @@ export default function OverviewPage() {
             Recent activity
           </div>
           <RecentActivity />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <div>
+          <div className="mb-2.5 text-[13px] font-medium text-foreground">
+            Project details
+          </div>
+          <ProjectDetailsCard />
+        </div>
+        <div>
+          <div className="mb-2.5 flex items-center justify-between">
+            <span className="text-[13px] font-medium text-foreground">
+              Environment
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Generated on init — rotate from Credentials
+            </span>
+          </div>
+          <EnvCard />
         </div>
       </div>
     </div>

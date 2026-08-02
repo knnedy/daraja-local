@@ -51,9 +51,9 @@ function Row({
 
 export default function ProjectDetailsCard() {
   const name = useActiveProjectStore((s) => s.name);
+  const callbackUrl = useActiveProjectStore((s) => s.callbackBaseurl);
 
   // Mocked until the project settings/API wiring is in place.
-  const callbackUrl = "http://localhost:8000";
   const createdAt = "1 Aug 2026";
 
   return (
@@ -69,7 +69,11 @@ export default function ProjectDetailsCard() {
           value={name ?? "Unknown Project"}
           mono={false}
         />
-        <Row label="Callback URL" value={callbackUrl} copyable />
+        <Row
+          label="Callback URL"
+          value={callbackUrl ?? "Unknown Callback URL"}
+          copyable
+        />
         <Row label="Created" value={createdAt} mono={false} />
       </div>
     </div>

@@ -35,7 +35,7 @@ export default function NewProjectPage() {
 
   async function onSubmit(values: CreateProjectInput) {
     const project = await createProject.mutateAsync(values);
-    setActiveProject(project.slug, project.name);
+    setActiveProject(project.name, project.callbackBaseUrl);
     router.push("/projects/dashboard");
   }
 

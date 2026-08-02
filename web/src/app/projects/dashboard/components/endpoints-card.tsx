@@ -75,7 +75,7 @@ function MethodBadge({ method }: { method: Endpoint["method"] }) {
   );
 }
 
-export function EndpointsCard() {
+export default function EndpointsCard() {
   return (
     <div className="rounded-lg border border-border bg-surface-1">
       <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
