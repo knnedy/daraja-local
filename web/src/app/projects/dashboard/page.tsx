@@ -23,6 +23,7 @@ export default function OverviewPage() {
           </p>
         </div>
         <Button
+          nativeButton={false}
           className="gap-1.5 bg-green text-white hover:bg-green/90"
           render={<Link href="/projects/dashboard/stk" />}>
           <PlayIcon className="size-3.75" />

@@ -5,12 +5,20 @@ import type { StkOutcome } from "../lib/result-codes";
 type Phase = "idle" | "prompt" | "processing" | "resolved";
 type RequestPayload = { phone: string; amount: string; accountRef: string };
 
+const PHASE_COPY: Record<Phase, string> = {
+  idle: "No active session",
+  prompt: "Awaiting customer PIN",
+  processing: "Processing response",
+  resolved: "Session closed",
+};
+
 export default function SimulatorCard({
   phase,
   request,
   pin,
   secondsLeft,
   outcome,
+  checkoutId,
   onDigit,
   onBackspace,
   onSubmitPin,
@@ -22,6 +30,7 @@ export default function SimulatorCard({
   pin: string;
   secondsLeft: number;
   outcome: StkOutcome | null;
+  checkoutId: string;
   onDigit: (digit: string) => void;
   onBackspace: () => void;
   onSubmitPin: () => void;
@@ -56,6 +65,24 @@ export default function SimulatorCard({
           onSubmitPin={onSubmitPin}
           onCancel={onCancel}
         />
+      </div>
+
+      <div className="rounded-md border border-border bg-surface-2 px-3 py-2">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-medium text-foreground">
+            {PHASE_COPY[phase]}
+          </span>
+          {request && (
+            <span className="font-mono text-[10px] text-muted-foreground">
+              KES {request.amount}
+            </span>
+          )}
+        </div>
+        {checkoutId && (
+          <p className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
+            {checkoutId}
+          </p>
+        )}
       </div>
 
       <button
