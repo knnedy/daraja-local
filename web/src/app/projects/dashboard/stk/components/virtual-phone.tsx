@@ -1,4 +1,4 @@
-import { CheckIcon, SignalHighIcon, XIcon } from "lucide-react";
+import { CheckIcon, InfoIcon, SignalHighIcon, XIcon } from "lucide-react";
 import Keypad from "./keypad";
 import { RESULT_CODES, type StkOutcome } from "../lib/result-codes";
 
@@ -141,9 +141,40 @@ export default function VirtualPhone({
           </button>
         </div>
       </div>
-      <p className="text-[11px] text-muted-foreground">
-        {phase === "idle" ? "Idle — simulated handset" : "Simulated handset"}
-      </p>
+
+      <div className="group relative flex items-center gap-1">
+        <p className="text-[11px] text-muted-foreground">
+          {phase === "idle" ? "Idle — simulated handset" : "Simulated handset"}
+        </p>
+        <InfoIcon className="size-3 cursor-help text-muted-foreground" />
+        <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 w-64 -translate-x-1/2 rounded-lg border border-border bg-popover p-3 text-left text-[11px] leading-relaxed text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+          <p className="mb-1.5 font-medium text-foreground">
+            How the simulation works
+          </p>
+          <ul className="space-y-1 font-mono text-[10.5px]">
+            <li>
+              <span className="text-muted-foreground">any number</span> — phone
+              isn&apos;t validated
+            </li>
+            <li>
+              <span className="text-green">1234</span> or any PIN — approves
+            </li>
+            <li>
+              <span className="text-destructive">0000</span> — wrong PIN
+            </li>
+            <li>
+              <span className="text-destructive">1111</span> — insufficient
+              balance
+            </li>
+            <li>
+              <span className="text-destructive">Cancel</span> — user cancelled
+            </li>
+            <li>
+              <span className="text-destructive">wait it out</span> — timeout
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }

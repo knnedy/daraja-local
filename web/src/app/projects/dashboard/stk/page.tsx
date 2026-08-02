@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import StkForm from "./components/stk-form";
-import VirtualPhone from "./components/virtual-phone";
-import PayloadConsole from "./components/payload-console";
+import RequestBar from "./components/request-bar";
+import IntegrationPanel from "./components/integration-panel";
+import SimulatorCard from "./components/simulator-card";
+import PayloadConsole, { type LogEntry } from "./components/payload-console";
+import SimulationGuide from "./components/simulation-guide";
 import {
   RESULT_CODES,
   resolveOutcome,
@@ -11,14 +13,21 @@ import {
 } from "./lib/result-codes";
 
 type Phase = "idle" | "prompt" | "processing" | "resolved";
-type RequestPayload = {
-  phone: string;
-  amount: string;
-  accountRef: string;
-  description: string;
-};
+type RequestPayload = { phone: string; amount: string; accountRef: string };
 
 const PROMPT_SECONDS = 20;
+const BASE_URL = "http://localhost:8080";
+const PATH = "/mpesa/stkpush/v1/processrequest";
+
+const MOCK_REQUESTS: RequestPayload[] = [
+  { phone: "254712345678", amount: "1000", accountRef: "Order #1032" },
+  { phone: "254798765432", amount: "2500", accountRef: "Order #1090" },
+  { phone: "254701122334", amount: "500", accountRef: "Order #1104" },
+];
+
+function timestamp() {
+  return new Date().toISOString().slice(11, 23);
+}
 
 export default function StkPushPage() {
   const [phase, setPhase] = useState<Phase>("idle");
@@ -27,7 +36,8 @@ export default function StkPushPage() {
   const [pin, setPin] = useState("");
   const [secondsLeft, setSecondsLeft] = useState(PROMPT_SECONDS);
   const [outcome, setOutcome] = useState<StkOutcome | null>(null);
-  const [logs, setLogs] = useState<string[]>([]);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [mockIndex, setMockIndex] = useState(0);
 
   useEffect(() => {
     if (phase !== "prompt") return;
@@ -40,7 +50,16 @@ export default function StkPushPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, secondsLeft]);
 
-  function handleSend(payload: RequestPayload) {
+  function addLog(kind: LogEntry["kind"], content: string) {
+    setLogs((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), time: timestamp(), kind, content },
+    ]);
+  }
+
+  function handleSimulate() {
+    const payload = MOCK_REQUESTS[mockIndex % MOCK_REQUESTS.length];
+    setMockIndex((i) => i + 1);
     const id = `ws_CO_${Date.now()}`;
     setRequest(payload);
     setCheckoutId(id);
@@ -48,12 +67,10 @@ export default function StkPushPage() {
     setOutcome(null);
     setSecondsLeft(PROMPT_SECONDS);
     setPhase("prompt");
-    setLogs((prev) => [
-      ...prev,
-      `$ POST /mpesa/stkpush/v1/processrequest`,
-      `> CheckoutRequestID ${id}`,
-      `> prompt sent to ${payload.phone || "unknown number"}`,
-    ]);
+    addLog(
+      "request",
+      `POST ${PATH}\nCheckoutRequestID ${id}\nprompt sent to ${payload.phone}`,
+    );
   }
 
   function resolve(o: StkOutcome) {
@@ -72,11 +89,7 @@ export default function StkPushPage() {
           },
         },
       };
-      setLogs((prev) => [
-        ...prev,
-        `$ POST callbackUrl`,
-        JSON.stringify(callback, null, 2),
-      ]);
+      addLog("callback", JSON.stringify(callback, null, 2));
       setTimeout(() => {
         setPhase("idle");
         setRequest(null);
@@ -110,27 +123,33 @@ export default function StkPushPage() {
           STK Push
         </h1>
         <p className="text-[13px] text-muted-foreground">
-          Simulate the customer prompt for /mpesa/stkpush/v1/processrequest.
+          Call this endpoint from your app, then watch and respond to what comes
+          in.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px] lg:items-start">
-        <StkForm disabled={phase !== "idle"} onSend={handleSend} />
-        <div className="flex flex-col gap-4 lg:sticky lg:top-6">
-          <VirtualPhone
-            phase={phase}
-            request={request}
-            pin={pin}
-            secondsLeft={secondsLeft}
-            outcome={outcome}
-            onDigit={handleDigit}
-            onBackspace={handleBackspace}
-            onSubmitPin={handleSubmitPin}
-            onCancel={handleCancel}
-          />
-          <PayloadConsole logs={logs} />
+      <RequestBar baseUrl={BASE_URL} path={PATH} />
+
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px] lg:items-stretch">
+        <div className="flex flex-col gap-5">
+          <IntegrationPanel />
+          <SimulationGuide />
         </div>
+        <SimulatorCard
+          phase={phase}
+          request={request}
+          pin={pin}
+          secondsLeft={secondsLeft}
+          outcome={outcome}
+          onDigit={handleDigit}
+          onBackspace={handleBackspace}
+          onSubmitPin={handleSubmitPin}
+          onCancel={handleCancel}
+          onSimulate={handleSimulate}
+        />
       </div>
+
+      <PayloadConsole logs={logs} />
     </div>
   );
 }
