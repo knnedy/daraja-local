@@ -128,9 +128,8 @@ export default function C2BPage() {
         onSimulate={handleSimulate}
       />
 
-      <CallbackLog logs={logs} />
-
       <SimulationGuide />
+      <CallbackLog logs={logs} />
     </div>
   );
 }
