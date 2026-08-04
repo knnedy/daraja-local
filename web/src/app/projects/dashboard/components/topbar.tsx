@@ -2,22 +2,38 @@
 
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { ChevronRightIcon, MoonIcon, RadioIcon, SunIcon } from "lucide-react";
+import {
+  ChevronRightIcon,
+  KeyIcon,
+  MoonIcon,
+  ScrollTextIcon,
+  SearchIcon,
+  SettingsIcon,
+  SunIcon,
+  ArrowLeftRightIcon,
+} from "lucide-react";
+import { RxDashboard } from "react-icons/rx";
+import { HiOutlineDevicePhoneMobile } from "react-icons/hi2";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useAppConfigStore } from "@/store/app-config";
 import { stripTrailingSlash } from "@/lib/utils";
 
-const labels: Record<string, string> = {
-  "/projects/dashboard": "Overview",
-  "/projects/dashboard/credentials": "Credentials",
-  "/projects/dashboard/stk": "STK Push",
-  "/projects/dashboard/c2b": "C2B",
-  "/projects/dashboard/logs": "Request log",
-  "/projects/dashboard/settings": "Settings",
+const pages: Record<string, { label: string; icon: React.ElementType }> = {
+  "/projects/dashboard": { label: "Overview", icon: RxDashboard },
+  "/projects/dashboard/stk": {
+    label: "STK Push",
+    icon: HiOutlineDevicePhoneMobile,
+  },
+  "/projects/dashboard/c2b": { label: "C2B", icon: ArrowLeftRightIcon },
+  "/projects/dashboard/logs": { label: "Request log", icon: ScrollTextIcon },
+  "/projects/dashboard/credentials": { label: "Credentials", icon: KeyIcon },
+  "/projects/dashboard/settings": { label: "Settings", icon: SettingsIcon },
 };
+
+function VerticalDivider() {
+  return <div className="h-5 w-px shrink-0 bg-border-strong" />;
+}
 
 export function ProjectTopbar() {
   const pathname = usePathname();
@@ -25,35 +41,63 @@ export function ProjectTopbar() {
   const name = useActiveProjectStore((s) => s.name);
   const port = useAppConfigStore((s) => s.port);
   const { theme, setTheme } = useTheme();
-  const label = labels[normalizedPath] ?? "";
+  const page = pages[normalizedPath];
 
   return (
-    <header className="flex h-13 shrink-0 items-center gap-2.5 border-b border-border bg-surface-2 px-5">
-      <SidebarTrigger />
-      <Separator orientation="vertical" className="h-13" />
-      <span className="text-xs text-muted-foreground">{name}</span>
-      <ChevronRightIcon className="size-3.25 text-muted-foreground" />
-      <span className="text-[13px] font-medium text-foreground">{label}</span>
+    <header className="flex h-13 shrink-0 items-center gap-3 border-b border-border bg-surface-2 px-5">
+      <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+      <VerticalDivider />
 
-      <div className="ml-auto flex items-center gap-2">
-        <span className="rounded-md border border-border-strong bg-surface-1 px-2 py-1 font-mono text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-          sandbox
-        </span>
-        <div className="flex items-center gap-2 rounded-full border border-green-mid bg-green-light px-3 py-1">
-          <RadioIcon className="size-3.25 text-green" />
-          <span className="text-[11px] font-medium text-green">on air</span>
-          <span className="text-[11px] text-green/50">·</span>
-          <span className="font-mono text-[11px] text-green/80">:{port}</span>
+      <div className="flex min-w-0 items-center gap-1.5">
+        <span className="truncate text-xs text-muted-foreground">{name}</span>
+        <ChevronRightIcon className="size-3 shrink-0 text-muted-foreground/60" />
+        {page && (
+          <span className="flex shrink-0 items-center gap-1.5 text-[13px] font-medium text-foreground">
+            <page.icon className="size-3.5 text-muted-foreground" />
+            {page.label}
+          </span>
+        )}
+      </div>
+
+      <div className="ml-auto flex items-center gap-3">
+        <button
+          type="button"
+          className="flex items-center gap-2 rounded-md border border-border-strong bg-surface-1 px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+          <SearchIcon className="size-3.5" />
+          <span>Search</span>
+          <kbd className="rounded border border-border-strong bg-surface-2 px-1 font-mono text-[10px] leading-none text-muted-foreground">
+            ⌘K
+          </kbd>
+        </button>
+
+        <div className="flex items-center gap-2 rounded-full border border-green-mid bg-green-light px-3 py-1.5">
+          <span className="relative flex size-1.75 shrink-0 items-center justify-center">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green opacity-50" />
+            <span className="relative inline-flex size-1.75 rounded-full bg-green" />
+          </span>
+          <span className="text-[11px] font-medium whitespace-nowrap text-green">
+            sandbox
+          </span>
+          <span className="text-[11px] text-green/40">·</span>
+          <span className="font-mono text-[11px] whitespace-nowrap text-green/80">
+            :{port}
+          </span>
         </div>
-        <Separator orientation="vertical" className="h-13" />
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-          <SunIcon className="size-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-          <MoonIcon className="absolute size-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+
+        <VerticalDivider />
+
+        <button
+          type="button"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="relative flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-surface-1 hover:text-foreground">
+          <span className="absolute inset-0 flex items-center justify-center">
+            <SunIcon className="size-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+          </span>
+          <span className="absolute inset-0 flex items-center justify-center">
+            <MoonIcon className="size-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+          </span>
           <span className="sr-only">Toggle theme</span>
-        </Button>
+        </button>
       </div>
     </header>
   );
