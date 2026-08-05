@@ -15,7 +15,8 @@ export default function CallbackLog({ logs }: { logs: LogEntry[] }) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (logs.length === 0) return;
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [logs]);
 
   return (

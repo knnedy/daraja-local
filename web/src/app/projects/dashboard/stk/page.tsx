@@ -144,6 +144,7 @@ export default function StkPushPage() {
           pin={pin}
           secondsLeft={secondsLeft}
           outcome={outcome}
+          checkoutId={checkoutId}
           onDigit={handleDigit}
           onBackspace={handleBackspace}
           onSubmitPin={handleSubmitPin}
