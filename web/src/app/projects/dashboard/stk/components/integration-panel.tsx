@@ -1,4 +1,3 @@
-// app/projects/dashboard/stk/components/integration-panel.tsx
 "use client";
 
 import { useState } from "react";

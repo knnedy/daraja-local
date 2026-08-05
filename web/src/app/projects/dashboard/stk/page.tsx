@@ -11,6 +11,7 @@ import {
   resolveOutcome,
   type StkOutcome,
 } from "./lib/result-codes";
+import HowItWorks from "./components/how-it-works";
 
 type Phase = "idle" | "prompt" | "processing" | "resolved";
 type RequestPayload = { phone: string; amount: string; accountRef: string };
@@ -127,6 +128,8 @@ export default function StkPushPage() {
           in.
         </p>
       </div>
+
+      <HowItWorks />
 
       <RequestBar baseUrl={BASE_URL} path={PATH} />
 
