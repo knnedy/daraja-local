@@ -20,22 +20,22 @@ import { useAppConfigStore } from "@/store/app-config";
 import { stripTrailingSlash } from "@/lib/utils";
 
 const pages: Record<string, { label: string; icon: React.ElementType }> = {
-  "/projects/dashboard": { label: "Overview", icon: RxDashboard },
-  "/projects/dashboard/stk": {
+  "/dashboard": { label: "Overview", icon: RxDashboard },
+  "/dashboard/stk": {
     label: "STK Push",
     icon: HiOutlineDevicePhoneMobile,
   },
-  "/projects/dashboard/c2b": { label: "C2B", icon: ArrowLeftRightIcon },
-  "/projects/dashboard/logs": { label: "Request log", icon: ScrollTextIcon },
-  "/projects/dashboard/credentials": { label: "Credentials", icon: KeyIcon },
-  "/projects/dashboard/settings": { label: "Settings", icon: SettingsIcon },
+  "/dashboard/c2b": { label: "C2B", icon: ArrowLeftRightIcon },
+  "/dashboard/logs": { label: "Request log", icon: ScrollTextIcon },
+  "/dashboard/credentials": { label: "Credentials", icon: KeyIcon },
+  "/dashboard/settings": { label: "Settings", icon: SettingsIcon },
 };
 
 function VerticalDivider() {
   return <div className="h-5 w-px shrink-0 bg-border-strong" />;
 }
 
-export function ProjectTopbar() {
+export function DashboardTopbar() {
   const pathname = usePathname();
   const normalizedPath = pathname ? stripTrailingSlash(pathname) : "";
   const name = useActiveProjectStore((s) => s.name);

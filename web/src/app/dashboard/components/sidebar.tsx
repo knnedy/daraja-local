@@ -32,17 +32,17 @@ const navGroups = [
     items: [
       {
         label: "Overview",
-        href: "/projects/dashboard",
+        href: "/dashboard",
         icon: RxDashboard,
       },
       {
         label: "STK Push",
-        href: "/projects/dashboard/stk",
+        href: "/dashboard/stk",
         icon: SmartphoneIcon,
       },
       {
         label: "C2B",
-        href: "/projects/dashboard/c2b",
+        href: "/dashboard/c2b",
         icon: ArrowLeftRightIcon,
       },
     ],
@@ -52,19 +52,19 @@ const navGroups = [
     items: [
       {
         label: "Request log",
-        href: "/projects/dashboard/logs",
+        href: "/dashboard/logs",
         icon: ScrollTextIcon,
       },
       {
         label: "Credentials",
-        href: "/projects/dashboard/credentials",
+        href: "/dashboard/credentials",
         icon: KeyIcon,
       },
     ],
   },
 ];
 
-export function ProjectSidebar() {
+export function DashboardSidebar() {
   const pathname = usePathname();
   const name = useActiveProjectStore((s) => s.name);
 
@@ -102,7 +102,7 @@ export function ProjectSidebar() {
               <SidebarMenu className="gap-1">
                 {group.items.map((item) => {
                   const isActive =
-                    item.href === "/projects/dashboard"
+                    item.href === "/dashboard"
                       ? normalizedPath === item.href
                       : normalizedPath?.startsWith(item.href);
 
@@ -135,12 +135,12 @@ export function ProjectSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              isActive={normalizedPath === "/projects/dashboard/settings"}
+              isActive={normalizedPath === "/dashboard/settings"}
               tooltip="Settings"
-              render={<Link href="/projects/dashboard/settings" />}
+              render={<Link href="/dashboard/settings" />}
               className={cn(
                 "relative h-9 gap-2.5 pl-3 text-[13.5px] transition-colors hover:bg-surface-2/60 [&_svg]:size-4.5 group-data-[collapsible=icon]:size-9! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:pl-0",
-                normalizedPath === "/projects/dashboard/settings" &&
+                normalizedPath === "/dashboard/settings" &&
                   "bg-green-light/40 text-green hover:bg-green-light/40 hover:text-green data-active:bg-green-light/40 data-active:text-green before:absolute before:inset-y-1 before:left-0 before:w-[2.5px] before:rounded-r-full before:bg-green group-data-[collapsible=icon]:before:hidden",
               )}>
               <SettingsIcon />

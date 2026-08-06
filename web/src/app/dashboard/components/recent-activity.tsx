@@ -17,7 +17,7 @@ export default function RecentActivity() {
         </p>
       </div>
       <Link
-        href="/projects/dashboard/stk"
+        href="/dashboard/stk"
         className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-green hover:underline">
         <PlayIcon className="size-3" />
         Send a test STK Push

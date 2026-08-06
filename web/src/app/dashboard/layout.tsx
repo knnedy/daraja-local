@@ -1,8 +1,8 @@
 "use client";
 
-import { ProjectSidebar } from "./components/sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { ProjectTopbar } from "./components/topbar";
+import { DashboardSidebar } from "./components/sidebar";
+import { DashboardTopbar } from "./components/topbar";
 
 export default function DashboardLayout({
   children,
@@ -11,9 +11,9 @@ export default function DashboardLayout({
 }) {
   return (
     <SidebarProvider>
-      <ProjectSidebar />
+      <DashboardSidebar />
       <SidebarInset className="h-svh overflow-hidden">
-        <ProjectTopbar />
+        <DashboardTopbar />
         <main
           className="min-h-0 flex-1 overflow-y-auto p-6"
           style={{

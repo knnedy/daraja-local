@@ -19,25 +19,25 @@ const endpoints: Endpoint[] = [
     method: "POST",
     path: "/mpesa/stkpush/v1/processrequest",
     description: "STK Push (Lipa na M-Pesa Online)",
-    href: "/projects/dashboard/stk",
+    href: "/dashboard/stk",
   },
   {
     method: "POST",
     path: "/mpesa/stkpushquery/v1/query",
     description: "STK Push query",
-    href: "/projects/dashboard/stk",
+    href: "/dashboard/stk",
   },
   {
     method: "POST",
     path: "/mpesa/c2b/v1/registerurl",
     description: "C2B URL registration",
-    href: "/projects/dashboard/c2b",
+    href: "/dashboard/c2b",
   },
   {
     method: "POST",
     path: "/mpesa/c2b/v2/simulate",
     description: "C2B payment simulation",
-    href: "/projects/dashboard/c2b",
+    href: "/dashboard/c2b",
   },
 ];
 

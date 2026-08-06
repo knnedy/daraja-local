@@ -1,4 +1,3 @@
-// app/projects/dashboard/stk/components/how-it-works.tsx
 import { ArrowRightIcon } from "lucide-react";
 import {
   Accordion,

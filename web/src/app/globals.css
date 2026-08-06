@@ -60,6 +60,19 @@
   --color-surface-1: var(--surface-1);
   --color-surface-2: var(--surface-2);
   --color-border-strong: var(--border-strong);
+
+  /* Terminal tokens — fixed values for permanently-dark panels
+     (phone screen, callback console, code snippets). These never
+     swap between themes, unlike the semantic tokens above, since
+     a terminal look shouldn't invert in light mode. */
+  --color-terminal-bg: var(--terminal-bg);
+  --color-terminal-border: var(--terminal-border);
+  --color-terminal-green: var(--terminal-green);
+  --color-terminal-green-dim: var(--terminal-green-dim);
+  --color-terminal-blue: var(--terminal-blue);
+  --color-terminal-red: var(--terminal-red);
+  --color-terminal-fg: var(--terminal-fg);
+  --color-terminal-fg-muted: var(--terminal-fg-muted);
 }
 
 :root {
@@ -115,6 +128,17 @@
   --blue-border: oklch(0.79 0.1 255);
 
   --border-strong: oklch(0.8 0.008 106.4);
+
+  /* Terminal tokens defined once, identical in :root and .dark —
+     see note above @theme inline. */
+  --terminal-bg: oklch(0.16 0.02 155);
+  --terminal-border: oklch(0.34 0.1 155.6);
+  --terminal-green: oklch(0.64 0.17 155.6);
+  --terminal-green-dim: oklch(0.64 0.17 155.6 / 0.5);
+  --terminal-blue: oklch(0.7 0.15 255);
+  --terminal-red: oklch(0.62 0.19 25);
+  --terminal-fg: oklch(0.9 0.01 155);
+  --terminal-fg-muted: oklch(0.6 0.02 155);
 }
 
 .dark {
@@ -169,6 +193,16 @@
   --blue-border: oklch(0.36 0.1 255);
 
   --border-strong: oklch(0.36 0.006 106.4);
+
+  /* Same fixed values as :root — terminal panels don't invert. */
+  --terminal-bg: oklch(0.16 0.02 155);
+  --terminal-border: oklch(0.34 0.1 155.6);
+  --terminal-green: oklch(0.64 0.17 155.6);
+  --terminal-green-dim: oklch(0.64 0.17 155.6 / 0.5);
+  --terminal-blue: oklch(0.7 0.15 255);
+  --terminal-red: oklch(0.62 0.19 25);
+  --terminal-fg: oklch(0.9 0.01 155);
+  --terminal-fg-muted: oklch(0.6 0.02 155);
 }
 
 @layer base {
@@ -180,12 +214,10 @@
   }
 }
 
-/* globals.css — add inside the existing file, e.g. near @layer base */
 @layer utilities {
   .scrollbar-console {
     scrollbar-width: thin;
-    scrollbar-color: color-mix(in oklch, var(--green) 40%, transparent)
-      transparent;
+    scrollbar-color: var(--terminal-green-dim) transparent;
   }
   .scrollbar-console::-webkit-scrollbar {
     width: 6px;
@@ -194,10 +226,14 @@
     background: transparent;
   }
   .scrollbar-console::-webkit-scrollbar-thumb {
-    background-color: color-mix(in oklch, var(--green) 40%, transparent);
+    background-color: var(--terminal-green-dim);
     border-radius: 9999px;
   }
   .scrollbar-console::-webkit-scrollbar-thumb:hover {
-    background-color: color-mix(in oklch, var(--green) 60%, transparent);
+    background-color: color-mix(
+      in oklch,
+      var(--terminal-green) 60%,
+      transparent
+    );
   }
 }
