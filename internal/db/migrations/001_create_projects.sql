@@ -1,6 +1,6 @@
 -- +goose Up
 CREATE TABLE "projects" (
-    "id"                    INTEGER PRIMARY KEY AUTOINCREMENT,
+    "id"                    INTEGER PRIMARY KEY,
     "slug"                  TEXT NOT NULL,
     "name"                  TEXT NOT NULL,
     "short_code"            TEXT NOT NULL,
