@@ -52,6 +52,12 @@ func migrate(conn *sql.DB) error {
 	return goose.Up(conn, "../sql/migrations")
 }
 
+// Queries returns a *Queries bound to the base connection, for reads and
+// single-statement writes outside a transaction.
+func (d *DB) Queries() *Queries {
+	return New(d.conn)
+}
+
 func (d *DB) WithTransaction(ctx context.Context, fn func(q *Queries) error) error {
 	tx, err := d.conn.BeginTx(ctx, nil)
 	if err != nil {
