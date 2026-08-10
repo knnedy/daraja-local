@@ -53,7 +53,7 @@ func (h *ProjectHandler) Create(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusCreated, project)
 }
 
-// List handles GET /api/projects.
+// List handles GET /api/projects
 func (h *ProjectHandler) List(w http.ResponseWriter, r *http.Request) {
 	projects, err := h.service.List(r.Context())
 	if err != nil {
@@ -66,7 +66,7 @@ func (h *ProjectHandler) List(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusOK, projects)
 }
 
-// Get handles GET /api/projects/{slug}.
+// Get handles GET /api/projects/{slug}
 func (h *ProjectHandler) Get(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 
@@ -78,7 +78,7 @@ func (h *ProjectHandler) Get(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusOK, project)
 }
 
-// Touch handles POST /api/projects/{slug}/touch,
+// Touch handles POST /api/projects/{slug}/touch
 func (h *ProjectHandler) Touch(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 
@@ -89,7 +89,7 @@ func (h *ProjectHandler) Touch(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusNoContent, nil)
 }
 
-// RegenerateCredentials handles POST /api/projects/{slug}/credentials/regenerate.
+// RegenerateCredentials handles POST /api/projects/{slug}/credentials/regenerate
 func (h *ProjectHandler) RegenerateCredentials(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 
@@ -101,7 +101,7 @@ func (h *ProjectHandler) RegenerateCredentials(w http.ResponseWriter, r *http.Re
 	response.JSON(w, http.StatusOK, project)
 }
 
-// Delete handles DELETE /api/projects/{slug}.
+// Delete handles DELETE /api/projects/{slug}
 func (h *ProjectHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 
