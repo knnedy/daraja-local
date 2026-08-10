@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/response"
 	"github.com/knnedy/daraja-local/internal/service"
 )
@@ -18,7 +19,25 @@ func NewSettingsHandler(s SettingsService) *SettingsHandler {
 	return &SettingsHandler{service: s}
 }
 
-// Get handles GET /api/projects/{slug}/settings
+type settingsResponse struct {
+	ProjectID                 int64  `json:"projectId"`
+	CallbackUrl               string `json:"callbackUrl"`
+	StkTimeoutSeconds         int64  `json:"stkTimeoutSeconds"`
+	C2bResponseType           string `json:"c2bResponseType"`
+	ExternalValidationDefault bool   `json:"externalValidationDefault"`
+}
+
+func toSettingsResponse(s repository.ProjectSetting) settingsResponse {
+	return settingsResponse{
+		ProjectID:                 s.ProjectID,
+		CallbackUrl:               s.CallbackUrl,
+		StkTimeoutSeconds:         s.StkTimeoutSeconds,
+		C2bResponseType:           s.C2bResponseType,
+		ExternalValidationDefault: s.ExternalValidationDefault != 0,
+	}
+}
+
+// Get handles GET /api/projects/{slug}/settings.
 func (h *SettingsHandler) Get(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 
@@ -27,17 +46,19 @@ func (h *SettingsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		writeServiceError(w, err, "failed to get settings")
 		return
 	}
-	response.JSON(w, http.StatusOK, settings)
+	response.JSON(w, http.StatusOK, toSettingsResponse(settings))
 }
 
 type updateSettingsRequest struct {
 	CallbackUrl               string `json:"callbackUrl"`
 	StkTimeoutSeconds         int64  `json:"stkTimeoutSeconds"`
 	C2bResponseType           string `json:"c2bResponseType"`
-	ExternalValidationDefault int64  `json:"externalValidationDefault"`
+	ExternalValidationDefault bool   `json:"externalValidationDefault"`
 }
 
-// Update handles PUT /api/projects/{slug}/settings
+// Update handles PUT /api/projects/{slug}/settings. Field names and
+// constraints mirror settings/components/simulation-defaults-card.tsx
+// (5-60s timeout, Completed/Cancelled response type) and callback-url-card.tsx.
 func (h *SettingsHandler) Update(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 
@@ -54,20 +75,21 @@ func (h *SettingsHandler) Update(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusUnprocessableEntity, `c2bResponseType must be "Completed" or "Cancelled"`)
 		return
 	}
-	if req.ExternalValidationDefault != 0 && req.ExternalValidationDefault != 1 {
-		response.Error(w, http.StatusUnprocessableEntity, "externalValidationDefault must be 0 or 1")
-		return
+
+	externalValidationDefault := int64(0)
+	if req.ExternalValidationDefault {
+		externalValidationDefault = 1
 	}
 
 	settings, err := h.service.Update(r.Context(), slug, service.UpdateSettingsInput{
 		CallbackUrl:               req.CallbackUrl,
 		StkTimeoutSeconds:         req.StkTimeoutSeconds,
 		C2bResponseType:           req.C2bResponseType,
-		ExternalValidationDefault: req.ExternalValidationDefault,
+		ExternalValidationDefault: externalValidationDefault,
 	})
 	if err != nil {
 		writeServiceError(w, err, "failed to update settings")
 		return
 	}
-	response.JSON(w, http.StatusOK, settings)
+	response.JSON(w, http.StatusOK, toSettingsResponse(settings))
 }
