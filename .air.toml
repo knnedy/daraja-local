@@ -1,0 +1,16 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/daraja-local ./cmd/daraja-local"
+  bin = "./tmp/daraja-local"
+  include_ext = ["go"]
+  exclude_dir = ["web", "tmp", "bin", "cmd/daraja-local/out"]
+  delay = 200
+  stop_on_error = true
+
+[log]
+  time = true
+
+[misc]
+  clean_on_exit = true
