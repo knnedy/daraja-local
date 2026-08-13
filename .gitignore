@@ -1,0 +1,16 @@
+# Go
+bin/
+cmd/daraja-local/out/
+tmp/
+
+# GoReleaser output
+dist/
+
+# Frontend
+web/node_modules
+web/.next
+web/out
+
+# Env
+.env
+.env.local
