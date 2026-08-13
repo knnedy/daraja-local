@@ -20,6 +20,45 @@ func NewProjectHandler(s ProjectService) *ProjectHandler {
 	return &ProjectHandler{service: s}
 }
 
+type projectResponse struct {
+	ID              int64  `json:"id"`
+	Slug            string `json:"slug"`
+	Name            string `json:"name"`
+	ShortCode       string `json:"shortCode"`
+	ConsumerKey     string `json:"consumerKey"`
+	ConsumerSecret  string `json:"consumerSecret"`
+	Passkey         string `json:"passkey"`
+	CallbackBaseUrl string `json:"callbackBaseUrl"`
+	CreatedAt       string `json:"createdAt"`
+	LastActiveAt    string `json:"lastActiveAt,omitempty"`
+}
+
+func toProjectResponse(p repository.Project) projectResponse {
+	resp := projectResponse{
+		ID:              p.ID,
+		Slug:            p.Slug,
+		Name:            p.Name,
+		ShortCode:       p.ShortCode,
+		ConsumerKey:     p.ConsumerKey,
+		ConsumerSecret:  p.ConsumerSecret,
+		Passkey:         p.Passkey,
+		CallbackBaseUrl: p.CallbackBaseUrl,
+		CreatedAt:       p.CreatedAt,
+	}
+	if p.LastActiveAt.Valid {
+		resp.LastActiveAt = p.LastActiveAt.String
+	}
+	return resp
+}
+
+func toProjectResponseList(projects []repository.Project) []projectResponse {
+	out := make([]projectResponse, len(projects))
+	for i, p := range projects {
+		out[i] = toProjectResponse(p)
+	}
+	return out
+}
+
 type createProjectRequest struct {
 	Name            string `json:"name"`
 	CallbackBaseUrl string `json:"callbackBaseUrl"`
@@ -50,7 +89,7 @@ func (h *ProjectHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusCreated, project)
+	response.JSON(w, http.StatusCreated, toProjectResponse(project))
 }
 
 // List handles GET /api/projects
@@ -63,7 +102,7 @@ func (h *ProjectHandler) List(w http.ResponseWriter, r *http.Request) {
 	if projects == nil {
 		projects = make([]repository.Project, 0)
 	}
-	response.JSON(w, http.StatusOK, projects)
+	response.JSON(w, http.StatusOK, toProjectResponseList(projects))
 }
 
 // Get handles GET /api/projects/{slug}
@@ -75,7 +114,7 @@ func (h *ProjectHandler) Get(w http.ResponseWriter, r *http.Request) {
 		writeServiceError(w, err, "failed to get project")
 		return
 	}
-	response.JSON(w, http.StatusOK, project)
+	response.JSON(w, http.StatusOK, toProjectResponse(project))
 }
 
 // Touch handles POST /api/projects/{slug}/touch
@@ -98,7 +137,7 @@ func (h *ProjectHandler) RegenerateCredentials(w http.ResponseWriter, r *http.Re
 		writeServiceError(w, err, "failed to regenerate credentials")
 		return
 	}
-	response.JSON(w, http.StatusOK, project)
+	response.JSON(w, http.StatusOK, toProjectResponse(project))
 }
 
 // Delete handles DELETE /api/projects/{slug}
