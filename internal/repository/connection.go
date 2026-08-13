@@ -3,15 +3,13 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"embed"
 	"fmt"
 
 	"github.com/pressly/goose/v3"
 	_ "modernc.org/sqlite"
-)
 
-//go:embed all:../sql/migrations
-var migrations embed.FS
+	"github.com/knnedy/daraja-local/internal/sql/migrations"
+)
 
 type DB struct {
 	conn *sql.DB
@@ -43,13 +41,13 @@ func Open(path string) (*DB, error) {
 }
 
 func migrate(conn *sql.DB) error {
-	goose.SetBaseFS(migrations)
+	goose.SetBaseFS(migrations.FS)
 	defer goose.SetBaseFS(nil)
 
 	if err := goose.SetDialect("sqlite3"); err != nil {
 		return err
 	}
-	return goose.Up(conn, "../sql/migrations")
+	return goose.Up(conn, ".")
 }
 
 // Queries returns a *Queries bound to the base connection, for reads and
