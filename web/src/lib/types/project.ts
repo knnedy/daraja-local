@@ -10,3 +10,11 @@ export interface Project {
   createdAt: string;
   lastActiveAt: string | null;
 }
+
+export interface CreateProjectRequest {
+  name: string;
+  callbackBaseUrl: string;
+}
+
+export type ProjectsResponse = Project[];
+export type CreateProjectResponse = Project;
