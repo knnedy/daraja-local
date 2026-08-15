@@ -17,6 +17,7 @@ import { HiOutlineDevicePhoneMobile } from "react-icons/hi2";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useAppConfigStore } from "@/store/app-config";
+import { useProject } from "@/hooks/use-project";
 import { stripTrailingSlash } from "@/lib/utils";
 
 const pages: Record<string, { label: string; icon: React.ElementType }> = {
@@ -38,7 +39,8 @@ function VerticalDivider() {
 export function DashboardTopbar() {
   const pathname = usePathname();
   const normalizedPath = pathname ? stripTrailingSlash(pathname) : "";
-  const name = useActiveProjectStore((s) => s.name);
+  const slug = useActiveProjectStore((s) => s.slug);
+  const { data: project } = useProject(slug ?? "");
   const port = useAppConfigStore((s) => s.port);
   const { theme, setTheme } = useTheme();
   const page = pages[normalizedPath];
@@ -49,7 +51,9 @@ export function DashboardTopbar() {
       <VerticalDivider />
 
       <div className="flex min-w-0 items-center gap-1.5">
-        <span className="truncate text-xs text-muted-foreground">{name}</span>
+        <span className="truncate text-xs text-muted-foreground">
+          {project?.name ?? "…"}
+        </span>
         <ChevronRightIcon className="size-3 shrink-0 text-muted-foreground/60" />
         {page && (
           <span className="flex shrink-0 items-center gap-1.5 text-[13px] font-medium text-foreground">
