@@ -17,11 +17,12 @@ import {
 } from "@/lib/schemas/project";
 import { useRouter } from "next/navigation";
 import { useCreateProject } from "@/hooks/use-create-project";
-import { useActiveProjectStore } from "@/store/active-project";
+import { useSetActiveProject } from "@/hooks/use-set-active-project";
 
 export default function NewProjectPage() {
   const router = useRouter();
-  const setActiveProject = useActiveProjectStore((s) => s.setActiveProject);
+  const createProject = useCreateProject();
+  const setActiveProject = useSetActiveProject();
 
   const {
     register,
@@ -31,13 +32,13 @@ export default function NewProjectPage() {
     resolver: zodResolver(createProjectSchema),
   });
 
-  const createProject = useCreateProject();
-
   async function onSubmit(values: CreateProjectInput) {
     const project = await createProject.mutateAsync(values);
-    setActiveProject(project.name, project.callbackBaseUrl);
+    await setActiveProject.mutateAsync(project.slug);
     router.push("/dashboard");
   }
+
+  const isSubmitting = createProject.isPending || setActiveProject.isPending;
 
   return (
     <div className="flex min-h-svh items-center justify-center px-6 py-10">
@@ -114,9 +115,9 @@ export default function NewProjectPage() {
 
             <Button
               type="submit"
-              disabled={createProject.isPending}
+              disabled={isSubmitting}
               className="mt-1 w-full gap-1.5">
-              {createProject.isPending ? "Creating…" : "Create project"}
+              {isSubmitting ? "Creating…" : "Create project"}
               <ArrowRightIcon className="size-4" />
             </Button>
 
