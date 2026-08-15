@@ -6,13 +6,24 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 
 	"github.com/knnedy/daraja-local/internal/handler"
 )
 
-func New(projectSvc handler.ProjectService, settingsSvc handler.SettingsService, staticFS fs.FS) http.Handler {
+func New(projectSvc handler.ProjectService, settingsSvc handler.SettingsService, staticFS fs.FS, isDev bool) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
+
+	if isDev {
+		r.Use(cors.Handler(cors.Options{
+			AllowedOrigins:   []string{"http://localhost:3000"},
+			AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowedHeaders:   []string{"Content-Type"},
+			AllowCredentials: false,
+			MaxAge:           300,
+		}))
+	}
 
 	projectHandler := handler.NewProjectHandler(projectSvc)
 	settingsHandler := handler.NewSettingsHandler(settingsSvc)
