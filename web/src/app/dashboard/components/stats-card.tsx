@@ -1,21 +1,25 @@
-import { ActivityIcon, CheckCircle2Icon, UsersIcon } from "lucide-react";
+import {
+  ArrowLeftRightIcon,
+  CheckCircle2Icon,
+  SmartphoneIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const stats = [
   {
-    label: "Requests today",
+    label: "STK requests today",
     value: "0",
-    icon: ActivityIcon,
+    icon: SmartphoneIcon,
+  },
+  {
+    label: "C2B requests today",
+    value: "0",
+    icon: ArrowLeftRightIcon,
   },
   {
     label: "Success rate",
     value: "—",
     icon: CheckCircle2Icon,
-  },
-  {
-    label: "Active sessions",
-    value: "0",
-    icon: UsersIcon,
   },
 ];
 
