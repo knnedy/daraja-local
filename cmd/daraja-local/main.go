@@ -44,7 +44,7 @@ func run() error {
 
 	projectSvc := service.NewProjectService(db)
 	settingsSvc := service.NewSettingsService(db)
-	r := router.New(projectSvc, settingsSvc, staticFS)
+	r := router.New(projectSvc, settingsSvc, staticFS, cfg.IsDev)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf("127.0.0.1:%d", cfg.Port),
