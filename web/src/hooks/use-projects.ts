@@ -9,3 +9,11 @@ export function useProjects() {
     queryFn: () => api.projects.list(),
   });
 }
+
+export function useProject(slug: string) {
+  return useQuery({
+    queryKey: queryKeys.projects.detail(slug),
+    queryFn: () => api.projects.get(slug),
+    enabled: Boolean(slug),
+  });
+}
