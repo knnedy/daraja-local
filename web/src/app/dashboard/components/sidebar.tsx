@@ -24,6 +24,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useActiveProjectStore } from "@/store/active-project";
+import { useProject } from "@/hooks/use-project";
 import { cn, stripTrailingSlash } from "@/lib/utils";
 
 const navGroups = [
@@ -66,7 +67,8 @@ const navGroups = [
 
 export function DashboardSidebar() {
   const pathname = usePathname();
-  const name = useActiveProjectStore((s) => s.name);
+  const slug = useActiveProjectStore((s) => s.slug);
+  const { data: project } = useProject(slug ?? "");
 
   const normalizedPath = pathname ? stripTrailingSlash(pathname) : "";
 
@@ -83,7 +85,7 @@ export function DashboardSidebar() {
           </div>
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
             <p className="truncate text-[13.5px] font-medium leading-tight text-foreground">
-              {name}
+              {project?.name ?? "…"}
             </p>
             <p className="truncate font-mono text-[11px] leading-tight text-muted-foreground">
               daraja-local
