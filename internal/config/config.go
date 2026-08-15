@@ -17,6 +17,7 @@ type Config struct {
 	Port    int
 	DataDir string
 	DBPath  string
+	IsDev   bool
 }
 
 func Load() (*Config, error) {
@@ -33,10 +34,13 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("config: resolve port: %w", err)
 	}
 
+	isDev := os.Getenv("DARAJA_LOCAL_ENV") == "development"
+
 	return &Config{
 		Port:    port,
 		DataDir: dataDir,
 		DBPath:  filepath.Join(dataDir, "daraja.db"),
+		IsDev:   isDev,
 	}, nil
 }
 
