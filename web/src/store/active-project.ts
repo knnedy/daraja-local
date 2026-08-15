@@ -2,20 +2,17 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface ActiveProjectState {
-  name: string | null;
-  callbackBaseurl: string | null;
-  setActiveProject: (name: string, callbackBaseurl: string) => void;
+  slug: string | null;
+  setActiveProjectSlug: (slug: string) => void;
   clearActiveProject: () => void;
 }
 
 export const useActiveProjectStore = create<ActiveProjectState>()(
   persist(
     (set) => ({
-      name: null,
-      callbackBaseurl: null,
-      setActiveProject: (name, callbackBaseurl) =>
-        set({ name, callbackBaseurl }),
-      clearActiveProject: () => set({ name: null, callbackBaseurl: null }),
+      slug: null,
+      setActiveProjectSlug: (slug) => set({ slug }),
+      clearActiveProject: () => set({ slug: null }),
     }),
     {
       name: "daraja-local-active-project",
