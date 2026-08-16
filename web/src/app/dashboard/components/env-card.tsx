@@ -1,5 +1,11 @@
+"use client";
+
 import { CheckIcon, CopyIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
+import { useActiveProjectStore } from "@/store/active-project";
+import { useAppConfigStore } from "@/store/app-config";
+import { useProject } from "@/hooks/use-project";
+import type { Project } from "@/lib/types/project";
 
 interface EnvVar {
   key: string;
@@ -7,21 +13,19 @@ interface EnvVar {
   secret?: boolean;
 }
 
-const envVars: EnvVar[] = [
-  { key: "DARAJA_BASE_URL", value: "http://localhost:8080" },
-  { key: "DARAJA_CONSUMER_KEY", value: "dl_ck_9f2a1e7c4b8d3f60" },
-  {
-    key: "DARAJA_CONSUMER_SECRET",
-    value: "dl_cs_7e0b2c9a5f1d8e34a6c2",
-    secret: true,
-  },
-  { key: "DARAJA_SHORTCODE", value: "174379" },
-  {
-    key: "DARAJA_PASSKEY",
-    value: "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919",
-    secret: true,
-  },
-];
+function buildEnvVars(project: Project, port: number): EnvVar[] {
+  return [
+    { key: "DARAJA_BASE_URL", value: `http://127.0.0.1:${port}` },
+    { key: "DARAJA_CONSUMER_KEY", value: project.consumerKey },
+    {
+      key: "DARAJA_CONSUMER_SECRET",
+      value: project.consumerSecret,
+      secret: true,
+    },
+    { key: "DARAJA_SHORTCODE", value: project.shortCode },
+    { key: "DARAJA_PASSKEY", value: project.passkey, secret: true },
+  ];
+}
 
 function EnvVarRow({ envVar }: { envVar: EnvVar }) {
   const [revealed, setRevealed] = useState(false);
@@ -68,9 +72,17 @@ function EnvVarRow({ envVar }: { envVar: EnvVar }) {
 }
 
 export default function EnvCard() {
+  const slug = useActiveProjectStore((s) => s.slug);
+  const { data: project } = useProject(slug ?? "");
+  const port = useAppConfigStore((s) => s.port);
+
+  if (!project) {
+    return <div className="h-40 animate-pulse rounded-lg bg-surface-1" />;
+  }
+
   return (
     <div className="rounded-lg border border-border bg-surface-1">
-      {envVars.map((envVar) => (
+      {buildEnvVars(project, port).map((envVar) => (
         <EnvVarRow key={envVar.key} envVar={envVar} />
       ))}
     </div>
