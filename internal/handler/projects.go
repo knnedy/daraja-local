@@ -128,6 +128,32 @@ func (h *ProjectHandler) Touch(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusNoContent, nil)
 }
 
+type updateProjectRequest struct {
+	Name string `json:"name"`
+}
+
+// Update handles PATCH /api/projects/{slug}.
+func (h *ProjectHandler) Update(w http.ResponseWriter, r *http.Request) {
+	slug := chi.URLParam(r, "slug")
+
+	var req updateProjectRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if len(req.Name) < 2 {
+		response.Error(w, http.StatusUnprocessableEntity, "name must be at least 2 characters")
+		return
+	}
+
+	project, err := h.service.UpdateName(r.Context(), slug, service.UpdateNameInput{Name: req.Name})
+	if err != nil {
+		writeServiceError(w, err, "failed to update project")
+		return
+	}
+	response.JSON(w, http.StatusOK, toProjectResponse(project))
+}
+
 // RegenerateCredentials handles POST /api/projects/{slug}/credentials/regenerate
 func (h *ProjectHandler) RegenerateCredentials(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")

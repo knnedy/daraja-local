@@ -9,6 +9,7 @@ import (
 
 type ProjectService interface {
 	Create(ctx context.Context, input service.CreateProjectInput) (repository.Project, error)
+	UpdateName(ctx context.Context, slug string, input service.UpdateNameInput) (repository.Project, error)
 	List(ctx context.Context) ([]repository.Project, error)
 	Get(ctx context.Context, slug string) (repository.Project, error)
 	Touch(ctx context.Context, slug string) error
