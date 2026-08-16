@@ -96,6 +96,17 @@ func (s *ProjectService) Touch(ctx context.Context, slug string) error {
 	return s.db.Queries().TouchProjectLastActive(ctx, slug)
 }
 
+type UpdateNameInput struct {
+	Name string
+}
+
+func (s *ProjectService) UpdateName(ctx context.Context, slug string, input UpdateNameInput) (repository.Project, error) {
+	return s.db.Queries().UpdateProjectName(ctx, repository.UpdateProjectNameParams{
+		Name: input.Name,
+		Slug: slug,
+	})
+}
+
 // RegenerateCredentials rotates consumer key, consumer secret, and
 // passkey — the "Regenerate" action on the Credentials page.
 func (s *ProjectService) RegenerateCredentials(ctx context.Context, slug string) (repository.Project, error) {
