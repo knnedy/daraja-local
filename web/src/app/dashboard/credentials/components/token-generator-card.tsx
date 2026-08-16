@@ -45,22 +45,10 @@ export default function TokenGeneratorCard() {
       </div>
 
       <p className="text-[11.5px] leading-relaxed text-muted-foreground">
-        Every other Daraja call needs this as{" "}
-        <span className="font-mono text-foreground">
-          Authorization: Bearer &lt;token&gt;
-        </span>
-        . It comes from exchanging your Consumer Key + Secret here — separately,
-        and with Basic Auth instead of Bearer.
+        Simulate the token you&apos;d get back from{" "}
+        <code className="font-mono text-foreground">/oauth/v1/generate</code> —
+        see the real request shape below.
       </p>
-
-      <div className="rounded-md bg-[#0B120D] p-3.5 font-mono text-[11.5px] leading-relaxed">
-        <p className="text-green/50">
-          GET /oauth/v1/generate?grant_type=client_credentials
-        </p>
-        <p className="text-green/50">
-          Authorization: Basic base64(consumer_key:consumer_secret)
-        </p>
-      </div>
 
       {token ? (
         <div className="rounded-md border border-border bg-surface-2 px-3 py-2.5">

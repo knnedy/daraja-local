@@ -64,7 +64,7 @@ function SnippetBlock({ code }: { code: string }) {
           <CopyIcon className="size-3.5" />
         )}
       </button>
-      <pre className="overflow-x-auto whitespace-pre-wrap break-all font-mono text-[11.5px] leading-relaxed text-green/80">
+      <pre className="overflow-x-auto pr-6 font-mono text-[11.5px] leading-relaxed text-green/80">
         {code}
       </pre>
     </div>
