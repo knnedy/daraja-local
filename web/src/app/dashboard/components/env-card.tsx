@@ -40,15 +40,19 @@ function EnvVarRow({ envVar }: { envVar: EnvVar }) {
   }
 
   return (
-    <div className="group flex items-center justify-between border-b border-border/60 px-4 py-2.5 font-mono text-[12.5px] last:border-0">
-      <span className="text-muted-foreground">{envVar.key}</span>
-      <div className="flex items-center gap-1.5">
-        <span className="text-foreground">{display}</span>
+    <div className="group flex items-center gap-3 border-b border-border/60 px-4 py-2.5 font-mono text-[12.5px] last:border-0">
+      <span className="shrink-0 text-muted-foreground">{envVar.key}</span>
+      <div className="flex min-w-0 flex-1 items-center justify-end gap-1.5">
+        <span
+          className="truncate text-foreground"
+          title={envVar.secret && !revealed ? undefined : envVar.value}>
+          {display}
+        </span>
         {envVar.secret && (
           <button
             type="button"
             onClick={() => setRevealed((v) => !v)}
-            className="text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100">
+            className="shrink-0 text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100">
             {revealed ? (
               <EyeOffIcon className="size-3.5" />
             ) : (
@@ -59,7 +63,7 @@ function EnvVarRow({ envVar }: { envVar: EnvVar }) {
         <button
           type="button"
           onClick={copy}
-          className="text-muted-foreground opacity-0 transition-opacity hover:text-emerald-500 group-hover:opacity-100">
+          className="shrink-0 text-muted-foreground opacity-0 transition-opacity hover:text-emerald-500 group-hover:opacity-100">
           {copied ? (
             <CheckIcon className="size-3.5 text-emerald-500" />
           ) : (
