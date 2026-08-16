@@ -37,6 +37,7 @@ func New(projectSvc handler.ProjectService, settingsSvc handler.SettingsService,
 
 			r.Route("/{slug}", func(r chi.Router) {
 				r.Get("/", projectHandler.Get)
+				r.Patch("/", projectHandler.Update)
 				r.Delete("/", projectHandler.Delete)
 				r.Post("/touch", projectHandler.Touch)
 				r.Post("/credentials/regenerate", projectHandler.RegenerateCredentials)
