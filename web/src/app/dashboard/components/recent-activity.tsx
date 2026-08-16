@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { ScrollTextIcon, PlayIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export default function RecentActivity() {
+export default function RecentActivity({ className }: { className?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-surface-1 px-6 py-10 text-center">
+    <div
+      className={cn(
+        "flex flex-1 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-surface-1 px-6 py-10 text-center",
+        className,
+      )}>
       <div className="flex size-9 items-center justify-center rounded-lg border border-border bg-surface-2">
         <ScrollTextIcon className="size-4 text-muted-foreground" />
       </div>

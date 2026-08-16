@@ -34,13 +34,13 @@ export default function OverviewPage() {
       <StatsCard />
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
-        <div className="lg:col-span-3">
+        <div className="flex flex-col lg:col-span-3">
           <div className="mb-2.5 text-[13px] font-medium text-foreground">
             Mocked endpoints
           </div>
           <EndpointsCard />
         </div>
-        <div className="lg:col-span-2">
+        <div className="flex flex-col lg:col-span-2">
           <div className="mb-2.5 text-[13px] font-medium text-foreground">
             Recent activity
           </div>
