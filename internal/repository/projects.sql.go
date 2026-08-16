@@ -179,3 +179,33 @@ func (q *Queries) TouchProjectLastActive(ctx context.Context, slug string) error
 	_, err := q.db.ExecContext(ctx, touchProjectLastActive, slug)
 	return err
 }
+
+const updateProjectName = `-- name: UpdateProjectName :one
+UPDATE projects
+SET name = ?
+WHERE slug = ?
+RETURNING id, slug, name, short_code, consumer_key, consumer_secret, passkey, callback_base_url, created_at, last_active_at
+`
+
+type UpdateProjectNameParams struct {
+	Name string
+	Slug string
+}
+
+func (q *Queries) UpdateProjectName(ctx context.Context, arg UpdateProjectNameParams) (Project, error) {
+	row := q.db.QueryRowContext(ctx, updateProjectName, arg.Name, arg.Slug)
+	var i Project
+	err := row.Scan(
+		&i.ID,
+		&i.Slug,
+		&i.Name,
+		&i.ShortCode,
+		&i.ConsumerKey,
+		&i.ConsumerSecret,
+		&i.Passkey,
+		&i.CallbackBaseUrl,
+		&i.CreatedAt,
+		&i.LastActiveAt,
+	)
+	return i, err
+}

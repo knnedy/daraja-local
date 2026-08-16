@@ -3,6 +3,12 @@ INSERT INTO "projects" ("slug", "name", "short_code", "consumer_key", "consumer_
 VALUES (?, ?, ?, ?, ?, ?, ?)
 RETURNING *;
 
+-- name: UpdateProjectName :one
+UPDATE projects
+SET name = ?
+WHERE slug = ?
+RETURNING *;
+
 -- name: GetProjectBySlug :one
 SELECT * FROM "projects" WHERE "slug" = ?;
 
