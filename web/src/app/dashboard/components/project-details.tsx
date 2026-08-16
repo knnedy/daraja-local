@@ -3,6 +3,15 @@
 import { useState } from "react";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { useActiveProjectStore } from "@/store/active-project";
+import { useProject } from "@/hooks/use-project";
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 function Row({
   label,
@@ -50,11 +59,8 @@ function Row({
 }
 
 export default function ProjectDetailsCard() {
-  const name = useActiveProjectStore((s) => s.name);
-  const callbackUrl = useActiveProjectStore((s) => s.callbackBaseurl);
-
-  // Mocked until the project settings/API wiring is in place.
-  const createdAt = "1 Aug 2026";
+  const slug = useActiveProjectStore((s) => s.slug);
+  const { data: project } = useProject(slug ?? "");
 
   return (
     <div className="rounded-lg border border-border bg-surface-1">
@@ -64,17 +70,17 @@ export default function ProjectDetailsCard() {
         </span>
       </div>
       <div>
-        <Row
-          label="Project name"
-          value={name ?? "Unknown Project"}
-          mono={false}
-        />
+        <Row label="Project name" value={project?.name ?? "…"} mono={false} />
         <Row
           label="Callback URL"
-          value={callbackUrl ?? "Unknown Callback URL"}
+          value={project?.callbackBaseUrl ?? "…"}
           copyable
         />
-        <Row label="Created" value={createdAt} mono={false} />
+        <Row
+          label="Created"
+          value={project ? formatDate(project.createdAt) : "…"}
+          mono={false}
+        />
       </div>
     </div>
   );
