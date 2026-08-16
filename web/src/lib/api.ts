@@ -1,4 +1,4 @@
-import { CreateProjectInput } from "./schemas/project";
+import { CreateProjectInput, UpdateProjectInput } from "./schemas/project";
 import { UpdateSettingsInput } from "./schemas/settings";
 import {
   CreateProjectResponse,
@@ -43,6 +43,13 @@ export const api = {
 
     get(slug: string): Promise<Project> {
       return request<Project>(`/api/projects/${encodeURIComponent(slug)}`);
+    },
+
+    update(slug: string, body: UpdateProjectInput): Promise<Project> {
+      return request<Project>(`/api/projects/${encodeURIComponent(slug)}`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      });
     },
 
     remove(slug: string): Promise<void> {
