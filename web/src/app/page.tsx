@@ -5,6 +5,7 @@ import {
   SmartphoneIcon,
   ClockIcon,
   RefreshCwIcon,
+  ArrowUpRightIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -66,16 +67,26 @@ function EmptyState() {
   );
 }
 
+function CardSkeleton() {
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm">
+      <div className="flex items-center gap-2.5">
+        <div className="size-7 animate-pulse rounded-lg bg-surface-2" />
+        <div className="h-3.5 w-28 animate-pulse rounded bg-surface-2" />
+      </div>
+      <div className="h-3 w-40 animate-pulse rounded bg-surface-2" />
+      <div className="h-3 w-20 animate-pulse rounded bg-surface-2" />
+    </div>
+  );
+}
+
 function LoadingState() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-16">
-      <div className="mb-8 h-7 w-32 animate-pulse rounded bg-secondary" />
+      <div className="mb-8 h-7 w-32 animate-pulse rounded bg-surface-2" />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="h-32 animate-pulse rounded-xl border border-border bg-secondary/40"
-          />
+          <CardSkeleton key={i} />
         ))}
       </div>
     </div>
@@ -112,17 +123,20 @@ function ProjectCard({ project }: { project: Project }) {
       onClick={handleOpen}
       disabled={setActiveProject.isPending}
       className={cn(
-        "group flex flex-col gap-3 rounded-xl border border-border bg-card p-4 text-left",
-        "border-l-[3px] border-l-green-mid transition-colors hover:border-l-green",
-        "hover:bg-secondary/40 disabled:opacity-60",
+        "group flex flex-col gap-3 rounded-lg border border-border-strong bg-surface-1 p-4 text-left shadow-sm",
+        "border-l-[3px] border-l-green-mid transition-colors hover:border-l-green hover:bg-surface-2/40",
+        "disabled:opacity-60",
       )}>
-      <div className="flex items-start justify-between gap-2">
-        <h3 className="font-heading text-sm font-medium text-foreground">
-          {project.name}
-        </h3>
-        <span className="font-mono text-xs text-muted-foreground">
-          {project.shortCode}
-        </span>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-green-mid bg-green-light">
+            <SmartphoneIcon className="size-3.5 text-green" />
+          </div>
+          <h3 className="truncate font-heading text-sm font-medium text-foreground">
+            {project.name}
+          </h3>
+        </div>
+        <ArrowUpRightIcon className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
       </div>
 
       <p className="truncate font-mono text-xs text-muted-foreground">
