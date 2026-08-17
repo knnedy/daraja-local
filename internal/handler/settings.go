@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"regexp"
 
 	"github.com/go-chi/chi/v5"
 
@@ -10,6 +11,8 @@ import (
 	"github.com/knnedy/daraja-local/internal/response"
 	"github.com/knnedy/daraja-local/internal/service"
 )
+
+var phoneNumberPattern = regexp.MustCompile(`^254\d{9}$`)
 
 type SettingsHandler struct {
 	service SettingsService
@@ -25,6 +28,7 @@ type settingsResponse struct {
 	StkTimeoutSeconds         int64  `json:"stkTimeoutSeconds"`
 	C2bResponseType           string `json:"c2bResponseType"`
 	ExternalValidationDefault bool   `json:"externalValidationDefault"`
+	DefaultPhoneNumber        string `json:"defaultPhoneNumber"`
 }
 
 func toSettingsResponse(s repository.ProjectSetting) settingsResponse {
@@ -34,6 +38,7 @@ func toSettingsResponse(s repository.ProjectSetting) settingsResponse {
 		StkTimeoutSeconds:         s.StkTimeoutSeconds,
 		C2bResponseType:           s.C2bResponseType,
 		ExternalValidationDefault: s.ExternalValidationDefault != 0,
+		DefaultPhoneNumber:        s.DefaultPhoneNumber,
 	}
 }
 
@@ -54,11 +59,10 @@ type updateSettingsRequest struct {
 	StkTimeoutSeconds         int64  `json:"stkTimeoutSeconds"`
 	C2bResponseType           string `json:"c2bResponseType"`
 	ExternalValidationDefault bool   `json:"externalValidationDefault"`
+	DefaultPhoneNumber        string `json:"defaultPhoneNumber"`
 }
 
-// Update handles PUT /api/projects/{slug}/settings. Field names and
-// constraints mirror settings/components/simulation-defaults-card.tsx
-// (5-60s timeout, Completed/Cancelled response type) and callback-url-card.tsx.
+// Update handles PUT /api/projects/{slug}/settings.
 func (h *SettingsHandler) Update(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 
@@ -75,6 +79,10 @@ func (h *SettingsHandler) Update(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusUnprocessableEntity, `c2bResponseType must be "Completed" or "Cancelled"`)
 		return
 	}
+	if !phoneNumberPattern.MatchString(req.DefaultPhoneNumber) {
+		response.Error(w, http.StatusUnprocessableEntity, "defaultPhoneNumber must be in the format 254XXXXXXXXX")
+		return
+	}
 
 	externalValidationDefault := int64(0)
 	if req.ExternalValidationDefault {
@@ -86,6 +94,7 @@ func (h *SettingsHandler) Update(w http.ResponseWriter, r *http.Request) {
 		StkTimeoutSeconds:         req.StkTimeoutSeconds,
 		C2bResponseType:           req.C2bResponseType,
 		ExternalValidationDefault: externalValidationDefault,
+		DefaultPhoneNumber:        req.DefaultPhoneNumber,
 	})
 	if err != nil {
 		writeServiceError(w, err, "failed to update settings")
