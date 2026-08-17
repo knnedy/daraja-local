@@ -27,6 +27,7 @@ type ProjectSetting struct {
 	StkTimeoutSeconds         int64
 	C2bResponseType           string
 	ExternalValidationDefault int64
+	DefaultPhoneNumber        string
 }
 
 type RequestLog struct {

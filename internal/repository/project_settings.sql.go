@@ -12,7 +12,7 @@ import (
 const createDefaultSettings = `-- name: CreateDefaultSettings :one
 INSERT INTO "project_settings" ("project_id")
 VALUES (?)
-RETURNING project_id, callback_url, stk_timeout_seconds, c2b_response_type, external_validation_default
+RETURNING project_id, callback_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number
 `
 
 func (q *Queries) CreateDefaultSettings(ctx context.Context, projectID int64) (ProjectSetting, error) {
@@ -24,12 +24,13 @@ func (q *Queries) CreateDefaultSettings(ctx context.Context, projectID int64) (P
 		&i.StkTimeoutSeconds,
 		&i.C2bResponseType,
 		&i.ExternalValidationDefault,
+		&i.DefaultPhoneNumber,
 	)
 	return i, err
 }
 
 const getSettingsByProjectID = `-- name: GetSettingsByProjectID :one
-SELECT project_id, callback_url, stk_timeout_seconds, c2b_response_type, external_validation_default FROM "project_settings" WHERE "project_id" = ?
+SELECT project_id, callback_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number FROM "project_settings" WHERE "project_id" = ?
 `
 
 func (q *Queries) GetSettingsByProjectID(ctx context.Context, projectID int64) (ProjectSetting, error) {
@@ -41,6 +42,7 @@ func (q *Queries) GetSettingsByProjectID(ctx context.Context, projectID int64) (
 		&i.StkTimeoutSeconds,
 		&i.C2bResponseType,
 		&i.ExternalValidationDefault,
+		&i.DefaultPhoneNumber,
 	)
 	return i, err
 }
@@ -50,9 +52,10 @@ UPDATE "project_settings"
 SET "callback_url" = ?,
     "stk_timeout_seconds" = ?,
     "c2b_response_type" = ?,
-    "external_validation_default" = ?
+    "external_validation_default" = ?,
+    "default_phone_number" = ?
 WHERE "project_id" = ?
-RETURNING project_id, callback_url, stk_timeout_seconds, c2b_response_type, external_validation_default
+RETURNING project_id, callback_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number
 `
 
 type UpdateSettingsParams struct {
@@ -60,6 +63,7 @@ type UpdateSettingsParams struct {
 	StkTimeoutSeconds         int64
 	C2bResponseType           string
 	ExternalValidationDefault int64
+	DefaultPhoneNumber        string
 	ProjectID                 int64
 }
 
@@ -69,6 +73,7 @@ func (q *Queries) UpdateSettings(ctx context.Context, arg UpdateSettingsParams) 
 		arg.StkTimeoutSeconds,
 		arg.C2bResponseType,
 		arg.ExternalValidationDefault,
+		arg.DefaultPhoneNumber,
 		arg.ProjectID,
 	)
 	var i ProjectSetting
@@ -78,6 +83,7 @@ func (q *Queries) UpdateSettings(ctx context.Context, arg UpdateSettingsParams) 
 		&i.StkTimeoutSeconds,
 		&i.C2bResponseType,
 		&i.ExternalValidationDefault,
+		&i.DefaultPhoneNumber,
 	)
 	return i, err
 }
