@@ -5,9 +5,11 @@ CREATE TABLE "project_settings" (
     "stk_timeout_seconds"          INTEGER NOT NULL DEFAULT 20,
     "c2b_response_type"            TEXT NOT NULL DEFAULT 'Completed',
     "external_validation_default"  INTEGER NOT NULL DEFAULT 0,
+    "default_phone_number"         TEXT NOT NULL DEFAULT '254708374149',
     CONSTRAINT "project_settings_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects" ("id") ON DELETE CASCADE,
     CONSTRAINT "project_settings_c2b_response_type_check" CHECK ("c2b_response_type" IN ('Completed', 'Cancelled')),
-    CONSTRAINT "project_settings_external_validation_default_check" CHECK ("external_validation_default" IN (0, 1))
+    CONSTRAINT "project_settings_external_validation_default_check" CHECK ("external_validation_default" IN (0, 1)),
+    CONSTRAINT "project_settings_default_phone_number_check" CHECK (length("default_phone_number") = 12)
 );
 
 -- +goose Down
