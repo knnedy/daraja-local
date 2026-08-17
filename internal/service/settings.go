@@ -21,6 +21,7 @@ type UpdateSettingsInput struct {
 	StkTimeoutSeconds         int64
 	C2bResponseType           string
 	ExternalValidationDefault int64
+	DefaultPhoneNumber        string
 }
 
 func (s *SettingsService) Get(ctx context.Context, slug string) (repository.ProjectSetting, error) {
@@ -46,6 +47,7 @@ func (s *SettingsService) Update(ctx context.Context, slug string, input UpdateS
 		StkTimeoutSeconds:         input.StkTimeoutSeconds,
 		C2bResponseType:           input.C2bResponseType,
 		ExternalValidationDefault: input.ExternalValidationDefault,
+		DefaultPhoneNumber:        input.DefaultPhoneNumber,
 		ProjectID:                 project.ID,
 	})
 }
