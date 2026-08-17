@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,12 +13,26 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-const PROJECT_NAME = "my ticketing app";
+import { useActiveProjectStore } from "@/store/active-project";
+import { useProject } from "@/hooks/use-project";
+import { useDeleteProject } from "@/hooks/use-delete-project";
 
 export default function DangerZoneCard() {
+  const router = useRouter();
+  const slug = useActiveProjectStore((s) => s.slug) ?? "";
+  const { data: project } = useProject(slug);
+  const deleteProject = useDeleteProject();
+
   const [confirmText, setConfirmText] = useState("");
-  const matches = confirmText === PROJECT_NAME;
+  const projectName = project?.name ?? "";
+  const matches = confirmText === projectName && projectName !== "";
+
+  function handleDelete() {
+    if (!matches) return;
+    deleteProject.mutate(slug, {
+      onSuccess: () => router.push("/"),
+    });
+  }
 
   return (
     <div className="rounded-lg border border-destructive/30 bg-destructive/3 p-4">
@@ -31,14 +46,15 @@ export default function DangerZoneCard() {
 
       <AlertDialog>
         <AlertDialogTrigger
+          disabled={!project}
           onClick={() => setConfirmText("")}
-          className="rounded-lg border border-destructive/40 bg-destructive/10 px-3.5 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20">
+          className="rounded-lg border border-destructive/40 bg-destructive/10 px-3.5 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-50">
           Delete project
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Delete &quot;{PROJECT_NAME}&quot;?
+              Delete &quot;{projectName}&quot;?
             </AlertDialogTitle>
             <AlertDialogDescription>
               This permanently removes the project&apos;s credentials, callback
@@ -48,15 +64,16 @@ export default function DangerZoneCard() {
           <input
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
-            placeholder={PROJECT_NAME}
+            placeholder={projectName}
             className="w-full rounded-md border border-border bg-surface-2 px-3 py-2 text-[13px] text-foreground outline-none focus:border-destructive"
           />
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              disabled={!matches}
+              disabled={!matches || deleteProject.isPending}
+              onClick={handleDelete}
               className="bg-destructive text-white hover:bg-destructive/90 disabled:opacity-40">
-              Delete project
+              {deleteProject.isPending ? "Deleting…" : "Delete project"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
