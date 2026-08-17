@@ -11,6 +11,7 @@ UPDATE "project_settings"
 SET "callback_url" = ?,
     "stk_timeout_seconds" = ?,
     "c2b_response_type" = ?,
-    "external_validation_default" = ?
+    "external_validation_default" = ?,
+    "default_phone_number" = ?
 WHERE "project_id" = ?
 RETURNING *;
