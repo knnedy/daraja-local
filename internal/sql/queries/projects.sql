@@ -30,5 +30,8 @@ SET "consumer_key" = ?, "consumer_secret" = ?, "passkey" = ?
 WHERE "slug" = ?
 RETURNING *;
 
+-- name: GetProjectByCredentials :one
+SELECT * FROM "projects" WHERE "consumer_key" = ? AND "consumer_secret" = ?;
+
 -- name: DeleteProject :exec
 DELETE FROM "projects" WHERE "slug" = ?;
