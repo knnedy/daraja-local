@@ -60,6 +60,33 @@ func (q *Queries) DeleteProject(ctx context.Context, slug string) error {
 	return err
 }
 
+const getProjectByCredentials = `-- name: GetProjectByCredentials :one
+SELECT id, slug, name, short_code, consumer_key, consumer_secret, passkey, callback_base_url, created_at, last_active_at FROM "projects" WHERE "consumer_key" = ? AND "consumer_secret" = ?
+`
+
+type GetProjectByCredentialsParams struct {
+	ConsumerKey    string
+	ConsumerSecret string
+}
+
+func (q *Queries) GetProjectByCredentials(ctx context.Context, arg GetProjectByCredentialsParams) (Project, error) {
+	row := q.db.QueryRowContext(ctx, getProjectByCredentials, arg.ConsumerKey, arg.ConsumerSecret)
+	var i Project
+	err := row.Scan(
+		&i.ID,
+		&i.Slug,
+		&i.Name,
+		&i.ShortCode,
+		&i.ConsumerKey,
+		&i.ConsumerSecret,
+		&i.Passkey,
+		&i.CallbackBaseUrl,
+		&i.CreatedAt,
+		&i.LastActiveAt,
+	)
+	return i, err
+}
+
 const getProjectBySlug = `-- name: GetProjectBySlug :one
 SELECT id, slug, name, short_code, consumer_key, consumer_secret, passkey, callback_base_url, created_at, last_active_at FROM "projects" WHERE "slug" = ?
 `
