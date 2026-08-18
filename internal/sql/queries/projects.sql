@@ -9,6 +9,9 @@ SET name = ?
 WHERE slug = ?
 RETURNING *;
 
+-- name: GetProjectByID :one
+SELECT * FROM "projects" WHERE "id" = ?;
+
 -- name: GetProjectBySlug :one
 SELECT * FROM "projects" WHERE "slug" = ?;
 

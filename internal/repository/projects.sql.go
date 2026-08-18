@@ -87,6 +87,28 @@ func (q *Queries) GetProjectByCredentials(ctx context.Context, arg GetProjectByC
 	return i, err
 }
 
+const getProjectByID = `-- name: GetProjectByID :one
+SELECT id, slug, name, short_code, consumer_key, consumer_secret, passkey, callback_base_url, created_at, last_active_at FROM "projects" WHERE "id" = ?
+`
+
+func (q *Queries) GetProjectByID(ctx context.Context, id int64) (Project, error) {
+	row := q.db.QueryRowContext(ctx, getProjectByID, id)
+	var i Project
+	err := row.Scan(
+		&i.ID,
+		&i.Slug,
+		&i.Name,
+		&i.ShortCode,
+		&i.ConsumerKey,
+		&i.ConsumerSecret,
+		&i.Passkey,
+		&i.CallbackBaseUrl,
+		&i.CreatedAt,
+		&i.LastActiveAt,
+	)
+	return i, err
+}
+
 const getProjectBySlug = `-- name: GetProjectBySlug :one
 SELECT id, slug, name, short_code, consumer_key, consumer_secret, passkey, callback_base_url, created_at, last_active_at FROM "projects" WHERE "slug" = ?
 `
