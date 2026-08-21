@@ -16,6 +16,7 @@ import (
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/router"
 	"github.com/knnedy/daraja-local/internal/service"
+	"github.com/knnedy/daraja-local/internal/token"
 )
 
 func main() {
@@ -42,9 +43,11 @@ func run() error {
 		return fmt.Errorf("prepare static assets: %w", err)
 	}
 
+	tokenStore := token.NewStore()
 	projectSvc := service.NewProjectService(db)
 	settingsSvc := service.NewSettingsService(db)
-	r := router.New(projectSvc, settingsSvc, staticFS, cfg.IsDev)
+	tokenSvc := service.NewTokenService(db, tokenStore)
+	r := router.New(projectSvc, settingsSvc, tokenSvc, staticFS)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf("127.0.0.1:%d", cfg.Port),
