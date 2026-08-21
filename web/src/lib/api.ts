@@ -29,6 +29,18 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  oauth: {
+    generate(
+      consumerKey: string,
+      consumerSecret: string,
+    ): Promise<{ access_token: string; expires_in: string }> {
+      const basicAuth = btoa(`${consumerKey}:${consumerSecret}`);
+      return request("/oauth/v1/generate?grant_type=client_credentials", {
+        headers: { Authorization: `Basic ${basicAuth}` },
+      });
+    },
+  },
+
   projects: {
     list(): Promise<ProjectsResponse> {
       return request<ProjectsResponse>("/api/projects");
