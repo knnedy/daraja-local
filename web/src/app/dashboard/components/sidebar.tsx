@@ -24,7 +24,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useActiveProjectStore } from "@/store/active-project";
-import { useProject } from "@/hooks/use-project";
+import { useProject } from "@/hooks/use-projects";
 import { cn, stripTrailingSlash } from "@/lib/utils";
 
 const navGroups = [

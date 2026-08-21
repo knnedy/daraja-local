@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import CredentialRow from "./credential-row";
 import { useActiveProjectStore } from "@/store/active-project";
-import { useProject } from "@/hooks/use-project";
+import { useProject } from "@/hooks/use-projects";
 import { useRegenerateCredentials } from "@/hooks/use-regenerate-credentials";
 
 export default function CredentialsCard() {

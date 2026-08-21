@@ -14,7 +14,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useActiveProjectStore } from "@/store/active-project";
-import { useProject } from "@/hooks/use-project";
+import { useProject } from "@/hooks/use-projects";
 import { useDeleteProject } from "@/hooks/use-delete-project";
 
 export default function DangerZoneCard() {

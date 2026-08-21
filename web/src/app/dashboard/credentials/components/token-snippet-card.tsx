@@ -5,7 +5,7 @@ import { CheckIcon, CopyIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useAppConfigStore } from "@/store/app-config";
-import { useProject } from "@/hooks/use-project";
+import { useProject } from "@/hooks/use-projects";
 
 function buildSnippets(
   baseUrl: string,

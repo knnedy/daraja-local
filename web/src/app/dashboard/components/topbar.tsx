@@ -17,7 +17,7 @@ import { HiOutlineDevicePhoneMobile } from "react-icons/hi2";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useAppConfigStore } from "@/store/app-config";
-import { useProject } from "@/hooks/use-project";
+import { useProject } from "@/hooks/use-projects";
 import { stripTrailingSlash } from "@/lib/utils";
 
 const pages: Record<string, { label: string; icon: React.ElementType }> = {

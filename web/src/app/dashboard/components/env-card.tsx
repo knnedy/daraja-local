@@ -4,7 +4,7 @@ import { CheckIcon, CopyIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useAppConfigStore } from "@/store/app-config";
-import { useProject } from "@/hooks/use-project";
+import { useProject } from "@/hooks/use-projects";
 import type { Project } from "@/lib/types/project";
 
 interface EnvVar {
