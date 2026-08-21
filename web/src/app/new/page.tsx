@@ -16,8 +16,8 @@ import {
   type CreateProjectInput,
 } from "@/lib/schemas/project";
 import { useRouter } from "next/navigation";
-import { useCreateProject } from "@/hooks/use-create-project";
-import { useSetActiveProject } from "@/hooks/use-set-active-project";
+import { useCreateProject } from "@/hooks/use-projects";
+import { useSetActiveProject } from "@/hooks/use-projects";
 
 export default function NewProjectPage() {
   const router = useRouter();

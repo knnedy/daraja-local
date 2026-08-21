@@ -6,13 +6,30 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 
 	"github.com/knnedy/daraja-local/internal/handler"
 )
 
-func New(projectSvc handler.ProjectService, settingsSvc handler.SettingsService, tokenSvc handler.TokenService, staticFS fs.FS) http.Handler {
+func New(
+	projectSvc handler.ProjectService,
+	settingsSvc handler.SettingsService,
+	tokenSvc handler.TokenService,
+	staticFS fs.FS,
+	isDev bool,
+) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
+
+	if isDev {
+		r.Use(cors.Handler(cors.Options{
+			AllowedOrigins:   []string{"http://localhost:3000"},
+			AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowedHeaders:   []string{"Content-Type", "Authorization"},
+			AllowCredentials: false,
+			MaxAge:           300,
+		}))
+	}
 
 	projectHandler := handler.NewProjectHandler(projectSvc)
 	settingsHandler := handler.NewSettingsHandler(settingsSvc)
@@ -38,9 +55,6 @@ func New(projectSvc handler.ProjectService, settingsSvc handler.SettingsService,
 		})
 	})
 
-	// Real Daraja-compatible routes — no project identifier in the path
-	// at all, matching the actual API surface. The token itself resolves
-	// to a project, not a URL segment.
 	r.Get("/oauth/v1/generate", oauthHandler.Generate)
 
 	r.Handle("/*", http.FileServerFS(staticFS))

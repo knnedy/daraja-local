@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { useProjects } from "@/hooks/use-projects";
-import { useSetActiveProject } from "@/hooks/use-set-active-project";
+import { useSetActiveProject } from "@/hooks/use-projects";
 import type { Project } from "@/lib/types/project";
 import { cn } from "@/lib/utils";
 import EmptyState from "./components/empty-state";

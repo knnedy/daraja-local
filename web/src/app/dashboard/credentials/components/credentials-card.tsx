@@ -15,7 +15,7 @@ import {
 import CredentialRow from "./credential-row";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useProject } from "@/hooks/use-projects";
-import { useRegenerateCredentials } from "@/hooks/use-regenerate-credentials";
+import { useRegenerateCredentials } from "@/hooks/use-projects";
 
 export default function CredentialsCard() {
   const slug = useActiveProjectStore((s) => s.slug) ?? "";
