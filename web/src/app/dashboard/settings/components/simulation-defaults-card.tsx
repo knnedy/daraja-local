@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useProjectSettings } from "@/hooks/use-settings";
-import { useUpdateSettings } from "@/hooks/use-update-settings";
+import { useUpdateSettings } from "@/hooks/use-settings";
 import { updateSettingsSchema } from "@/lib/schemas/settings";
 import type { ProjectSettings } from "@/lib/types/settings";
 

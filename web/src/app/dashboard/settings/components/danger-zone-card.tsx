@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useProject } from "@/hooks/use-projects";
-import { useDeleteProject } from "@/hooks/use-delete-project";
+import { useDeleteProject } from "@/hooks/use-projects";
 
 export default function DangerZoneCard() {
   const router = useRouter();

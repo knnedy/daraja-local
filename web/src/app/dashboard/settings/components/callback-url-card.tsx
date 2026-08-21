@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CheckIcon } from "lucide-react";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useProjectSettings } from "@/hooks/use-settings";
-import { useUpdateSettings } from "@/hooks/use-update-settings";
+import { useUpdateSettings } from "@/hooks/use-settings";
 import { updateSettingsSchema } from "@/lib/schemas/settings";
 
 export default function CallbackUrlCard() {
@@ -33,6 +33,7 @@ export default function CallbackUrlCard() {
       stkTimeoutSeconds: settings.stkTimeoutSeconds,
       c2bResponseType: settings.c2bResponseType,
       externalValidationDefault: settings.externalValidationDefault,
+      defaultPhoneNumber: settings.defaultPhoneNumber,
     });
   }
 
