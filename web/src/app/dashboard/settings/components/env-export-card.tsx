@@ -5,7 +5,7 @@ import { CheckIcon, CopyIcon } from "lucide-react";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useAppConfigStore } from "@/store/app-config";
 import { useProject } from "@/hooks/use-projects";
-import { useProjectSettings } from "@/hooks/use-project-settings";
+import { useProjectSettings } from "@/hooks/use-settings";
 import type { Project } from "@/lib/types/project";
 import type { ProjectSettings } from "@/lib/types/settings";
 
