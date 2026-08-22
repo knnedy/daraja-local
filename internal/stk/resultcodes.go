@@ -29,19 +29,21 @@ const (
 	OutcomeTimeout             Outcome = "timeout"
 )
 
-func (o Outcome) resultCode() (int, bool) {
+// Result returns the numeric ResultCode and its description for this
+// outcome, and false if the outcome is unrecognized.
+func (o Outcome) Result() (code int, description string, ok bool) {
 	switch o {
 	case OutcomeApproved:
-		return ResultCodeSuccess, true
+		return ResultCodeSuccess, resultDescriptions[ResultCodeSuccess], true
 	case OutcomeWrongPIN:
-		return ResultCodeWrongPIN, true
+		return ResultCodeWrongPIN, resultDescriptions[ResultCodeWrongPIN], true
 	case OutcomeCancelled:
-		return ResultCodeCancelledByUser, true
+		return ResultCodeCancelledByUser, resultDescriptions[ResultCodeCancelledByUser], true
 	case OutcomeInsufficientBalance:
-		return ResultCodeInsufficientBalance, true
+		return ResultCodeInsufficientBalance, resultDescriptions[ResultCodeInsufficientBalance], true
 	case OutcomeTimeout:
-		return ResultCodeTimeout, true
+		return ResultCodeTimeout, resultDescriptions[ResultCodeTimeout], true
 	default:
-		return 0, false
+		return 0, "", false
 	}
 }
