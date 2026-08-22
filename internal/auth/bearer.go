@@ -1,5 +1,3 @@
-// Package auth provides Bearer-token middleware for routes that emulate
-// real Daraja's authenticated endpoints (STK Push, C2B).
 package auth
 
 import (
@@ -19,20 +17,28 @@ type contextKey string
 
 const projectContextKey contextKey = "auth.project"
 
-// RequireBearer validates Authorization: Bearer <token> and injects the
-// resolved project into request context on success.
+// invalidTokenResponse matches real Daraja's confirmed 404.001.03 error,
+// returned as HTTP 404 (not 401) for a missing, invalid, or expired
+// bearer token — verified against real captured Daraja/GitHub issue
+// responses.
+type invalidTokenResponse struct {
+	RequestID    string `json:"requestId"`
+	ErrorCode    string `json:"errorCode"`
+	ErrorMessage string `json:"errorMessage"`
+}
+
 func RequireBearer(tokenService TokenService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			value, ok := parseBearer(r)
 			if !ok {
-				response.Error(w, http.StatusUnauthorized, "missing or malformed Authorization header")
+				writeInvalidToken(w)
 				return
 			}
 
 			project, err := tokenService.Validate(r.Context(), value)
 			if err != nil {
-				response.Error(w, http.StatusUnauthorized, "invalid or expired access token")
+				writeInvalidToken(w)
 				return
 			}
 
@@ -40,6 +46,14 @@ func RequireBearer(tokenService TokenService) func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+func writeInvalidToken(w http.ResponseWriter) {
+	response.JSON(w, http.StatusNotFound, invalidTokenResponse{
+		RequestID:    response.GenerateRequestID(),
+		ErrorCode:    "404.001.03",
+		ErrorMessage: "Invalid Access Token",
+	})
 }
 
 func ProjectFromContext(ctx context.Context) (repository.Project, bool) {

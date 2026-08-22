@@ -2,8 +2,6 @@ package handler
 
 import (
 	"context"
-	"crypto/rand"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -54,7 +52,7 @@ func (h *OAuthHandler) Generate(w http.ResponseWriter, r *http.Request) {
 		// 400.008.01 "Invalid Authentication passed" — confirmed real
 		// Daraja error for wrong consumer key/secret at this endpoint.
 		response.JSON(w, http.StatusBadRequest, oauthErrorResponse{
-			RequestID:    generateRequestID(),
+			RequestID:    response.GenerateRequestID(),
 			ErrorCode:    "400.008.01",
 			ErrorMessage: "Invalid Authentication passed",
 		})
@@ -70,15 +68,4 @@ func (h *OAuthHandler) Generate(w http.ResponseWriter, r *http.Request) {
 // parseBasicAuth extracts consumer key/secret from an Authorization
 func parseBasicAuth(r *http.Request) (consumerKey, consumerSecret string, ok bool) {
 	return r.BasicAuth()
-}
-
-// generateRequestID mimics the shape of real Daraja requestId values
-// (e.g. "21604-273291-1") for fidelity — not a UUID, just two random
-// digit groups and a trailing counter segment.
-func generateRequestID() string {
-	buf := make([]byte, 4)
-	_, _ = rand.Read(buf)
-	a := int(buf[0])<<8 | int(buf[1])
-	b := int(buf[2])<<8 | int(buf[3])
-	return fmt.Sprintf("%d-%d-1", a, b)
 }
