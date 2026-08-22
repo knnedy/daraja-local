@@ -19,8 +19,8 @@ func (q *Queries) ClearRequestLog(ctx context.Context, projectID int64) error {
 }
 
 const createRequestLogEntry = `-- name: CreateRequestLogEntry :one
-INSERT INTO "request_log" ("project_id", "kind", "direction", "status", "payload")
-VALUES (?, ?, ?, ?, ?)
+INSERT INTO "request_log" ("project_id", "kind", "direction", "status", "attempts", "payload")
+VALUES (?, ?, ?, ?, ?, ?)
 RETURNING id, project_id, kind, direction, status, attempts, payload, created_at
 `
 
@@ -29,6 +29,7 @@ type CreateRequestLogEntryParams struct {
 	Kind      string
 	Direction string
 	Status    string
+	Attempts  int64
 	Payload   string
 }
 
@@ -38,6 +39,7 @@ func (q *Queries) CreateRequestLogEntry(ctx context.Context, arg CreateRequestLo
 		arg.Kind,
 		arg.Direction,
 		arg.Status,
+		arg.Attempts,
 		arg.Payload,
 	)
 	var i RequestLog
