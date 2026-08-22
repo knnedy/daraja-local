@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/knnedy/daraja-local/internal/repository"
@@ -47,7 +48,7 @@ func (s *STKService) ProcessRequest(ctx context.Context, project repository.Proj
 	session := stk.Session{
 		MerchantRequestID: stk.GenerateMerchantRequestID(),
 		CheckoutRequestID: stk.GenerateCheckoutRequestID(),
-		ProjectID:         fmt.Sprintf("%d", project.ID),
+		ProjectID:         strconv.FormatInt(project.ID, 10),
 		BusinessShortCode: req.BusinessShortCode,
 		PartyA:            req.PartyA,
 		PartyB:            req.PartyB,
@@ -63,9 +64,8 @@ func (s *STKService) ProcessRequest(ctx context.Context, project repository.Proj
 	s.store.Create(session)
 	s.logInbound(ctx, project.ID, req, "accepted")
 
-	// Automatic resolution if nobody acts on it via the Virtual Phone which
-	// matches real Daraja's own DS-timeout behavior. Implemented as
-	// s.autoTimeout in the next commit, alongside Resolve.
+	// Automatic resolution if nobody acts on it via the Virtual Phone so it
+	// matches real Daraja's own DS-timeout behavior.
 	time.AfterFunc(time.Duration(settings.StkTimeoutSeconds)*time.Second, func() {
 		s.autoTimeout(session.CheckoutRequestID)
 	})
@@ -84,12 +84,13 @@ func (s *STKService) logInbound(ctx context.Context, projectID int64, req stk.Re
 		Kind:      "stk_push",
 		Direction: "inbound",
 		Status:    status,
+		Attempts:  1,
 		Payload:   string(payload),
 	})
 }
 
 func parseAmount(raw string) (int64, error) {
 	var amount int64
-	_, err := fmt.Scanf(raw, "%d", &amount)
+	_, err := fmt.Sscanf(raw, "%d", &amount)
 	return amount, err
 }
