@@ -24,7 +24,7 @@ type Session struct {
 	CallbackURL       string
 
 	CreatedAt time.Time
-	UpdatedAt time.Time
+	TimeoutAt time.Time
 
 	Resolved   bool
 	ResultCode int
