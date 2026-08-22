@@ -36,6 +36,7 @@ type RequestLog struct {
 	Kind      string
 	Direction string
 	Status    string
+	Attempts  int64
 	Payload   string
 	CreatedAt string
 }

@@ -21,7 +21,7 @@ func (q *Queries) ClearRequestLog(ctx context.Context, projectID int64) error {
 const createRequestLogEntry = `-- name: CreateRequestLogEntry :one
 INSERT INTO "request_log" ("project_id", "kind", "direction", "status", "payload")
 VALUES (?, ?, ?, ?, ?)
-RETURNING id, project_id, kind, direction, status, payload, created_at
+RETURNING id, project_id, kind, direction, status, attempts, payload, created_at
 `
 
 type CreateRequestLogEntryParams struct {
@@ -47,6 +47,7 @@ func (q *Queries) CreateRequestLogEntry(ctx context.Context, arg CreateRequestLo
 		&i.Kind,
 		&i.Direction,
 		&i.Status,
+		&i.Attempts,
 		&i.Payload,
 		&i.CreatedAt,
 	)
@@ -54,7 +55,7 @@ func (q *Queries) CreateRequestLogEntry(ctx context.Context, arg CreateRequestLo
 }
 
 const listRequestLogEntries = `-- name: ListRequestLogEntries :many
-SELECT id, project_id, kind, direction, status, payload, created_at FROM "request_log"
+SELECT id, project_id, kind, direction, status, attempts, payload, created_at FROM "request_log"
 WHERE "project_id" = ?
 ORDER BY "created_at" DESC
 LIMIT ?
@@ -80,6 +81,7 @@ func (q *Queries) ListRequestLogEntries(ctx context.Context, arg ListRequestLogE
 			&i.Kind,
 			&i.Direction,
 			&i.Status,
+			&i.Attempts,
 			&i.Payload,
 			&i.CreatedAt,
 		); err != nil {
