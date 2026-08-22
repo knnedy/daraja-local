@@ -2,6 +2,8 @@ package handler
 
 import (
 	"context"
+	"crypto/rand"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -29,6 +31,14 @@ type generateTokenResponse struct {
 	ExpiresIn   string `json:"expires_in"`
 }
 
+// oauthErrorResponse matches real Daraja's confirmed error envelope
+// shape, verified against real captured API responses.
+type oauthErrorResponse struct {
+	RequestID    string `json:"requestId"`
+	ErrorCode    string `json:"errorCode"`
+	ErrorMessage string `json:"errorMessage"`
+}
+
 // Generate handles GET /oauth/v1/generate?grant_type=client_credentials.
 // Real Daraja sends credentials as Authorization: Basic
 // base64(consumer_key:consumer_secret) — no request body.
@@ -41,7 +51,13 @@ func (h *OAuthHandler) Generate(w http.ResponseWriter, r *http.Request) {
 
 	t, err := h.service.Generate(r.Context(), consumerKey, consumerSecret)
 	if err != nil {
-		response.Error(w, http.StatusUnauthorized, "invalid consumer key or secret")
+		// 400.008.01 "Invalid Authentication passed" — confirmed real
+		// Daraja error for wrong consumer key/secret at this endpoint.
+		response.JSON(w, http.StatusBadRequest, oauthErrorResponse{
+			RequestID:    generateRequestID(),
+			ErrorCode:    "400.008.01",
+			ErrorMessage: "Invalid Authentication passed",
+		})
 		return
 	}
 
@@ -54,4 +70,15 @@ func (h *OAuthHandler) Generate(w http.ResponseWriter, r *http.Request) {
 // parseBasicAuth extracts consumer key/secret from an Authorization
 func parseBasicAuth(r *http.Request) (consumerKey, consumerSecret string, ok bool) {
 	return r.BasicAuth()
+}
+
+// generateRequestID mimics the shape of real Daraja requestId values
+// (e.g. "21604-273291-1") for fidelity — not a UUID, just two random
+// digit groups and a trailing counter segment.
+func generateRequestID() string {
+	buf := make([]byte, 4)
+	_, _ = rand.Read(buf)
+	a := int(buf[0])<<8 | int(buf[1])
+	b := int(buf[2])<<8 | int(buf[3])
+	return fmt.Sprintf("%d-%d-1", a, b)
 }
