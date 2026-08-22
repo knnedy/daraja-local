@@ -21,25 +21,12 @@ func NewOAuthHandler(s TokenService) *OAuthHandler {
 	return &OAuthHandler{service: s}
 }
 
-// generateTokenResponse matches real Daraja's response shape exactly —
-// notably, expires_in is a STRING ("3599"), not a number. This
-// matches the real API, not a mistake here.
+// expires_in is a string ("3599"), matching real Daraja exactly.
 type generateTokenResponse struct {
 	AccessToken string `json:"access_token"`
 	ExpiresIn   string `json:"expires_in"`
 }
 
-// oauthErrorResponse matches real Daraja's confirmed error envelope
-// shape, verified against real captured API responses.
-type oauthErrorResponse struct {
-	RequestID    string `json:"requestId"`
-	ErrorCode    string `json:"errorCode"`
-	ErrorMessage string `json:"errorMessage"`
-}
-
-// Generate handles GET /oauth/v1/generate?grant_type=client_credentials.
-// Real Daraja sends credentials as Authorization: Basic
-// base64(consumer_key:consumer_secret) — no request body.
 func (h *OAuthHandler) Generate(w http.ResponseWriter, r *http.Request) {
 	consumerKey, consumerSecret, ok := parseBasicAuth(r)
 	if !ok {
@@ -49,13 +36,7 @@ func (h *OAuthHandler) Generate(w http.ResponseWriter, r *http.Request) {
 
 	t, err := h.service.Generate(r.Context(), consumerKey, consumerSecret)
 	if err != nil {
-		// 400.008.01 "Invalid Authentication passed" — confirmed real
-		// Daraja error for wrong consumer key/secret at this endpoint.
-		response.JSON(w, http.StatusBadRequest, oauthErrorResponse{
-			RequestID:    response.GenerateRequestID(),
-			ErrorCode:    "400.008.01",
-			ErrorMessage: "Invalid Authentication passed",
-		})
+		response.DarajaJSON(w, http.StatusBadRequest, "400.008.01", "Invalid Authentication passed")
 		return
 	}
 
@@ -65,7 +46,6 @@ func (h *OAuthHandler) Generate(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// parseBasicAuth extracts consumer key/secret from an Authorization
 func parseBasicAuth(r *http.Request) (consumerKey, consumerSecret string, ok bool) {
 	return r.BasicAuth()
 }
