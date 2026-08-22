@@ -17,16 +17,6 @@ type contextKey string
 
 const projectContextKey contextKey = "auth.project"
 
-// invalidTokenResponse matches real Daraja's confirmed 404.001.03 error,
-// returned as HTTP 404 (not 401) for a missing, invalid, or expired
-// bearer token — verified against real captured Daraja/GitHub issue
-// responses.
-type invalidTokenResponse struct {
-	RequestID    string `json:"requestId"`
-	ErrorCode    string `json:"errorCode"`
-	ErrorMessage string `json:"errorMessage"`
-}
-
 func RequireBearer(tokenService TokenService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -49,11 +39,7 @@ func RequireBearer(tokenService TokenService) func(http.Handler) http.Handler {
 }
 
 func writeInvalidToken(w http.ResponseWriter) {
-	response.JSON(w, http.StatusNotFound, invalidTokenResponse{
-		RequestID:    response.GenerateRequestID(),
-		ErrorCode:    "404.001.03",
-		ErrorMessage: "Invalid Access Token",
-	})
+	response.DarajaJSON(w, http.StatusNotFound, "404.001.03", "Invalid Access Token")
 }
 
 func ProjectFromContext(ctx context.Context) (repository.Project, bool) {
