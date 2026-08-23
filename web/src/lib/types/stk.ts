@@ -9,7 +9,7 @@ export interface PendingSession {
   timeoutAt: string;
 }
 
-export type PendingSessionResponse = PendingSession[];
+export type PendingSessionsResponse = PendingSession[];
 
 export type StkOutcome =
   | "approved"

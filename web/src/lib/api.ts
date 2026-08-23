@@ -6,6 +6,7 @@ import {
   ProjectsResponse,
 } from "./types/project";
 import { SettingsResponse } from "./types/settings";
+import { PendingSessionsResponse, StkOutcome } from "./types/stk";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -20,7 +21,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     throw new Error(message || `Request failed with status ${response.status}`);
   }
 
-  // Touch/Delete return 204 No Content — no body to parse.
+  // Touch/Delete/Resolve return 204 No Content — no body to parse.
   if (response.status === 204) {
     return undefined as T;
   }
@@ -99,6 +100,28 @@ export const api = {
           {
             method: "PUT",
             body: JSON.stringify(body),
+          },
+        );
+      },
+    },
+
+    stk: {
+      listPending(slug: string): Promise<PendingSessionsResponse> {
+        return request<PendingSessionsResponse>(
+          `/api/projects/${encodeURIComponent(slug)}/stk/pending`,
+        );
+      },
+
+      resolve(
+        slug: string,
+        checkoutRequestId: string,
+        outcome: StkOutcome,
+      ): Promise<void> {
+        return request<void>(
+          `/api/projects/${encodeURIComponent(slug)}/stk/${encodeURIComponent(checkoutRequestId)}/resolve`,
+          {
+            method: "POST",
+            body: JSON.stringify({ outcome }),
           },
         );
       },
