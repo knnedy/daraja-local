@@ -73,6 +73,10 @@ func (s *STKService) ProcessRequest(ctx context.Context, project repository.Proj
 	return session, nil
 }
 
+func (s *STKService) ListPending(projectID int64) []stk.Session {
+	return s.store.ListPending(projectID)
+}
+
 func (s *STKService) logInbound(ctx context.Context, projectID int64, req stk.Request, status string) {
 	payload, err := json.Marshal(req)
 	if err != nil {
