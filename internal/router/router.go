@@ -8,13 +8,16 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 
+	"github.com/knnedy/daraja-local/internal/auth"
 	"github.com/knnedy/daraja-local/internal/handler"
+	"github.com/knnedy/daraja-local/internal/service"
 )
 
 func New(
 	projectSvc handler.ProjectService,
 	settingsSvc handler.SettingsService,
-	tokenSvc handler.TokenService,
+	tokenSvc *service.TokenService,
+	stkSvc handler.STKService,
 	staticFS fs.FS,
 	isDev bool,
 ) http.Handler {
@@ -24,7 +27,7 @@ func New(
 	if isDev {
 		r.Use(cors.Handler(cors.Options{
 			AllowedOrigins:   []string{"http://localhost:3000"},
-			AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 			AllowedHeaders:   []string{"Content-Type", "Authorization"},
 			AllowCredentials: false,
 			MaxAge:           300,
@@ -34,6 +37,7 @@ func New(
 	projectHandler := handler.NewProjectHandler(projectSvc)
 	settingsHandler := handler.NewSettingsHandler(settingsSvc)
 	oauthHandler := handler.NewOAuthHandler(tokenSvc)
+	stkHandler := handler.NewSTKHandler(stkSvc)
 
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.Logger)
@@ -56,6 +60,11 @@ func New(
 	})
 
 	r.Get("/oauth/v1/generate", oauthHandler.Generate)
+
+	r.Group(func(r chi.Router) {
+		r.Use(auth.RequireBearer(tokenSvc))
+		r.Post("/mpesa/stkpush/v1/processrequest", stkHandler.ProcessRequest)
+	})
 
 	r.Handle("/*", http.FileServerFS(staticFS))
 

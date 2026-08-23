@@ -16,6 +16,7 @@ import (
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/router"
 	"github.com/knnedy/daraja-local/internal/service"
+	"github.com/knnedy/daraja-local/internal/stk"
 	"github.com/knnedy/daraja-local/internal/token"
 )
 
@@ -44,10 +45,12 @@ func run() error {
 	}
 
 	tokenStore := token.NewStore()
+	stkstore := stk.Store()
 	projectSvc := service.NewProjectService(db)
 	settingsSvc := service.NewSettingsService(db)
 	tokenSvc := service.NewTokenService(db, tokenStore)
-	r := router.New(projectSvc, settingsSvc, tokenSvc, staticFS, cfg.IsDev)
+	stkSvc := service.NewSTKService(db)
+	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSvc, staticFS, cfg.IsDev)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf("127.0.0.1:%d", cfg.Port),
