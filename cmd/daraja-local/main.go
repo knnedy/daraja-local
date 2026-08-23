@@ -45,11 +45,11 @@ func run() error {
 	}
 
 	tokenStore := token.NewStore()
-	stkstore := stk.Store()
+	stkStore := stk.NewStore()
 	projectSvc := service.NewProjectService(db)
 	settingsSvc := service.NewSettingsService(db)
 	tokenSvc := service.NewTokenService(db, tokenStore)
-	stkSvc := service.NewSTKService(db)
+	stkSvc := service.NewSTKService(db, stkStore)
 	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSvc, staticFS, cfg.IsDev)
 
 	srv := &http.Server{
