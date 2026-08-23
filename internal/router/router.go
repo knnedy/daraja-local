@@ -37,7 +37,7 @@ func New(
 	projectHandler := handler.NewProjectHandler(projectSvc)
 	settingsHandler := handler.NewSettingsHandler(settingsSvc)
 	oauthHandler := handler.NewOAuthHandler(tokenSvc)
-	stkHandler := handler.NewSTKHandler(stkSvc)
+	stkHandler := handler.NewSTKHandler(projectSvc, stkSvc)
 
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.Logger)
@@ -55,6 +55,11 @@ func New(
 
 				r.Get("/settings", settingsHandler.Get)
 				r.Put("/settings", settingsHandler.Update)
+
+				r.Route("/stk", func(r chi.Router) {
+					r.Get("/pending", stkHandler.ListPending)
+					r.Post("/{checkoutRequestId}/resolve", stkHandler.Resolve)
+				})
 			})
 		})
 	})

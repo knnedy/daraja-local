@@ -13,14 +13,17 @@ import (
 
 type STKService interface {
 	ProcessRequest(ctx context.Context, project repository.Project, req stk.Request) (stk.Session, *stk.ValidationError)
+	ListPending(projectID int64) []stk.Session
+	Resolve(ctx context.Context, checkoutRequestID string, outcome stk.Outcome) error
 }
 
 type STKHandler struct {
-	service STKService
+	projectService ProjectService
+	service        STKService
 }
 
-func NewSTKHandler(s STKService) *STKHandler {
-	return &STKHandler{service: s}
+func NewSTKHandler(projectService ProjectService, s STKService) *STKHandler {
+	return &STKHandler{projectService: projectService, service: s}
 }
 
 // Real Daraja's immediate accept response — before an outcome exists.
