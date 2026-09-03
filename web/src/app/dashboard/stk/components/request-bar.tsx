@@ -2,21 +2,32 @@
 
 import { useState } from "react";
 import { CheckIcon, CopyIcon, TerminalIcon } from "lucide-react";
+import { useAppConfigStore } from "@/store/app-config";
+
+const PATH = "/mpesa/stkpush/v1/processrequest";
 
 const CURL = (url: string) => `curl -X POST ${url} \\
   -H "Authorization: Bearer <access_token>" \\
   -H "Content-Type: application/json" \\
-  -d '{"BusinessShortCode":174379,"Amount":1000,"PhoneNumber":254712345678,...}'`;
+  -d '{
+    "BusinessShortCode": <shortcode>,
+    "Password": <base64(shortcode+passkey+timestamp)>,
+    "Timestamp": <yyyyMMddHHmmss>,
+    "TransactionType": "CustomerPayBillOnline",
+    "Amount": 1000,
+    "PartyA": 254712345678,
+    "PartyB": <shortcode>,
+    "PhoneNumber": 254712345678,
+    "CallBackURL": "<your-callback-url>",
+    "AccountReference": "test",
+    "TransactionDesc": "Payment"
+  }'`;
 
-export default function RequestBar({
-  baseUrl,
-  path,
-}: {
-  baseUrl: string;
-  path: string;
-}) {
+export default function RequestBar() {
+  const port = useAppConfigStore((s) => s.port);
   const [copied, setCopied] = useState<"url" | "curl" | null>(null);
-  const fullUrl = `${baseUrl}${path}`;
+  const baseUrl = `http://localhost:${port}`;
+  const fullUrl = `${baseUrl}${PATH}`;
 
   function copy(value: string, key: "url" | "curl") {
     navigator.clipboard.writeText(value);
