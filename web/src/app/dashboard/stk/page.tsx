@@ -17,7 +17,6 @@ type Phase = "idle" | "prompt" | "processing" | "resolved";
 type RequestPayload = { phone: string; amount: string; accountRef: string };
 
 const PROMPT_SECONDS = 20;
-const BASE_URL = "http://localhost:8080";
 const PATH = "/mpesa/stkpush/v1/processrequest";
 
 const MOCK_REQUESTS: RequestPayload[] = [
