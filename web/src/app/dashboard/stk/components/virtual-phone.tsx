@@ -1,35 +1,49 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { BatteryFull, CheckIcon, SignalHighIcon, XIcon } from "lucide-react";
-import Keypad from "./keypad";
-import { RESULT_CODES, type StkOutcome } from "../lib/result-codes";
-
-type RequestPayload = {
-  phone: string;
-  amount: string;
-  accountRef: string;
-};
-
-type Phase = "idle" | "prompt" | "processing" | "resolved";
+import type { PendingSession, StkOutcome } from "@/lib/types/stk";
 
 const OUTCOME_COPY: Record<
   StkOutcome,
-  { title: string; tone: "success" | "error" }
+  { title: string; code: string; tone: "success" | "error" }
 > = {
-  success: { title: "Payment confirmed", tone: "success" },
-  wrong_pin: { title: "Wrong PIN entered", tone: "error" },
-  insufficient_balance: { title: "Insufficient balance", tone: "error" },
-  cancelled: { title: "Request cancelled", tone: "error" },
-  timeout: { title: "Request timed out", tone: "error" },
+  approved: { title: "Payment confirmed", code: "0", tone: "success" },
+  wrong_pin: { title: "Wrong PIN entered", code: "2001", tone: "error" },
+  insufficient_balance: {
+    title: "Insufficient balance",
+    code: "1",
+    tone: "error",
+  },
+  cancelled: { title: "Request cancelled", code: "1032", tone: "error" },
+  timeout: { title: "Request timed out", code: "1037", tone: "error" },
 };
 
-const PHASE_LABEL: Record<Phase, string> = {
-  idle: "Idle",
-  prompt: "Awaiting PIN",
-  processing: "Processing",
-  resolved: "Resolved",
-};
+const ACTIONS: { outcome: StkOutcome; label: string }[] = [
+  { outcome: "approved", label: "Approve" },
+  { outcome: "wrong_pin", label: "Wrong PIN" },
+  { outcome: "insufficient_balance", label: "Insufficient" },
+  { outcome: "cancelled", label: "Cancel" },
+];
+
+function useCountdown(session: PendingSession | null) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!session) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [session]);
+
+  if (!session) return { secondsLeft: 0, total: 0 };
+
+  const created = Date.parse(session.createdAt);
+  const deadline = Date.parse(session.timeoutAt);
+  const total = Math.max(Math.round((deadline - created) / 1000), 1);
+  const secondsLeft = Math.max(Math.ceil((deadline - now) / 1000), 0);
+  return { secondsLeft, total };
+}
 
 function CountdownRing({
   secondsLeft,
@@ -40,7 +54,7 @@ function CountdownRing({
 }) {
   const radius = 14;
   const circumference = 2 * Math.PI * radius;
-  const progress = Math.max(secondsLeft, 0) / total;
+  const progress = total > 0 ? Math.max(secondsLeft, 0) / total : 0;
 
   return (
     <div className="relative flex size-8 items-center justify-center">
@@ -76,28 +90,19 @@ function CountdownRing({
 }
 
 export default function VirtualPhone({
-  phase,
-  request,
-  pin,
-  secondsLeft,
-  outcome,
-  onDigit,
-  onBackspace,
-  onSubmitPin,
-  onCancel,
-  totalSeconds = 20,
+  session,
+  resolvedOutcome,
+  resolving,
+  onResolve,
 }: {
-  phase: Phase;
-  request: RequestPayload | null;
-  pin: string;
-  secondsLeft: number;
-  outcome: StkOutcome | null;
-  onDigit: (digit: string) => void;
-  onBackspace: () => void;
-  onSubmitPin: () => void;
-  onCancel: () => void;
-  totalSeconds?: number;
+  session: PendingSession | null;
+  resolvedOutcome: StkOutcome | null;
+  resolving?: boolean;
+  onResolve: (outcome: StkOutcome) => void;
 }) {
+  const { secondsLeft, total } = useCountdown(session);
+  const phase = resolvedOutcome ? "resolved" : session ? "prompt" : "idle";
+
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="relative w-52.5">
@@ -140,69 +145,44 @@ export default function VirtualPhone({
               </motion.div>
             )}
 
-            {phase === "prompt" && request && (
+            {phase === "prompt" && session && (
               <motion.div
-                key="prompt"
+                key={session.checkoutRequestId}
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.18 }}
-                className="flex min-h-64 flex-col justify-between px-4 pt-2 pb-1">
+                className="flex min-h-64 flex-col justify-between px-4 pt-2 pb-3">
                 <div className="flex items-start justify-between">
                   <p className="pt-1 font-mono text-[10px] text-green/50">
                     Confirm payment
                   </p>
-                  <CountdownRing
-                    secondsLeft={secondsLeft}
-                    total={totalSeconds}
-                  />
+                  <CountdownRing secondsLeft={secondsLeft} total={total} />
                 </div>
-                <div className="-mt-2 text-center">
+                <div className="-mt-1 text-center">
                   <p className="font-mono text-[18px] font-medium text-green">
-                    KES {request.amount || "0"}
+                    KES {session.amount}
                   </p>
-                  <p className="mt-0.5 font-mono text-[10.5px] text-green/60">
-                    to {request.accountRef || "merchant"}
+                  <p className="mt-0.5 truncate font-mono text-[10.5px] text-green/60">
+                    to {session.accountReference || "merchant"}
                   </p>
-                  <div className="mt-3 flex items-center justify-center gap-2.5">
-                    {[0, 1, 2, 3].map((i) => (
-                      <span
-                        key={i}
-                        className={`size-2 rounded-full border border-green/40 transition-colors ${
-                          i < pin.length ? "bg-green" : "bg-transparent"
-                        }`}
-                      />
-                    ))}
-                  </div>
                 </div>
-                <Keypad onDigit={onDigit} onBackspace={onBackspace} />
-              </motion.div>
-            )}
-
-            {phase === "processing" && (
-              <motion.div
-                key="processing"
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.18 }}
-                className="flex min-h-64 flex-col items-center justify-center gap-3 px-5 text-center">
-                <div className="flex gap-1.5">
-                  {[0, 1, 2].map((i) => (
-                    <span
-                      key={i}
-                      className="size-1.5 animate-bounce rounded-full bg-green"
-                      style={{ animationDelay: `${i * 0.15}s` }}
-                    />
+                <div className="mt-3 grid grid-cols-2 gap-1.5">
+                  {ACTIONS.map((a) => (
+                    <button
+                      key={a.outcome}
+                      type="button"
+                      disabled={resolving}
+                      onClick={() => onResolve(a.outcome)}
+                      className="rounded-lg bg-white/5 py-2 font-mono text-[10px] uppercase tracking-wide text-white/80 transition-colors hover:bg-white/10 active:scale-95 disabled:opacity-30">
+                      {a.label}
+                    </button>
                   ))}
                 </div>
-                <p className="font-mono text-[11px] text-green/70">
-                  Processing…
-                </p>
               </motion.div>
             )}
 
-            {phase === "resolved" && outcome && (
+            {phase === "resolved" && resolvedOutcome && (
               <motion.div
                 key="resolved"
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -212,46 +192,27 @@ export default function VirtualPhone({
                 className="flex min-h-64 flex-col items-center justify-center gap-3 px-5 text-center">
                 <div
                   className={`flex size-8 items-center justify-center rounded-full ${
-                    OUTCOME_COPY[outcome].tone === "success"
+                    OUTCOME_COPY[resolvedOutcome].tone === "success"
                       ? "bg-green/15 text-green"
                       : "bg-destructive/15 text-destructive"
                   }`}>
-                  {OUTCOME_COPY[outcome].tone === "success" ? (
+                  {OUTCOME_COPY[resolvedOutcome].tone === "success" ? (
                     <CheckIcon className="size-4" />
                   ) : (
                     <XIcon className="size-4" />
                   )}
                 </div>
                 <p className="font-mono text-[11px] text-green/80">
-                  {OUTCOME_COPY[outcome].title}
+                  {OUTCOME_COPY[resolvedOutcome].title}
                 </p>
                 <p className="font-mono text-[9.5px] text-green/40">
-                  ResultCode {RESULT_CODES[outcome].code}
+                  ResultCode {OUTCOME_COPY[resolvedOutcome].code}
                 </p>
               </motion.div>
             )}
           </AnimatePresence>
-
-          <div className="relative flex divide-x divide-white/10 border-t border-white/10">
-            <button
-              type="button"
-              disabled={phase !== "prompt"}
-              onClick={onCancel}
-              className="flex-1 py-2.5 font-mono text-[10px] uppercase tracking-wide text-white/70 transition-colors disabled:text-white/25">
-              Cancel
-            </button>
-            <button
-              type="button"
-              disabled={phase !== "prompt" || pin.length !== 4}
-              onClick={onSubmitPin}
-              className="flex-1 py-2.5 font-mono text-[10px] uppercase tracking-wide text-white/70 transition-colors disabled:text-white/25">
-              Approve
-            </button>
-          </div>
         </div>
       </div>
-
-      <p className="text-[11px] text-muted-foreground">{PHASE_LABEL[phase]}</p>
     </div>
   );
 }

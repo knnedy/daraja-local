@@ -1,101 +1,109 @@
-import { PlayIcon } from "lucide-react";
+"use client";
+
+import { useRef, useState } from "react";
 import VirtualPhone from "./virtual-phone";
-import type { StkOutcome } from "../lib/result-codes";
+import { usePendingSessions, useResolveSession } from "@/hooks/use-stk";
+import type { StkOutcome } from "@/lib/types/stk";
 
-type Phase = "idle" | "prompt" | "processing" | "resolved";
-type RequestPayload = { phone: string; amount: string; accountRef: string };
+export default function SimulatorCard({ slug }: { slug: string }) {
+  const { data: sessions = [] } = usePendingSessions(slug);
+  const { mutate: resolve, isPending: resolving } = useResolveSession(slug);
+  const [focusedId, setFocusedId] = useState<string | null>(null);
+  const [lastResolved, setLastResolved] = useState<StkOutcome | null>(null);
+  const clearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-const PHASE_COPY: Record<Phase, string> = {
-  idle: "No active session",
-  prompt: "Awaiting customer PIN",
-  processing: "Processing response",
-  resolved: "Session closed",
-};
+  const sorted = [...sessions].sort(
+    (a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt),
+  );
+  const focused =
+    sorted.find((s) => s.checkoutRequestId === focusedId) ?? sorted[0] ?? null;
 
-export default function SimulatorCard({
-  phase,
-  request,
-  pin,
-  secondsLeft,
-  outcome,
-  checkoutId,
-  onDigit,
-  onBackspace,
-  onSubmitPin,
-  onCancel,
-  onSimulate,
-}: {
-  phase: Phase;
-  request: RequestPayload | null;
-  pin: string;
-  secondsLeft: number;
-  outcome: StkOutcome | null;
-  checkoutId: string;
-  onDigit: (digit: string) => void;
-  onBackspace: () => void;
-  onSubmitPin: () => void;
-  onCancel: () => void;
-  onSimulate: () => void;
-}) {
+  function focusSession(id: string | null) {
+    if (clearTimer.current) clearTimeout(clearTimer.current);
+    setLastResolved(null);
+    setFocusedId(id);
+  }
+
+  function handleResolve(outcome: StkOutcome) {
+    if (!focused) return;
+    resolve(
+      { checkoutRequestId: focused.checkoutRequestId, outcome },
+      {
+        onSuccess: () => {
+          setLastResolved(outcome);
+          setFocusedId(null);
+          clearTimer.current = setTimeout(() => setLastResolved(null), 2500);
+        },
+      },
+    );
+  }
+
   return (
     <div className="flex h-full flex-col gap-3 rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <span className="text-[13px] font-medium text-foreground">
-          Simulator
+          Virtual Phone
         </span>
         <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <span
             className={`size-1.5 rounded-full ${
-              phase === "idle" ? "bg-muted-foreground/40" : "bg-green"
+              sorted.length === 0 ? "bg-muted-foreground/40" : "bg-green"
             }`}
           />
-          {phase === "idle" ? "Listening" : "Active"}
+          {sorted.length === 0 ? "Listening" : `${sorted.length} pending`}
         </span>
       </div>
 
+      {sorted.length > 1 && (
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+          {sorted.map((s) => (
+            <button
+              key={s.checkoutRequestId}
+              type="button"
+              onClick={() => focusSession(s.checkoutRequestId)}
+              className={`shrink-0 rounded-md border px-2 py-1 font-mono text-[10.5px] transition-colors ${
+                s.checkoutRequestId === focused?.checkoutRequestId
+                  ? "border-green/40 bg-green/10 text-green"
+                  : "border-border text-muted-foreground hover:text-foreground"
+              }`}>
+              KES {s.amount} · {s.phoneNumber.slice(-4)}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="flex flex-1 items-center justify-center">
         <VirtualPhone
-          phase={phase}
-          request={request}
-          pin={pin}
-          secondsLeft={secondsLeft}
-          outcome={outcome}
-          onDigit={onDigit}
-          onBackspace={onBackspace}
-          onSubmitPin={onSubmitPin}
-          onCancel={onCancel}
+          session={focused}
+          resolvedOutcome={lastResolved}
+          resolving={resolving}
+          onResolve={handleResolve}
         />
       </div>
 
       <div className="rounded-md border border-border bg-surface-2 px-3 py-2">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-medium text-foreground">
-            {PHASE_COPY[phase]}
-          </span>
-          {request && (
-            <span className="font-mono text-[10px] text-muted-foreground">
-              KES {request.amount}
-            </span>
-          )}
-        </div>
-        {checkoutId && (
-          <p className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
-            {checkoutId}
-          </p>
+        {focused ? (
+          <>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium text-foreground">
+                Awaiting response
+              </span>
+              <span className="font-mono text-[10px] text-muted-foreground">
+                KES {focused.amount}
+              </span>
+            </div>
+            <p className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
+              {focused.checkoutRequestId}
+            </p>
+          </>
+        ) : (
+          <p className="text-[11px] text-muted-foreground">No active session</p>
         )}
       </div>
 
-      <button
-        type="button"
-        onClick={onSimulate}
-        disabled={phase !== "idle"}
-        className="flex items-center justify-center gap-1.5 rounded-lg border border-border-strong bg-surface-2 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface-2/70 disabled:opacity-40">
-        <PlayIcon className="size-3.5" />
-        Simulate incoming request
-      </button>
       <p className="text-center text-[10.5px] leading-relaxed text-muted-foreground">
-        Stands in for your backend calling the endpoint above — wire your real
-        integration to it and this becomes live.
+        Call the endpoint above from your app — real requests appear here
+        automatically.
       </p>
     </div>
   );
