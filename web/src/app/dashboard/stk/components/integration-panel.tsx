@@ -6,15 +6,15 @@ import { cn } from "@/lib/utils";
 const tabs = ["Request", "Callback"] as const;
 
 const requestBody = `{
-  "BusinessShortCode": 174379,
+  "BusinessShortCode": <shortcode>,
   "Password": "<base64(shortcode+passkey+timestamp)>",
-  "Timestamp": "20260802101500",
+  "Timestamp": "20260903101500",
   "TransactionType": "CustomerPayBillOnline",
   "Amount": 1000,
   "PartyA": 254712345678,
-  "PartyB": 174379,
+  "PartyB": <shortcode>,
   "PhoneNumber": 254712345678,
-  "CallBackURL": "https://your-app.com/api/mpesa/callback",
+  "CallBackURL": "<your-callback-url>",
   "AccountReference": "Order #1032",
   "TransactionDesc": "Payment for goods"
 }`;
@@ -30,7 +30,7 @@ const callbackBody = `{
         "Item": [
           { "Name": "Amount", "Value": 1000 },
           { "Name": "MpesaReceiptNumber", "Value": "NLJ7RT61SV" },
-          { "Name": "TransactionDate", "Value": 20260802101530 },
+          { "Name": "TransactionDate", "Value": 20260903101530 },
           { "Name": "PhoneNumber", "Value": 254712345678 }
         ]
       }
@@ -65,7 +65,7 @@ export default function IntegrationPanel() {
               base64(shortcode + passkey + timestamp), matching real Daraja
               auth.
             </p>
-            <pre className="overflow-x-auto rounded-md bg-[#0B120D] p-3.5 font-mono text-[12px] leading-relaxed text-green/80">
+            <pre className="overflow-x-auto rounded-md border border-terminal-border bg-terminal-bg p-3.5 font-mono text-[12px] leading-relaxed text-terminal-green">
               {requestBody}
             </pre>
             <p className="mt-2 text-[11px] text-amber">
@@ -77,10 +77,11 @@ export default function IntegrationPanel() {
         {tab === "Callback" && (
           <>
             <p className="mb-3 text-xs text-muted-foreground">
-              Once the simulated customer responds, this is POSTed to the
-              CallBackURL you registered.
+              Once you resolve the pending request in the Virtual Phone, this is
+              POSTed to the CallBackURL you registered — retried up to 3x on
+              delivery failure.
             </p>
-            <pre className="overflow-x-auto rounded-md bg-[#0B120D] p-3.5 font-mono text-[12px] leading-relaxed text-green/80">
+            <pre className="overflow-x-auto rounded-md border border-terminal-border bg-terminal-bg p-3.5 font-mono text-[12px] leading-relaxed text-terminal-green">
               {callbackBody}
             </pre>
           </>

@@ -131,7 +131,7 @@ export default function StkPushPage() {
 
       <HowItWorks />
 
-      <RequestBar baseUrl={BASE_URL} path={PATH} />
+      <RequestBar />
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px] lg:items-stretch">
         <div className="flex flex-col gap-5">
