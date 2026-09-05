@@ -29,7 +29,7 @@ export default function StkPushPage() {
 
       <RequestBar />
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px] lg:items-stretch">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px] lg:items-start">
         <div className="flex flex-col gap-5">
           <IntegrationPanel />
           <SimulationGuide />

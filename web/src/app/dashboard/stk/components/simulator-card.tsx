@@ -39,7 +39,7 @@ export default function SimulatorCard({ slug }: { slug: string }) {
   }
 
   return (
-    <div className="flex h-full flex-col gap-3 rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm">
+    <div className="flex flex-col gap-3 rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <span className="text-[13px] font-medium text-foreground">
           Virtual Phone
@@ -72,7 +72,7 @@ export default function SimulatorCard({ slug }: { slug: string }) {
         </div>
       )}
 
-      <div className="flex flex-1 items-center justify-center">
+      <div className="flex justify-center py-2">
         <VirtualPhone
           session={focused}
           resolvedOutcome={lastResolved}

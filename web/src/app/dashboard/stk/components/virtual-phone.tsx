@@ -52,37 +52,37 @@ function CountdownRing({
   secondsLeft: number;
   total: number;
 }) {
-  const radius = 14;
+  const radius = 18;
   const circumference = 2 * Math.PI * radius;
   const progress = total > 0 ? Math.max(secondsLeft, 0) / total : 0;
 
   return (
-    <div className="relative flex size-8 items-center justify-center">
-      <svg width="32" height="32" viewBox="0 0 32 32" className="-rotate-90">
+    <div className="relative flex size-10 items-center justify-center">
+      <svg width="40" height="40" viewBox="0 0 40 40" className="-rotate-90">
         <circle
-          cx="16"
-          cy="16"
+          cx="20"
+          cy="20"
           r={radius}
           fill="none"
           stroke="currentColor"
           strokeOpacity="0.15"
-          strokeWidth="2.5"
-          className="text-green"
+          strokeWidth="3"
+          className="text-terminal-green"
         />
         <circle
-          cx="16"
-          cy="16"
+          cx="20"
+          cy="20"
           r={radius}
           fill="none"
           stroke="currentColor"
-          strokeWidth="2.5"
+          strokeWidth="3"
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={circumference * (1 - progress)}
-          className="text-green transition-[stroke-dashoffset] duration-1000 ease-linear"
+          className="text-terminal-green transition-[stroke-dashoffset] duration-1000 ease-linear"
         />
       </svg>
-      <span className="absolute font-mono text-[9px] text-green">
+      <span className="absolute font-mono text-[10.5px] text-terminal-green">
         {secondsLeft}
       </span>
     </div>
@@ -105,22 +105,22 @@ export default function VirtualPhone({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="relative w-52.5">
-        <div className="absolute -left-0.5 top-16 h-6 w-0.75 rounded-l-sm bg-neutral-800" />
-        <div className="absolute -left-0.5 top-24 h-10 w-0.75 rounded-l-sm bg-neutral-800" />
-        <div className="absolute -right-0.5 top-20 h-14 w-0.75 rounded-r-sm bg-neutral-800" />
+      <div className="relative w-64">
+        <div className="absolute -left-0.5 top-20 h-7 w-0.75 rounded-l-sm bg-neutral-800" />
+        <div className="absolute -left-0.5 top-30 h-12 w-0.75 rounded-l-sm bg-neutral-800" />
+        <div className="absolute -right-0.5 top-24 h-16 w-0.75 rounded-r-sm bg-neutral-800" />
 
-        <div className="relative overflow-hidden rounded-[26px] border-[5px] border-neutral-900 bg-[#0B120D] shadow-xl">
-          <div className="pointer-events-none absolute inset-0 rounded-[21px] bg-[radial-gradient(ellipse_at_top,transparent_60%,rgba(0,0,0,0.35))]" />
+        <div className="relative overflow-hidden rounded-[30px] border-[6px] border-neutral-900 bg-terminal-bg shadow-xl">
+          <div className="pointer-events-none absolute inset-0 rounded-[24px] bg-[radial-gradient(ellipse_at_top,transparent_60%,rgba(0,0,0,0.35))]" />
 
-          <div className="mx-auto mt-1.5 h-3.5 w-16 rounded-full bg-neutral-900" />
+          <div className="mx-auto mt-2 h-4 w-20 rounded-full bg-neutral-900" />
 
-          <div className="flex items-center justify-between px-3 pt-1.5 pb-1 font-mono text-[9px] tracking-wide text-green/60">
+          <div className="flex items-center justify-between px-4 pt-2 pb-1.5 font-mono text-[10px] tracking-wide text-terminal-green-dim">
             <span>9:41</span>
             <span className="flex items-center gap-1.5">
-              <SignalHighIcon className="size-2.5" />
+              <SignalHighIcon className="size-3" />
               <span>SAFARICOM</span>
-              <BatteryFull className="size-3" />
+              <BatteryFull className="size-3.5" />
             </span>
           </div>
 
@@ -132,12 +132,12 @@ export default function VirtualPhone({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.18 }}
-                className="flex min-h-64 flex-col items-center justify-center gap-3 px-5 text-center">
-                <span className="relative flex size-2.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green opacity-40" />
-                  <span className="relative inline-flex size-2.5 rounded-full bg-green" />
+                className="flex min-h-112 flex-col items-center justify-center gap-4 px-7 text-center">
+                <span className="relative flex size-3.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-terminal-green opacity-40" />
+                  <span className="relative inline-flex size-3.5 rounded-full bg-terminal-green" />
                 </span>
-                <p className="font-mono text-[11px] leading-relaxed text-green/70">
+                <p className="font-mono text-[13px] leading-relaxed text-terminal-green-dim">
                   No active prompt.
                   <br />
                   Waiting for STK Push…
@@ -152,29 +152,29 @@ export default function VirtualPhone({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.18 }}
-                className="flex min-h-64 flex-col justify-between px-4 pt-2 pb-3">
+                className="flex min-h-112 flex-col justify-between px-5 pt-2 pb-5">
                 <div className="flex items-start justify-between">
-                  <p className="pt-1 font-mono text-[10px] text-green/50">
+                  <p className="pt-2 font-mono text-[11.5px] text-terminal-green-dim">
                     Confirm payment
                   </p>
                   <CountdownRing secondsLeft={secondsLeft} total={total} />
                 </div>
-                <div className="-mt-1 text-center">
-                  <p className="font-mono text-[18px] font-medium text-green">
+                <div className="text-center">
+                  <p className="font-mono text-[26px] font-medium text-terminal-green">
                     KES {session.amount}
                   </p>
-                  <p className="mt-0.5 truncate font-mono text-[10.5px] text-green/60">
+                  <p className="mt-1.5 truncate font-mono text-[12px] text-terminal-green-dim">
                     to {session.accountReference || "merchant"}
                   </p>
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-1.5">
+                <div className="mt-5 grid grid-cols-2 gap-2.5">
                   {ACTIONS.map((a) => (
                     <button
                       key={a.outcome}
                       type="button"
                       disabled={resolving}
                       onClick={() => onResolve(a.outcome)}
-                      className="rounded-lg bg-white/5 py-2 font-mono text-[10px] uppercase tracking-wide text-white/80 transition-colors hover:bg-white/10 active:scale-95 disabled:opacity-30">
+                      className="rounded-lg bg-white/5 py-3 font-mono text-[11px] uppercase tracking-wide text-white/80 transition-colors hover:bg-white/10 active:scale-95 disabled:opacity-30">
                       {a.label}
                     </button>
                   ))}
@@ -189,23 +189,23 @@ export default function VirtualPhone({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.2 }}
-                className="flex min-h-64 flex-col items-center justify-center gap-3 px-5 text-center">
+                className="flex min-h-112 flex-col items-center justify-center gap-4 px-7 text-center">
                 <div
-                  className={`flex size-8 items-center justify-center rounded-full ${
+                  className={`flex size-11 items-center justify-center rounded-full ${
                     OUTCOME_COPY[resolvedOutcome].tone === "success"
-                      ? "bg-green/15 text-green"
+                      ? "bg-terminal-green/15 text-terminal-green"
                       : "bg-destructive/15 text-destructive"
                   }`}>
                   {OUTCOME_COPY[resolvedOutcome].tone === "success" ? (
-                    <CheckIcon className="size-4" />
+                    <CheckIcon className="size-5" />
                   ) : (
-                    <XIcon className="size-4" />
+                    <XIcon className="size-5" />
                   )}
                 </div>
-                <p className="font-mono text-[11px] text-green/80">
+                <p className="font-mono text-[13.5px] text-terminal-green">
                   {OUTCOME_COPY[resolvedOutcome].title}
                 </p>
-                <p className="font-mono text-[9.5px] text-green/40">
+                <p className="font-mono text-[11px] text-terminal-green-dim">
                   ResultCode {OUTCOME_COPY[resolvedOutcome].code}
                 </p>
               </motion.div>
