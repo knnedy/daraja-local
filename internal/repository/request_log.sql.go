@@ -21,7 +21,7 @@ func (q *Queries) ClearRequestLog(ctx context.Context, projectID int64) error {
 const createRequestLogEntry = `-- name: CreateRequestLogEntry :one
 INSERT INTO "request_log" ("project_id", "kind", "direction", "status", "attempts", "payload")
 VALUES (?, ?, ?, ?, ?, ?)
-RETURNING id, project_id, kind, direction, status, attempts, payload, created_at
+RETURNING id, project_id, correlation_id, kind, direction, status, outcome, attempts, payload, created_at
 `
 
 type CreateRequestLogEntryParams struct {
@@ -46,9 +46,11 @@ func (q *Queries) CreateRequestLogEntry(ctx context.Context, arg CreateRequestLo
 	err := row.Scan(
 		&i.ID,
 		&i.ProjectID,
+		&i.CorrelationID,
 		&i.Kind,
 		&i.Direction,
 		&i.Status,
+		&i.Outcome,
 		&i.Attempts,
 		&i.Payload,
 		&i.CreatedAt,
@@ -57,7 +59,7 @@ func (q *Queries) CreateRequestLogEntry(ctx context.Context, arg CreateRequestLo
 }
 
 const listRequestLogEntries = `-- name: ListRequestLogEntries :many
-SELECT id, project_id, kind, direction, status, attempts, payload, created_at FROM "request_log"
+SELECT id, project_id, correlation_id, kind, direction, status, outcome, attempts, payload, created_at FROM "request_log"
 WHERE "project_id" = ?
 ORDER BY "created_at" DESC
 LIMIT ?
@@ -80,9 +82,58 @@ func (q *Queries) ListRequestLogEntries(ctx context.Context, arg ListRequestLogE
 		if err := rows.Scan(
 			&i.ID,
 			&i.ProjectID,
+			&i.CorrelationID,
 			&i.Kind,
 			&i.Direction,
 			&i.Status,
+			&i.Outcome,
+			&i.Attempts,
+			&i.Payload,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listRequestLogEntriesByKind = `-- name: ListRequestLogEntriesByKind :many
+SELECT id, project_id, correlation_id, kind, direction, status, outcome, attempts, payload, created_at FROM "request_log"
+WHERE "project_id" = ? AND "kind" = ?
+ORDER BY "created_at" DESC
+LIMIT ?
+`
+
+type ListRequestLogEntriesByKindParams struct {
+	ProjectID int64
+	Kind      string
+	Limit     int64
+}
+
+func (q *Queries) ListRequestLogEntriesByKind(ctx context.Context, arg ListRequestLogEntriesByKindParams) ([]RequestLog, error) {
+	rows, err := q.db.QueryContext(ctx, listRequestLogEntriesByKind, arg.ProjectID, arg.Kind, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RequestLog
+	for rows.Next() {
+		var i RequestLog
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProjectID,
+			&i.CorrelationID,
+			&i.Kind,
+			&i.Direction,
+			&i.Status,
+			&i.Outcome,
 			&i.Attempts,
 			&i.Payload,
 			&i.CreatedAt,

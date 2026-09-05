@@ -31,12 +31,14 @@ type ProjectSetting struct {
 }
 
 type RequestLog struct {
-	ID        int64
-	ProjectID int64
-	Kind      string
-	Direction string
-	Status    string
-	Attempts  int64
-	Payload   string
-	CreatedAt string
+	ID            int64
+	ProjectID     int64
+	CorrelationID sql.NullString
+	Kind          string
+	Direction     string
+	Status        string
+	Outcome       sql.NullString
+	Attempts      int64
+	Payload       string
+	CreatedAt     string
 }

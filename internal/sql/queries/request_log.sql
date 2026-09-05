@@ -9,5 +9,11 @@ WHERE "project_id" = ?
 ORDER BY "created_at" DESC
 LIMIT ?;
 
+-- name: ListRequestLogEntriesByKind :many
+SELECT * FROM "request_log"
+WHERE "project_id" = ? AND "kind" = ?
+ORDER BY "created_at" DESC
+LIMIT ?;
+
 -- name: ClearRequestLog :exec
 DELETE FROM "request_log" WHERE "project_id" = ?;
