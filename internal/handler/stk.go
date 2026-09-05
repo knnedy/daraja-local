@@ -1,21 +1,13 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 
 	"github.com/knnedy/daraja-local/internal/auth"
-	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/response"
 	"github.com/knnedy/daraja-local/internal/stk"
 )
-
-type STKService interface {
-	ProcessRequest(ctx context.Context, project repository.Project, req stk.Request) (stk.Session, *stk.ValidationError)
-	ListPending(projectID int64) []stk.Session
-	Resolve(ctx context.Context, checkoutRequestID string, outcome stk.Outcome) error
-}
 
 type STKHandler struct {
 	projectService ProjectService
