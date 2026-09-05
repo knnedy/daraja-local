@@ -9,5 +9,7 @@ export const queryKeys = {
   },
   stk: {
     pending: (slug: string) => ["stk", "pending", slug] as const,
+    requestLog: (slug: string, limit: number) =>
+      ["stk", "request-log", slug, limit] as const,
   },
 } as const;
