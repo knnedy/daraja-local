@@ -1,3 +1,4 @@
+import { RequestLogEntry } from "@/hooks/use-request-log";
 import { CreateProjectInput, UpdateProjectInput } from "./schemas/project";
 import { UpdateSettingsInput } from "./schemas/settings";
 import {
@@ -123,6 +124,12 @@ export const api = {
             method: "POST",
             body: JSON.stringify({ outcome }),
           },
+        );
+      },
+
+      listRequestLog(slug: string, limit: number): Promise<RequestLogEntry[]> {
+        return request<RequestLogEntry[]>(
+          `/api/projects/${encodeURIComponent(slug)}/stk/request-log?limit=${limit}`,
         );
       },
     },

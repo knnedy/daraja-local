@@ -1,18 +1,9 @@
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import { useQuery } from "@tanstack/react-query";
+import type { RequestLogEntry } from "@/lib/types/stk";
 
-export interface RequestLogEntry {
-  id: number;
-  correlationId: string | null;
-  kind: "stk_push" | "c2b";
-  direction: "inbound" | "outbound";
-  status: string;
-  outcome: string | null;
-  attempts: number;
-  payload: string;
-  createdAt: string;
-}
+export type { RequestLogEntry };
 
 export function useRequestLog(slug: string, limit = 50) {
   return useQuery({
