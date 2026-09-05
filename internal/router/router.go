@@ -59,6 +59,7 @@ func New(
 				r.Route("/stk", func(r chi.Router) {
 					r.Get("/pending", stkHandler.ListPending)
 					r.Post("/{checkoutRequestId}/resolve", stkHandler.Resolve)
+					r.Get("/request-log", stkHandler.ListRequestLog)
 				})
 			})
 		})
