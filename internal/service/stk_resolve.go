@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"strconv"
 	"time"
@@ -24,14 +25,14 @@ func (s *STKService) Resolve(ctx context.Context, checkoutRequestID string, outc
 		return response.ErrNotFound
 	}
 
-	s.deliverAndLog(ctx, session)
+	s.deliverAndLog(ctx, session, outcome)
 	return nil
 }
 
 // deliverAndLog builds the callback body, delivers it with retries, and
 // writes a single outbound request_log row summarizing the whole
 // delivery attempts count and final status but not one row per attempt.
-func (s *STKService) deliverAndLog(ctx context.Context, session stk.Session) {
+func (s *STKService) deliverAndLog(ctx context.Context, session stk.Session, outcome stk.Outcome) {
 	var callback stk.CallbackBody
 	if session.ResultCode == stk.ResultCodeSuccess {
 		callback = stk.BuildCallback(session, stk.GenerateMpesaReceiptNumber(), time.Now().Unix())
@@ -59,11 +60,13 @@ func (s *STKService) deliverAndLog(ctx context.Context, session stk.Session) {
 	}
 
 	_, _ = s.db.Queries().CreateRequestLogEntry(ctx, repository.CreateRequestLogEntryParams{
-		ProjectID: projectID,
-		Kind:      "stk_push",
-		Direction: "outbound",
-		Status:    status,
-		Attempts:  int64(len(result.Attempts)),
-		Payload:   string(payload),
+		ProjectID:     projectID,
+		CorrelationID: sql.NullString{String: session.CheckoutRequestID, Valid: true},
+		Kind:          "stk_push",
+		Direction:     "outbound",
+		Status:        status,
+		Outcome:       sql.NullString{String: string(outcome), Valid: true},
+		Attempts:      int64(len(result.Attempts)),
+		Payload:       string(payload),
 	})
 }
