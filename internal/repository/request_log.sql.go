@@ -7,6 +7,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 )
 
 const clearRequestLog = `-- name: ClearRequestLog :exec
@@ -19,26 +20,30 @@ func (q *Queries) ClearRequestLog(ctx context.Context, projectID int64) error {
 }
 
 const createRequestLogEntry = `-- name: CreateRequestLogEntry :one
-INSERT INTO "request_log" ("project_id", "kind", "direction", "status", "attempts", "payload")
-VALUES (?, ?, ?, ?, ?, ?)
+INSERT INTO "request_log" ("project_id", "correlation_id", "kind", "direction", "status", "outcome", "attempts", "payload")
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING id, project_id, correlation_id, kind, direction, status, outcome, attempts, payload, created_at
 `
 
 type CreateRequestLogEntryParams struct {
-	ProjectID int64
-	Kind      string
-	Direction string
-	Status    string
-	Attempts  int64
-	Payload   string
+	ProjectID     int64
+	CorrelationID sql.NullString
+	Kind          string
+	Direction     string
+	Status        string
+	Outcome       sql.NullString
+	Attempts      int64
+	Payload       string
 }
 
 func (q *Queries) CreateRequestLogEntry(ctx context.Context, arg CreateRequestLogEntryParams) (RequestLog, error) {
 	row := q.db.QueryRowContext(ctx, createRequestLogEntry,
 		arg.ProjectID,
+		arg.CorrelationID,
 		arg.Kind,
 		arg.Direction,
 		arg.Status,
+		arg.Outcome,
 		arg.Attempts,
 		arg.Payload,
 	)
