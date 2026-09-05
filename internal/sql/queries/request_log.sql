@@ -1,6 +1,6 @@
 -- name: CreateRequestLogEntry :one
-INSERT INTO "request_log" ("project_id", "kind", "direction", "status", "attempts", "payload")
-VALUES (?, ?, ?, ?, ?, ?)
+INSERT INTO "request_log" ("project_id", "correlation_id", "kind", "direction", "status", "outcome", "attempts", "payload")
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: ListRequestLogEntries :many
