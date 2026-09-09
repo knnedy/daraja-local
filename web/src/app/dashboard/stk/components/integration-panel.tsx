@@ -6,14 +6,14 @@ import { cn } from "@/lib/utils";
 const tabs = ["Request", "Callback"] as const;
 
 const requestBody = `{
-  "BusinessShortCode": <shortcode>,
+  "BusinessShortCode": "<shortcode>",
   "Password": "<base64(shortcode+passkey+timestamp)>",
   "Timestamp": "20260903101500",
   "TransactionType": "CustomerPayBillOnline",
-  "Amount": 1000,
-  "PartyA": 254712345678,
-  "PartyB": <shortcode>,
-  "PhoneNumber": 254712345678,
+  "Amount": "1000",
+  "PartyA": "254712345678",
+  "PartyB": "<shortcode>",
+  "PhoneNumber": "254712345678",
   "CallBackURL": "<your-callback-url>",
   "AccountReference": "Order #1032",
   "TransactionDesc": "Payment for goods"
