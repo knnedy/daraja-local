@@ -34,7 +34,7 @@ const steps = [
     to: "Safaricom",
     title: "Customer responds",
     detail:
-      "They approve with the right PIN, enter a wrong one, cancel, or just don't respond and it times out. Each produces a different ResultCode — see the trigger guide below.",
+      "They approve with the right PIN, enter a wrong one, cancel, or just don't respond and it times out. Each produces a different ResultCode — pick the outcome yourself in the Virtual Phone below.",
   },
   {
     from: "Safaricom",

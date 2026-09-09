@@ -14,3 +14,6 @@ web/out
 # Env
 .env
 .env.local
+
+# Test
+test.sh
