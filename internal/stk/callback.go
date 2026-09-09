@@ -1,5 +1,7 @@
 package stk
 
+import "strconv"
+
 // CallbackBody matches real Daraja's confirmed callback envelope shape exactly
 type CallbackBody struct {
 	Body struct {
@@ -39,10 +41,23 @@ func BuildCallback(session Session, mpesaReceiptNumber string, transactionDate i
 				{Name: "Amount", Value: session.Amount},
 				{Name: "MpesaReceiptNumber", Value: mpesaReceiptNumber},
 				{Name: "TransactionDate", Value: transactionDate},
-				{Name: "PhoneNumber", Value: session.PhoneNumber},
+				{Name: "PhoneNumber", Value: phoneNumberValue(session.PhoneNumber)},
 			},
 		}
 	}
 
 	return body
+}
+
+// phoneNumberValue converts the validated phone number string to a
+// numeric value so it marshals unquoted, matching real Daraja's
+// CallbackMetadata format. Falls back to the original string if
+// parsing somehow fails — sync validation's phone regex should
+// already guarantee digits-only by the time a session exists.
+func phoneNumberValue(raw string) any {
+	n, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil {
+		return raw
+	}
+	return n
 }
