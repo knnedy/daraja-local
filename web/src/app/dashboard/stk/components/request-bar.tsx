@@ -10,14 +10,14 @@ const CURL = (url: string) => `curl -X POST ${url} \\
   -H "Authorization: Bearer <access_token>" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "BusinessShortCode": <shortcode>,
-    "Password": <base64(shortcode+passkey+timestamp)>,
-    "Timestamp": <yyyyMMddHHmmss>,
+    "BusinessShortCode": "<shortcode>",
+    "Password": "<base64(shortcode+passkey+timestamp)>",
+    "Timestamp": "<yyyyMMddHHmmss>",
     "TransactionType": "CustomerPayBillOnline",
-    "Amount": 1000,
-    "PartyA": 254712345678,
-    "PartyB": <shortcode>,
-    "PhoneNumber": 254712345678,
+    "Amount": "1000",
+    "PartyA": "254712345678",
+    "PartyB": "<shortcode>",
+    "PhoneNumber": "254712345678",
     "CallBackURL": "<your-callback-url>",
     "AccountReference": "test",
     "TransactionDesc": "Payment"
