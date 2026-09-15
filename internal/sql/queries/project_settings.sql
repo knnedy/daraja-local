@@ -9,6 +9,7 @@ SELECT * FROM "project_settings" WHERE "project_id" = ?;
 -- name: UpdateSettings :one
 UPDATE "project_settings"
 SET "callback_url" = ?,
+    "validation_url" = ?,
     "stk_timeout_seconds" = ?,
     "c2b_response_type" = ?,
     "external_validation_default" = ?,
