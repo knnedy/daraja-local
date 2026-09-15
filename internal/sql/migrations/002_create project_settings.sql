@@ -1,7 +1,10 @@
 -- +goose Up
+DROP TABLE "project_settings";
+
 CREATE TABLE "project_settings" (
     "project_id"                   INTEGER PRIMARY KEY,
     "callback_url"                 TEXT NOT NULL DEFAULT '',
+    "validation_url"               TEXT NOT NULL DEFAULT '',
     "stk_timeout_seconds"          INTEGER NOT NULL DEFAULT 20,
     "c2b_response_type"            TEXT NOT NULL DEFAULT 'Completed',
     "external_validation_default"  INTEGER NOT NULL DEFAULT 0,
