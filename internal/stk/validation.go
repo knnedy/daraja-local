@@ -8,20 +8,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/knnedy/daraja-local/internal/daraja"
 	"github.com/knnedy/daraja-local/internal/repository"
 )
 
-// ValidationError carries the exact HTTP status and Daraja error
-// envelope fields
-type ValidationError struct {
-	HTTPStatus   int
-	ErrorCode    string
-	ErrorMessage string
-}
-
-func (e *ValidationError) Error() string {
-	return e.ErrorMessage
-}
+// ValidationError is shared across all Daraja-mirroring endpoints.
+// Aliased here so every existing stk.ValidationError reference in
+// this codebase keeps compiling unchanged.
+type ValidationError = daraja.ValidationError
 
 var phoneNumberPattern = regexp.MustCompile(`^254[17]\d{8}$`)
 
