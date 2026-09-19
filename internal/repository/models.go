@@ -24,6 +24,7 @@ type Project struct {
 type ProjectSetting struct {
 	ProjectID                 int64
 	CallbackUrl               string
+	ValidationUrl             string
 	StkTimeoutSeconds         int64
 	C2bResponseType           string
 	ExternalValidationDefault int64

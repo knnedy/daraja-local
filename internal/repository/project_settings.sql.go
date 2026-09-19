@@ -12,7 +12,7 @@ import (
 const createDefaultSettings = `-- name: CreateDefaultSettings :one
 INSERT INTO "project_settings" ("project_id")
 VALUES (?)
-RETURNING project_id, callback_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number
+RETURNING project_id, callback_url, validation_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number
 `
 
 func (q *Queries) CreateDefaultSettings(ctx context.Context, projectID int64) (ProjectSetting, error) {
@@ -21,6 +21,7 @@ func (q *Queries) CreateDefaultSettings(ctx context.Context, projectID int64) (P
 	err := row.Scan(
 		&i.ProjectID,
 		&i.CallbackUrl,
+		&i.ValidationUrl,
 		&i.StkTimeoutSeconds,
 		&i.C2bResponseType,
 		&i.ExternalValidationDefault,
@@ -30,7 +31,7 @@ func (q *Queries) CreateDefaultSettings(ctx context.Context, projectID int64) (P
 }
 
 const getSettingsByProjectID = `-- name: GetSettingsByProjectID :one
-SELECT project_id, callback_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number FROM "project_settings" WHERE "project_id" = ?
+SELECT project_id, callback_url, validation_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number FROM "project_settings" WHERE "project_id" = ?
 `
 
 func (q *Queries) GetSettingsByProjectID(ctx context.Context, projectID int64) (ProjectSetting, error) {
@@ -39,6 +40,7 @@ func (q *Queries) GetSettingsByProjectID(ctx context.Context, projectID int64) (
 	err := row.Scan(
 		&i.ProjectID,
 		&i.CallbackUrl,
+		&i.ValidationUrl,
 		&i.StkTimeoutSeconds,
 		&i.C2bResponseType,
 		&i.ExternalValidationDefault,
@@ -50,16 +52,18 @@ func (q *Queries) GetSettingsByProjectID(ctx context.Context, projectID int64) (
 const updateSettings = `-- name: UpdateSettings :one
 UPDATE "project_settings"
 SET "callback_url" = ?,
+    "validation_url" = ?,
     "stk_timeout_seconds" = ?,
     "c2b_response_type" = ?,
     "external_validation_default" = ?,
     "default_phone_number" = ?
 WHERE "project_id" = ?
-RETURNING project_id, callback_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number
+RETURNING project_id, callback_url, validation_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number
 `
 
 type UpdateSettingsParams struct {
 	CallbackUrl               string
+	ValidationUrl             string
 	StkTimeoutSeconds         int64
 	C2bResponseType           string
 	ExternalValidationDefault int64
@@ -70,6 +74,7 @@ type UpdateSettingsParams struct {
 func (q *Queries) UpdateSettings(ctx context.Context, arg UpdateSettingsParams) (ProjectSetting, error) {
 	row := q.db.QueryRowContext(ctx, updateSettings,
 		arg.CallbackUrl,
+		arg.ValidationUrl,
 		arg.StkTimeoutSeconds,
 		arg.C2bResponseType,
 		arg.ExternalValidationDefault,
@@ -80,6 +85,7 @@ func (q *Queries) UpdateSettings(ctx context.Context, arg UpdateSettingsParams) 
 	err := row.Scan(
 		&i.ProjectID,
 		&i.CallbackUrl,
+		&i.ValidationUrl,
 		&i.StkTimeoutSeconds,
 		&i.C2bResponseType,
 		&i.ExternalValidationDefault,

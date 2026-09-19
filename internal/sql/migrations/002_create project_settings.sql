@@ -1,6 +1,4 @@
 -- +goose Up
-DROP TABLE "project_settings";
-
 CREATE TABLE "project_settings" (
     "project_id"                   INTEGER PRIMARY KEY,
     "callback_url"                 TEXT NOT NULL DEFAULT '',
