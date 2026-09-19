@@ -18,6 +18,7 @@ func NewSettingsService(db *repository.DB) *SettingsService {
 
 type UpdateSettingsInput struct {
 	CallbackUrl               string
+	ValidationUrl             string
 	StkTimeoutSeconds         int64
 	C2bResponseType           string
 	ExternalValidationDefault int64
@@ -44,6 +45,7 @@ func (s *SettingsService) Update(ctx context.Context, slug string, input UpdateS
 
 	return s.db.Queries().UpdateSettings(ctx, repository.UpdateSettingsParams{
 		CallbackUrl:               input.CallbackUrl,
+		ValidationUrl:             input.ValidationUrl,
 		StkTimeoutSeconds:         input.StkTimeoutSeconds,
 		C2bResponseType:           input.C2bResponseType,
 		ExternalValidationDefault: input.ExternalValidationDefault,
