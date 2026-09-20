@@ -6,34 +6,38 @@ import { cn } from "@/lib/utils";
 const tabs = ["Register", "Simulate", "Payloads"] as const;
 
 const registerBody = `{
-  "ShortCode": "600426",
+  "ShortCode": "<shortcode>",
   "ResponseType": "Completed",
-  "ConfirmationURL": "https://your-app.com/api/mpesa/c2b/confirmation",
-  "ValidationURL": "https://your-app.com/api/mpesa/c2b/validation"
+  "ConfirmationURL": "https://your-app.com/api/callbacks/c2b-confirmation",
+  "ValidationURL": "https://your-app.com/api/callbacks/c2b-validation"
 }`;
 
 const simulateBody = `{
-  "ShortCode": "600426",
+  "ShortCode": "<shortcode>",
   "CommandID": "CustomerPayBillOnline",
-  "Amount": 500,
+  "Amount": "500",
   "Msisdn": "254712345678",
   "BillRefNumber": "INV1001"
 }`;
 
-const validationPayload = `{
+const outboundPayload = `{
   "TransactionType": "Pay Bill",
   "TransID": "RKTQDM7W6S",
-  "TransTime": "20260803101500",
+  "TransTime": "20260920101500",
   "TransAmount": "500",
-  "BusinessShortCode": "600426",
+  "BusinessShortCode": "<shortcode>",
   "BillRefNumber": "INV1001",
+  "InvoiceNumber": "",
+  "OrgAccountBalance": "",
+  "ThirdPartyTransID": "",
   "MSISDN": "254712345678",
-  "FirstName": "John",
-  "LastName": "Doe"
+  "FirstName": "",
+  "MiddleName": "",
+  "LastName": ""
 }`;
 
-const confirmationResponse = `{
-  "ResultCode": 0,
+const validationResponse = `{
+  "ResultCode": "0",
   "ResultDesc": "Accepted"
 }`;
 
@@ -59,41 +63,56 @@ export default function IntegrationPanel() {
       <div className="p-4">
         {tab === "Register" && (
           <>
-            <p className="mb-3 text-xs text-muted-foreground">
-              Call this once per shortcode. Safaricom maps these URLs going
-              forward — no need to send it with every payment.
+            <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
+              Call this once per shortcode — the mapping is stored, not sent per
+              payment. Set ResponseType to{" "}
+              <span className="font-mono text-foreground">Cancelled</span> to
+              turn external validation on,{" "}
+              <span className="font-mono text-foreground">Completed</span> to
+              skip it.
             </p>
-            <pre className="overflow-x-auto rounded-md bg-[#0B120D] p-3.5 font-mono text-[12px] leading-relaxed text-green/80">
+            <pre className="overflow-x-auto rounded-md border border-terminal-border bg-terminal-bg p-3.5 font-mono text-[12px] leading-relaxed text-terminal-green">
               {registerBody}
             </pre>
+            <p className="mt-2 text-[11px] text-amber">
+              Neither URL may contain the word &quot;mpesa&quot; — Daraja
+              rejects those outright.
+            </p>
           </>
         )}
         {tab === "Simulate" && (
           <>
-            <p className="mb-3 text-xs text-muted-foreground">
-              Sandbox-only — mimics a real customer paying your Paybill from
+            <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
+              Sandbox-only — stands in for a customer paying your Paybill from
               their own phone.
             </p>
-            <pre className="overflow-x-auto rounded-md bg-[#0B120D] p-3.5 font-mono text-[12px] leading-relaxed text-green/80">
+            <pre className="overflow-x-auto rounded-md border border-terminal-border bg-terminal-bg p-3.5 font-mono text-[12px] leading-relaxed text-terminal-green">
               {simulateBody}
             </pre>
+            <p className="mt-2 text-[11px] text-amber">
+              Fails immediately if you haven&apos;t registered a ConfirmationURL
+              for this shortcode yet.
+            </p>
           </>
         )}
         {tab === "Payloads" && (
           <>
-            <p className="mb-3 text-xs text-muted-foreground">
-              What Daraja Local sends to your ValidationURL, and what your app
-              should respond with:
+            <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
+              The same body is POSTed to your ValidationURL and your
+              ConfirmationURL. Customer name, invoice and balance fields arrive
+              blank — there&apos;s no real subscriber data to draw on.
             </p>
-            <pre className="overflow-x-auto rounded-md bg-[#0B120D] p-3.5 font-mono text-[12px] leading-relaxed text-green/80">
-              {validationPayload}
+            <pre className="overflow-x-auto rounded-md border border-terminal-border bg-terminal-bg p-3.5 font-mono text-[12px] leading-relaxed text-terminal-green">
+              {outboundPayload}
             </pre>
-            <p className="mt-3 mb-2 text-xs text-muted-foreground">
-              Your response (accept shown, reject uses the same shape with a
-              non-zero ResultCode):
+            <p className="mt-3 mb-2 text-xs leading-relaxed text-muted-foreground">
+              What your ValidationURL must respond with. ResultCode is read as a
+              string —{" "}
+              <span className="font-mono text-foreground">&quot;0&quot;</span>{" "}
+              accepts, anything else rejects:
             </p>
-            <pre className="overflow-x-auto rounded-md bg-[#0B120D] p-3.5 font-mono text-[12px] leading-relaxed text-green/80">
-              {confirmationResponse}
+            <pre className="overflow-x-auto rounded-md border border-terminal-border bg-terminal-bg p-3.5 font-mono text-[12px] leading-relaxed text-terminal-green">
+              {validationResponse}
             </pre>
           </>
         )}
