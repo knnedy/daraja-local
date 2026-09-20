@@ -133,5 +133,12 @@ export const api = {
         );
       },
     },
+    c2b: {
+      listRequestLog(slug: string, limit: number): Promise<RequestLogEntry[]> {
+        return request<RequestLogEntry[]>(
+          `/api/projects/${encodeURIComponent(slug)}/c2b/request-log?limit=${limit}`,
+        );
+      },
+    },
   },
 } as const;
