@@ -18,6 +18,7 @@ func New(
 	settingsSvc handler.SettingsService,
 	tokenSvc *service.TokenService,
 	stkSvc handler.STKService,
+	c2bSvc handler.C2BService,
 	staticFS fs.FS,
 	isDev bool,
 ) http.Handler {
@@ -38,6 +39,7 @@ func New(
 	settingsHandler := handler.NewSettingsHandler(settingsSvc)
 	oauthHandler := handler.NewOAuthHandler(tokenSvc)
 	stkHandler := handler.NewSTKHandler(projectSvc, stkSvc)
+	c2bHandler := handler.NewC2BHandler(c2bSvc)
 
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.Logger)
