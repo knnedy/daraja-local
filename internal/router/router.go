@@ -39,7 +39,7 @@ func New(
 	settingsHandler := handler.NewSettingsHandler(settingsSvc)
 	oauthHandler := handler.NewOAuthHandler(tokenSvc)
 	stkHandler := handler.NewSTKHandler(projectSvc, stkSvc)
-	c2bHandler := handler.NewC2BHandler(c2bSvc)
+	c2bHandler := handler.NewC2BHandler(projectSvc, c2bSvc)
 
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.Logger)
@@ -62,6 +62,10 @@ func New(
 					r.Get("/pending", stkHandler.ListPending)
 					r.Post("/{checkoutRequestId}/resolve", stkHandler.Resolve)
 					r.Get("/request-log", stkHandler.ListRequestLog)
+				})
+
+				r.Route("/c2b", func(r chi.Router) {
+					r.Get("/request-log", c2bHandler.ListRequestLog)
 				})
 			})
 		})
