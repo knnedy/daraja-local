@@ -14,14 +14,16 @@ import (
 type C2BService interface {
 	RegisterURL(ctx context.Context, project repository.Project, req c2b.RegisterURLRequest) (c2b.AcceptResponse, *c2b.ValidationError)
 	Simulate(ctx context.Context, project repository.Project, req c2b.SimulateRequest) (c2b.AcceptResponse, *c2b.ValidationError)
+	ListRequestLog(ctx context.Context, projectID int64, limit int64) ([]repository.RequestLog, error)
 }
 
 type C2BHandler struct {
-	service C2BService
+	projectService ProjectService
+	service        C2BService
 }
 
-func NewC2BHandler(s C2BService) *C2BHandler {
-	return &C2BHandler{service: s}
+func NewC2BHandler(projectService ProjectService, s C2BService) *C2BHandler {
+	return &C2BHandler{projectService: projectService, service: s}
 }
 
 func (h *C2BHandler) RegisterURL(w http.ResponseWriter, r *http.Request) {
