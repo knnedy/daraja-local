@@ -10,10 +10,10 @@ import (
 )
 
 // ListRequestLog handles GET /api/projects/{slug}/c2b/request-log.
-func (h *C2BHandler) ListRequestLog(w http.ResponseWriter, r *http.Request, projectSvc ProjectService) {
+func (h *C2BHandler) ListRequestLog(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 
-	project, err := projectSvc.Get(r.Context(), slug)
+	project, err := h.projectService.Get(r.Context(), slug)
 	if err != nil {
 		writeServiceError(w, err, "failed to get project")
 		return
