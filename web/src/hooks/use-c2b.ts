@@ -1,7 +1,6 @@
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import { useQuery } from "@tanstack/react-query";
-import type { RequestLogEntry } from "@/lib/types/stk";
 
 export function useC2BRequestLog(slug: string, limit = 50) {
   return useQuery({
