@@ -72,6 +72,8 @@ func New(
 	r.Group(func(r chi.Router) {
 		r.Use(auth.RequireBearer(tokenSvc))
 		r.Post("/mpesa/stkpush/v1/processrequest", stkHandler.ProcessRequest)
+		r.Post("/mpesa/c2b/v2/registerurl", c2bHandler.RegisterURL)
+		r.Post("/mpesa/c2b/v2/simulate", c2bHandler.Simulate)
 	})
 
 	r.Handle("/*", http.FileServerFS(staticFS))
