@@ -12,4 +12,8 @@ export const queryKeys = {
     requestLog: (slug: string, limit: number) =>
       ["stk", "request-log", slug, limit] as const,
   },
+  c2b: {
+    requestLog: (slug: string, limit: number) =>
+      ["c2b", "request-log", slug, limit] as const,
+  },
 } as const;
