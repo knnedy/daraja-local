@@ -15,5 +15,12 @@ WHERE "project_id" = ? AND "kind" = ?
 ORDER BY "created_at" DESC
 LIMIT ?;
 
+-- name: ListRequestLogEntriesPage :many
+SELECT * FROM "request_log"
+WHERE "project_id" = ?
+  AND (sqlc.narg(before_id) IS NULL OR "id" < sqlc.narg(before_id))
+ORDER BY "id" DESC
+LIMIT ?;
+
 -- name: ClearRequestLog :exec
 DELETE FROM "request_log" WHERE "project_id" = ?;

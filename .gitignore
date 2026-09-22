@@ -16,4 +16,5 @@ web/out
 .env.local
 
 # Test
-test.sh
+test-stk.sh
+test-c2b.sh
