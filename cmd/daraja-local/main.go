@@ -51,7 +51,8 @@ func run() error {
 	tokenSvc := service.NewTokenService(db, tokenStore)
 	stkSvc := service.NewSTKService(db, stkStore)
 	c2bSvc := service.NewC2BService(db)
-	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSvc, c2bSvc, staticFS, cfg.IsDev)
+	requestLogSvc := service.NewRequestLogService(db)
+	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSvc, c2bSvc, requestLogSvc, staticFS, cfg.IsDev)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf("127.0.0.1:%d", cfg.Port),

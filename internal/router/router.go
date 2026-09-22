@@ -19,6 +19,7 @@ func New(
 	tokenSvc *service.TokenService,
 	stkSvc handler.STKService,
 	c2bSvc handler.C2BService,
+	requestLogSvc handler.RequestLogService,
 	staticFS fs.FS,
 	isDev bool,
 ) http.Handler {
@@ -40,6 +41,7 @@ func New(
 	oauthHandler := handler.NewOAuthHandler(tokenSvc)
 	stkHandler := handler.NewSTKHandler(projectSvc, stkSvc)
 	c2bHandler := handler.NewC2BHandler(projectSvc, c2bSvc)
+	requestLogHandler := handler.NewRequestLogHandler(projectSvc, requestLogSvc)
 
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.Logger)
@@ -57,6 +59,9 @@ func New(
 
 				r.Get("/settings", settingsHandler.Get)
 				r.Put("/settings", settingsHandler.Update)
+
+				r.Get("/request-log", requestLogHandler.List)
+				r.Delete("/request-log", requestLogHandler.Clear)
 
 				r.Route("/stk", func(r chi.Router) {
 					r.Get("/pending", stkHandler.ListPending)
