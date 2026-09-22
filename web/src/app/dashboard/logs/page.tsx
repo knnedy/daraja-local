@@ -1,12 +1,35 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { RefreshCwIcon, Trash2Icon } from "lucide-react";
 import { useActiveProjectStore } from "@/store/active-project";
 import { usePaginatedRequestLog } from "@/hooks/use-request-log";
 import { groupEntries } from "./lib/group";
-import FilterBar, { type KindFilter } from "./components/filter-bar";
+import { groupStatus } from "./lib/status";
+import FilterBar, {
+  type KindFilter,
+  type StatusFilter,
+} from "./components/filter-bar";
 import LogTable from "./components/log-table";
+import StatsBar from "./components/stats-bar";
+
+function TableSkeleton() {
+  return (
+    <div className="animate-pulse overflow-hidden rounded-lg border border-border-strong bg-surface-1 shadow-sm">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-3 border-b border-border/60 px-3.5 py-3 last:border-b-0">
+          <div className="size-3.5 rounded bg-surface-2" />
+          <div className="h-3 w-12 rounded bg-surface-2" />
+          <div className="h-3 w-10 rounded bg-surface-2" />
+          <div className="h-3 flex-1 rounded bg-surface-2" />
+          <div className="h-3 w-14 rounded bg-surface-2" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function LogsPage() {
   const slug = useActiveProjectStore((s) => s.slug);
@@ -22,18 +45,32 @@ export default function LogsPage() {
   } = usePaginatedRequestLog(slug ?? "");
 
   const [kind, setKind] = useState<KindFilter>("all");
+  const [status, setStatus] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
   const [confirmingClear, setConfirmingClear] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (slug && !initialized) load(null);
   }, [slug, initialized, load]);
 
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== "/" || e.target instanceof HTMLInputElement) return;
+      e.preventDefault();
+      searchRef.current?.focus();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  const allGroups = useMemo(() => groupEntries(entries), [entries]);
+
   const groups = useMemo(() => {
-    const all = groupEntries(entries);
     const q = search.trim().toLowerCase();
-    return all.filter((g) => {
+    return allGroups.filter((g) => {
       if (kind !== "all" && g.kind !== kind) return false;
+      if (status !== "all" && groupStatus(g).tone !== status) return false;
       if (!q) return true;
       return (
         g.id.toLowerCase().includes(q) ||
@@ -41,7 +78,7 @@ export default function LogsPage() {
         g.entries.some((e) => e.payload.toLowerCase().includes(q))
       );
     });
-  }, [entries, kind, search]);
+  }, [allGroups, kind, status, search]);
 
   if (!slug) return null;
 
@@ -53,6 +90,8 @@ export default function LogsPage() {
     clear.mutate();
     setConfirmingClear(false);
   }
+
+  const showSkeleton = loading && !initialized;
 
   return (
     <div className="flex flex-col gap-5">
@@ -88,16 +127,21 @@ export default function LogsPage() {
         </div>
       </div>
 
+      {!showSkeleton && <StatsBar groups={allGroups} />}
+
       <FilterBar
+        ref={searchRef}
         kind={kind}
         onKindChange={setKind}
+        status={status}
+        onStatusChange={setStatus}
         search={search}
         onSearchChange={setSearch}
       />
 
-      <LogTable groups={groups} />
+      {showSkeleton ? <TableSkeleton /> : <LogTable groups={groups} />}
 
-      {hasMore && (
+      {!showSkeleton && hasMore && (
         <button
           type="button"
           onClick={loadMore}
