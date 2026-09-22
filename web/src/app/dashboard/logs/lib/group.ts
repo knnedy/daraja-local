@@ -39,7 +39,6 @@ export function groupEntries(entries: RequestLogEntry[]): LogGroup[] {
 
   return order.map((key) => {
     const rows = groups.get(key)!;
-    const newest = rows[0];
     const oldest = rows[rows.length - 1];
     const kinds = new Set(rows.map((r) => r.kind));
 
