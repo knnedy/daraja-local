@@ -140,5 +140,26 @@ export const api = {
         );
       },
     },
+    requestLog: {
+      list(
+        slug: string,
+        beforeId: number | null,
+        limit: number,
+      ): Promise<RequestLogEntry[]> {
+        const params = new URLSearchParams({ limit: String(limit) });
+        if (beforeId !== null) params.set("before_id", String(beforeId));
+        return request<RequestLogEntry[]>(
+          `/api/projects/${encodeURIComponent(slug)}/request-log?${params}`,
+        );
+      },
+      clear(slug: string): Promise<void> {
+        return request<void>(
+          `/api/projects/${encodeURIComponent(slug)}/request-log`,
+          {
+            method: "DELETE",
+          },
+        );
+      },
+    },
   },
 } as const;
