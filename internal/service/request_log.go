@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/knnedy/daraja-local/internal/repository"
 )
@@ -18,9 +17,10 @@ func NewRequestLogService(db *repository.DB) *RequestLogService {
 // List returns up to limit rows older than beforeID (nil for the first
 // page), newest first.
 func (s *RequestLogService) List(ctx context.Context, projectID int64, beforeID *int64, limit int64) ([]repository.RequestLog, error) {
-	var cursor sql.NullInt64
+	// BeforeID is interface{}, not sql.NullInt64 — sqlc's type inference.
+	var cursor interface{}
 	if beforeID != nil {
-		cursor = sql.NullInt64{Int64: *beforeID, Valid: true}
+		cursor = *beforeID
 	}
 
 	return s.db.Queries().ListRequestLogEntriesPage(ctx, repository.ListRequestLogEntriesPageParams{
