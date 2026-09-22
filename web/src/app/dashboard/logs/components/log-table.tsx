@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDownIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, CopyIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LogGroup } from "../lib/group";
 import { groupStatus } from "../lib/status";
+import { relativeTime } from "../lib/time";
 
 const KIND_LABEL: Record<LogGroup["kind"], string> = {
   stk_push: "STK",
@@ -18,6 +19,27 @@ function pretty(payload: string) {
   } catch {
     return payload;
   }
+}
+
+function CopyButton({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(value);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1200);
+      }}
+      className="shrink-0 rounded p-1 text-terminal-fg-muted transition-colors hover:bg-white/5 hover:text-terminal-fg">
+      {copied ? (
+        <CheckIcon className="size-3" />
+      ) : (
+        <CopyIcon className="size-3" />
+      )}
+    </button>
+  );
 }
 
 function Row({ group }: { group: LogGroup }) {
@@ -36,10 +58,12 @@ function Row({ group }: { group: LogGroup }) {
             open && "rotate-180",
           )}
         />
-        <span className="w-16 shrink-0 font-mono text-[10.5px] text-muted-foreground">
-          {group.createdAt.slice(11, 19)}
+        <span
+          title={new Date(group.createdAt).toLocaleString()}
+          className="w-16 shrink-0 font-mono text-[10.5px] text-muted-foreground">
+          {relativeTime(group.createdAt)}
         </span>
-        <span className="w-10 shrink-0 rounded border border-border-strong bg-surface-2 px-1.5 py-0.5 text-center font-mono text-[10px] font-semibold text-muted-foreground">
+        <span className="w-9 shrink-0 rounded border border-border-strong bg-surface-2 px-1.5 py-0.5 text-center font-mono text-[10px] font-semibold text-muted-foreground">
           {KIND_LABEL[group.kind]}
         </span>
         <span className="min-w-0 flex-1 truncate text-[12.5px] text-foreground">
@@ -61,24 +85,35 @@ function Row({ group }: { group: LogGroup }) {
       </button>
 
       {open && (
-        <div className="space-y-2.5 border-t border-border/60 bg-terminal-bg px-3.5 py-3">
-          {[...group.entries].reverse().map((entry) => (
-            <div key={entry.id} className="flex gap-2.5">
-              <span className="mt-0.5 shrink-0 font-mono text-[10px] text-terminal-fg-muted">
-                {entry.createdAt.slice(11, 23)}
-              </span>
-              <div className="min-w-0 flex-1">
-                <span className="font-mono text-[10px] font-semibold text-terminal-blue">
-                  {entry.direction === "inbound"
-                    ? "[REQ]"
-                    : `[${entry.status.toUpperCase()}]`}
+        <div className="border-t border-border/60 bg-terminal-bg px-3.5 py-3">
+          <div className="mb-2.5 flex items-center justify-between">
+            <span className="font-mono text-[10px] text-terminal-fg-muted">
+              {group.id}
+            </span>
+            <CopyButton value={group.id} />
+          </div>
+          <div className="space-y-2.5">
+            {[...group.entries].reverse().map((entry) => (
+              <div key={entry.id} className="flex gap-2.5">
+                <span className="mt-0.5 shrink-0 font-mono text-[10px] text-terminal-fg-muted">
+                  {entry.createdAt.slice(11, 23)}
                 </span>
-                <pre className="mt-0.5 overflow-x-auto whitespace-pre font-mono text-[11px] leading-relaxed text-terminal-fg">
-                  {pretty(entry.payload)}
-                </pre>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10px] font-semibold text-terminal-blue">
+                      {entry.direction === "inbound"
+                        ? "[REQ]"
+                        : `[${entry.status.toUpperCase()}]`}
+                    </span>
+                    <CopyButton value={entry.payload} />
+                  </div>
+                  <pre className="mt-0.5 overflow-x-auto whitespace-pre font-mono text-[11px] leading-relaxed text-terminal-fg">
+                    {pretty(entry.payload)}
+                  </pre>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>
