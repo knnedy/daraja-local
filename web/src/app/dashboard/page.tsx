@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { ArrowRightIcon } from "lucide-react";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useRecentRequestLog } from "@/hooks/use-request-log";
 import RecentActivity from "./components/recent-activity";
@@ -39,8 +41,16 @@ export default function OverviewPage() {
           <EndpointsCard entries={entries} />
         </div>
         <div className="flex flex-col lg:col-span-2">
-          <div className="mb-2.5 text-[13px] font-medium text-foreground">
-            Recent activity
+          <div className="mb-2.5 flex items-center justify-between">
+            <span className="text-[13px] font-medium text-foreground">
+              Recent activity
+            </span>
+            <Link
+              href="/dashboard/logs"
+              className="flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+              View all
+              <ArrowRightIcon className="size-3" />
+            </Link>
           </div>
           <RecentActivity entries={entries} />
         </div>

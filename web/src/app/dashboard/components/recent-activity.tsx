@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRightIcon, PlayIcon, ScrollTextIcon } from "lucide-react";
+import { PlayIcon, ScrollTextIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { groupEntries } from "@/lib/request-log/group";
 import { groupStatus } from "@/lib/request-log/status";
@@ -15,7 +15,7 @@ export default function RecentActivity({
   entries: RequestLogEntry[];
   className?: string;
 }) {
-  const groups = groupEntries(entries).slice(0, 6);
+  const groups = groupEntries(entries).slice(0, 5);
 
   if (groups.length === 0) {
     return (
@@ -52,42 +52,33 @@ export default function RecentActivity({
         "flex flex-1 flex-col rounded-lg border border-border bg-surface-1",
         className,
       )}>
-      <div>
-        {groups.map((group) => {
-          const status = groupStatus(group);
-          return (
-            <div
-              key={group.id}
-              className="flex items-center gap-2.5 border-b border-border/60 px-4 py-2.5 last:border-0">
-              <span className="w-8 shrink-0 rounded border border-border-strong bg-surface-2 px-1 py-0.5 text-center font-mono text-[9.5px] font-semibold text-muted-foreground">
-                {KIND_LABEL[group.kind]}
-              </span>
-              <span className="min-w-0 flex-1 truncate text-[12px] text-foreground">
-                {group.summary || group.id}
-              </span>
-              <span
-                className={cn(
-                  "shrink-0 rounded px-1.5 py-0.5 font-mono text-[10px]",
-                  status.tone === "success" && "bg-green/10 text-green",
-                  status.tone === "error" &&
-                    "bg-destructive/10 text-destructive",
-                  status.tone === "pending" && "bg-blue-bg text-blue",
-                )}>
-                {status.label}
-              </span>
-              <span className="w-12 shrink-0 text-right text-[10.5px] text-muted-foreground">
-                {relativeTime(group.createdAt)}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-      <Link
-        href="/dashboard/logs"
-        className="flex items-center justify-center gap-1.5 border-t border-border py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-surface-2/60 hover:text-foreground">
-        View all in Request Log
-        <ArrowRightIcon className="size-3" />
-      </Link>
+      {groups.map((group) => {
+        const status = groupStatus(group);
+        return (
+          <div
+            key={group.id}
+            className="flex items-center gap-2.5 border-b border-border/60 px-4 py-2.5 last:border-0">
+            <span className="w-8 shrink-0 rounded border border-border-strong bg-surface-2 px-1 py-0.5 text-center font-mono text-[9.5px] font-semibold text-muted-foreground">
+              {KIND_LABEL[group.kind]}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-[12px] text-foreground">
+              {group.summary || group.id}
+            </span>
+            <span
+              className={cn(
+                "shrink-0 rounded px-1.5 py-0.5 font-mono text-[10px]",
+                status.tone === "success" && "bg-green/10 text-green",
+                status.tone === "error" && "bg-destructive/10 text-destructive",
+                status.tone === "pending" && "bg-blue-bg text-blue",
+              )}>
+              {status.label}
+            </span>
+            <span className="w-12 shrink-0 text-right text-[10.5px] text-muted-foreground">
+              {relativeTime(group.createdAt)}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
