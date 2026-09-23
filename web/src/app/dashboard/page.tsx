@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowRightIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useRecentRequestLog } from "@/hooks/use-request-log";
 import RecentActivity from "./components/recent-activity";
@@ -10,6 +7,7 @@ import EndpointsCard from "./components/endpoints-card";
 import EnvCard from "./components/env-card";
 import ProjectDetailsCard from "./components/project-details";
 import StatsCard from "./components/stats-card";
+import QuickActions from "./components/quick-actions";
 
 export default function OverviewPage() {
   const slug = useActiveProjectStore((s) => s.slug);
@@ -19,24 +17,17 @@ export default function OverviewPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="mb-0.5 font-heading text-[21px] font-medium text-foreground">
-            Overview
-          </h1>
-          <p className="text-[13px] text-muted-foreground">
-            Environment values and activity for this project&apos;s local Daraja
-            instance.
-          </p>
-        </div>
-        <Button
-          nativeButton={false}
-          className="gap-1.5 bg-green text-white hover:bg-green/90"
-          render={<Link href="/dashboard/stk" />}>
-          Go to STK Push
-          <ArrowRightIcon className="size-3.75" />
-        </Button>
+      <div>
+        <h1 className="mb-0.5 font-heading text-[21px] font-medium text-foreground">
+          Overview
+        </h1>
+        <p className="text-[13px] text-muted-foreground">
+          Environment values and activity for this project&apos;s local Daraja
+          instance.
+        </p>
       </div>
+
+      <QuickActions />
 
       <StatsCard entries={entries} />
 
