@@ -18,6 +18,15 @@ export function useRequestLog(slug: string, limit = 50) {
   });
 }
 
+export function useRecentRequestLog(slug: string, limit = 100) {
+  return useQuery({
+    queryKey: queryKeys.requestLog.page(slug, null, limit),
+    queryFn: () => api.projects.requestLog.list(slug, null, limit),
+    enabled: Boolean(slug),
+    refetchInterval: 4000,
+  });
+}
+
 // Generic, kind-agnostic, keyset-paginated browsing across STK and C2B
 // both — backs the /logs page.
 export function usePaginatedRequestLog(slug: string) {
