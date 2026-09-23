@@ -4,6 +4,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useRequestLog } from "@/hooks/use-request-log";
 import type { RequestLogEntry } from "@/lib/types/stk";
+import Link from "next/dist/client/link";
 
 function lineMeta(entry: RequestLogEntry): { label: string; color: string } {
   if (entry.direction === "inbound") {
@@ -107,7 +108,11 @@ export default function PayloadConsole({
               {entries.length} {entries.length === 1 ? "entry" : "entries"}
             </span>
           )}
-          <span className="text-[10px] text-terminal-fg-muted">View all →</span>
+          <Link
+            href={`/dashboard/logs`}
+            className="text-[10px] text-terminal-fg-muted hover:text-terminal-fg hover:underline">
+            View all →
+          </Link>
         </div>
       </div>
 

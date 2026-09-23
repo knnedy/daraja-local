@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { RequestLogEntry } from "@/lib/types/request-log";
+import Link from "next/link";
 
 function lineMeta(entry: RequestLogEntry): { label: string; color: string } {
   if (entry.direction === "inbound") {
@@ -95,11 +96,18 @@ export default function PayloadConsole({
         <span className="font-mono text-[10px] uppercase tracking-wide text-terminal-fg-muted">
           callback log
         </span>
-        {entries.length > 0 && (
-          <span className="font-mono text-[10px] text-terminal-fg-muted">
-            {entries.length} {entries.length === 1 ? "entry" : "entries"}
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {entries.length > 0 && (
+            <span className="font-mono text-[10px] text-terminal-fg-muted">
+              {entries.length} {entries.length === 1 ? "entry" : "entries"}
+            </span>
+          )}
+          <Link
+            href={`/dashboard/logs`}
+            className="text-[10px] text-terminal-fg-muted hover:text-terminal-fg hover:underline">
+            View all →
+          </Link>
+        </div>
       </div>
 
       <div className="scrollbar-console min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
