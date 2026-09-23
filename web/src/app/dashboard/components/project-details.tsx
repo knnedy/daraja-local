@@ -37,9 +37,7 @@ function Row({
       <span className="text-xs text-muted-foreground">{label}</span>
       <div className="flex min-w-0 items-center gap-1.5">
         <span
-          className={`truncate text-[12.5px] text-foreground ${
-            mono ? "font-mono text-[12px]" : ""
-          }`}>
+          className={`truncate text-[12.5px] text-foreground ${mono ? "font-mono text-[12px]" : ""}`}>
           {value}
         </span>
         {copyable && (
@@ -62,6 +60,10 @@ export default function ProjectDetailsCard() {
   const slug = useActiveProjectStore((s) => s.slug);
   const { data: project } = useProject(slug ?? "");
 
+  if (!project) {
+    return <div className="h-39 animate-pulse rounded-lg bg-surface-1" />;
+  }
+
   return (
     <div className="rounded-lg border border-border bg-surface-1">
       <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
@@ -70,15 +72,12 @@ export default function ProjectDetailsCard() {
         </span>
       </div>
       <div>
-        <Row label="Project name" value={project?.name ?? "…"} mono={false} />
-        <Row
-          label="Callback URL"
-          value={project?.callbackBaseUrl ?? "…"}
-          copyable
-        />
+        <Row label="Project name" value={project.name} mono={false} />
+        <Row label="Shortcode" value={project.shortCode} copyable />
+        <Row label="Callback URL" value={project.callbackBaseUrl} copyable />
         <Row
           label="Created"
-          value={project ? formatDate(project.createdAt) : "…"}
+          value={formatDate(project.createdAt)}
           mono={false}
         />
       </div>
