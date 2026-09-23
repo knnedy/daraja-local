@@ -4,8 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { RefreshCwIcon, Trash2Icon } from "lucide-react";
 import { useActiveProjectStore } from "@/store/active-project";
 import { usePaginatedRequestLog } from "@/hooks/use-request-log";
-import { groupEntries } from "./lib/group";
-import { groupStatus } from "./lib/status";
+import { groupEntries } from "@/lib/request-log/group";
+import { groupStatus } from "@/lib/request-log/status";
 import FilterBar, {
   type KindFilter,
   type StatusFilter,

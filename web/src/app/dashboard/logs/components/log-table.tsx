@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { CheckIcon, ChevronDownIcon, CopyIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { LogGroup } from "../lib/group";
-import { groupStatus } from "../lib/status";
-import { relativeTime } from "../lib/time";
+import type { LogGroup } from "@/lib/request-log/group";
+import { groupStatus } from "@/lib/request-log/status";
+import { relativeTime } from "@/lib/request-log/time";
 
 const KIND_LABEL: Record<LogGroup["kind"], string> = {
   stk_push: "STK",

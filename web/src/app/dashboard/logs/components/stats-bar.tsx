@@ -1,5 +1,5 @@
-import type { LogGroup } from "../lib/group";
-import { groupStatus } from "../lib/status";
+import type { LogGroup } from "@/lib/request-log/group";
+import { groupStatus } from "@/lib/request-log/status";
 
 export default function StatsBar({ groups }: { groups: LogGroup[] }) {
   const stats = [
