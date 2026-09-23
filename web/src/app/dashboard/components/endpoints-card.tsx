@@ -1,45 +1,38 @@
 import Link from "next/link";
 import { ArrowUpRightIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { RequestLogEntry } from "@/lib/types/request-log";
 
 type Endpoint = {
   method: "GET" | "POST";
   path: string;
   description: string;
   href?: string;
+  count?: number;
 };
 
-const endpoints: Endpoint[] = [
-  {
-    method: "GET",
-    path: "/oauth/v1/generate",
-    description: "Access token generation",
-  },
-  {
-    method: "POST",
-    path: "/mpesa/stkpush/v1/processrequest",
-    description: "STK Push (Lipa na M-Pesa Online)",
-    href: "/dashboard/stk",
-  },
-  {
-    method: "POST",
-    path: "/mpesa/stkpushquery/v1/query",
-    description: "STK Push query",
-    href: "/dashboard/stk",
-  },
-  {
-    method: "POST",
-    path: "/mpesa/c2b/v1/registerurl",
-    description: "C2B URL registration",
-    href: "/dashboard/c2b",
-  },
-  {
-    method: "POST",
-    path: "/mpesa/c2b/v2/simulate",
-    description: "C2B payment simulation",
-    href: "/dashboard/c2b",
-  },
-];
+function hasKey(payload: string, key: string): boolean {
+  try {
+    return key in (JSON.parse(payload) as Record<string, unknown>);
+  } catch {
+    return false;
+  }
+}
+
+function countHits(entries: RequestLogEntry[]) {
+  let stk = 0;
+  let register = 0;
+  let simulate = 0;
+
+  for (const e of entries) {
+    if (e.direction !== "inbound") continue;
+    if (e.kind === "stk_push") stk++;
+    else if (hasKey(e.payload, "ConfirmationURL")) register++;
+    else if (hasKey(e.payload, "CommandID")) simulate++;
+  }
+
+  return { stk, register, simulate };
+}
 
 function MethodBadge({ method }: { method: Endpoint["method"] }) {
   return (
@@ -55,7 +48,42 @@ function MethodBadge({ method }: { method: Endpoint["method"] }) {
   );
 }
 
-export default function EndpointsCard() {
+export default function EndpointsCard({
+  entries,
+}: {
+  entries: RequestLogEntry[];
+}) {
+  const hits = countHits(entries);
+
+  const endpoints: Endpoint[] = [
+    {
+      method: "GET",
+      path: "/oauth/v1/generate",
+      description: "Access token generation",
+    },
+    {
+      method: "POST",
+      path: "/mpesa/stkpush/v1/processrequest",
+      description: "STK Push (Lipa na M-Pesa Online)",
+      href: "/dashboard/stk",
+      count: hits.stk,
+    },
+    {
+      method: "POST",
+      path: "/mpesa/c2b/v2/registerurl",
+      description: "C2B URL registration",
+      href: "/dashboard/c2b",
+      count: hits.register,
+    },
+    {
+      method: "POST",
+      path: "/mpesa/c2b/v2/simulate",
+      description: "C2B payment simulation",
+      href: "/dashboard/c2b",
+      count: hits.simulate,
+    },
+  ];
+
   return (
     <div className="rounded-lg border border-border bg-surface-1">
       <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
@@ -77,6 +105,17 @@ export default function EndpointsCard() {
               <span className="ml-auto shrink-0 truncate pl-3 text-right text-xs text-muted-foreground">
                 {endpoint.description}
               </span>
+              {typeof endpoint.count === "number" && (
+                <span
+                  className={cn(
+                    "shrink-0 rounded px-1.5 py-0.5 text-center font-mono text-[10.5px]",
+                    endpoint.count > 0
+                      ? "bg-green/10 text-green"
+                      : "bg-surface-2 text-muted-foreground",
+                  )}>
+                  {endpoint.count}
+                </span>
+              )}
               {endpoint.href && (
                 <ArrowUpRightIcon className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
               )}
