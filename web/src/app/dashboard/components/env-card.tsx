@@ -63,9 +63,9 @@ function EnvVarRow({ envVar }: { envVar: EnvVar }) {
         <button
           type="button"
           onClick={copy}
-          className="shrink-0 text-muted-foreground opacity-0 transition-opacity hover:text-emerald-500 group-hover:opacity-100">
+          className="shrink-0 text-muted-foreground opacity-0 transition-opacity hover:text-green group-hover:opacity-100">
           {copied ? (
-            <CheckIcon className="size-3.5 text-emerald-500" />
+            <CheckIcon className="size-3.5 text-green" />
           ) : (
             <CopyIcon className="size-3.5" />
           )}
