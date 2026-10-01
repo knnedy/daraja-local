@@ -65,6 +65,12 @@ const navGroups = [
   },
 ];
 
+const activeItemClass =
+  "bg-green-light/90 text-green font-medium hover:bg-green-light hover:text-green data-active:bg-green-light/90 data-active:text-green before:absolute before:inset-y-1 before:left-0 before:w-[3px] before:rounded-r-full before:bg-green group-data-[collapsible=icon]:before:hidden";
+
+const itemClass =
+  "relative h-9.5 gap-2.5 pl-3 text-[13.5px] transition-colors hover:bg-surface-2/60 [&_svg]:size-4.5 group-data-[collapsible=icon]:size-9! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:pl-0";
+
 export function DashboardSidebar() {
   const pathname = usePathname();
   const slug = useActiveProjectStore((s) => s.slug);
@@ -83,6 +89,7 @@ export function DashboardSidebar() {
               <span className="relative inline-flex size-1.75 rounded-full bg-green ring-2 ring-sidebar" />
             </span>
           </div>
+
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
             <p className="truncate text-[13.5px] font-medium leading-tight text-foreground">
               {project?.name ?? "…"}
@@ -100,13 +107,14 @@ export function DashboardSidebar() {
             <SidebarGroupLabel className="text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">
               {group.label}
             </SidebarGroupLabel>
+
             <SidebarGroupContent>
               <SidebarMenu className="gap-1">
                 {group.items.map((item) => {
                   const isActive =
                     item.href === "/dashboard"
                       ? normalizedPath === item.href
-                      : normalizedPath?.startsWith(item.href);
+                      : normalizedPath.startsWith(item.href);
 
                   return (
                     <SidebarMenuItem key={item.href}>
@@ -114,11 +122,7 @@ export function DashboardSidebar() {
                         isActive={isActive}
                         tooltip={item.label}
                         render={<Link href={item.href} />}
-                        className={cn(
-                          "relative h-9 gap-2.5 pl-3 text-[13.5px] transition-colors hover:bg-surface-2/60 [&_svg]:size-4.5 group-data-[collapsible=icon]:size-9! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:pl-0",
-                          isActive &&
-                            "bg-green-light/40 text-green hover:bg-green-light/40 hover:text-green data-active:bg-green-light/40 data-active:text-green before:absolute before:inset-y-1 before:left-0 before:w-[2.5px] before:rounded-r-full before:bg-green group-data-[collapsible=icon]:before:hidden",
-                        )}>
+                        className={cn(itemClass, isActive && activeItemClass)}>
                         <item.icon />
                         <span className="group-data-[collapsible=icon]:hidden">
                           {item.label}
@@ -141,9 +145,8 @@ export function DashboardSidebar() {
               tooltip="Settings"
               render={<Link href="/dashboard/settings" />}
               className={cn(
-                "relative h-9 gap-2.5 pl-3 text-[13.5px] transition-colors hover:bg-surface-2/60 [&_svg]:size-4.5 group-data-[collapsible=icon]:size-9! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:pl-0",
-                normalizedPath === "/dashboard/settings" &&
-                  "bg-green-light/40 text-green hover:bg-green-light/40 hover:text-green data-active:bg-green-light/40 data-active:text-green before:absolute before:inset-y-1 before:left-0 before:w-[2.5px] before:rounded-r-full before:bg-green group-data-[collapsible=icon]:before:hidden",
+                itemClass,
+                normalizedPath === "/dashboard/settings" && activeItemClass,
               )}>
               <SettingsIcon />
               <span className="group-data-[collapsible=icon]:hidden">
