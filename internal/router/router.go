@@ -44,8 +44,6 @@ func New(
 	requestLogHandler := handler.NewRequestLogHandler(projectSvc, requestLogSvc)
 
 	r.Route("/api", func(r chi.Router) {
-		r.Use(middleware.Logger)
-
 		r.Route("/projects", func(r chi.Router) {
 			r.Post("/", projectHandler.Create)
 			r.Get("/", projectHandler.List)
