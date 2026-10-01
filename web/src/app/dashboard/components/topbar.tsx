@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
@@ -19,6 +20,7 @@ import { useActiveProjectStore } from "@/store/active-project";
 import { useAppConfigStore } from "@/store/app-config";
 import { useProject } from "@/hooks/use-projects";
 import { stripTrailingSlash } from "@/lib/utils";
+import CommandPalette from "@/components/command-palette";
 
 const pages: Record<string, { label: string; icon: React.ElementType }> = {
   "/dashboard": { label: "Overview", icon: RxDashboard },
@@ -32,8 +34,22 @@ const pages: Record<string, { label: string; icon: React.ElementType }> = {
   "/dashboard/settings": { label: "Settings", icon: SettingsIcon },
 };
 
+const commandItems = Object.entries(pages).map(([href, page]) => ({
+  href,
+  label: page.label,
+  icon: page.icon,
+}));
+
 function VerticalDivider() {
   return <div className="h-5 w-px shrink-0 bg-border-strong" />;
+}
+
+function useShortcutHint() {
+  const isMac =
+    typeof navigator !== "undefined" &&
+    /mac/i.test(navigator.platform ?? navigator.userAgent);
+
+  return isMac ? "⌘K" : "Ctrl K";
 }
 
 export function DashboardTopbar() {
@@ -44,6 +60,20 @@ export function DashboardTopbar() {
   const port = useAppConfigStore((s) => s.port);
   const { theme, setTheme } = useTheme();
   const page = pages[normalizedPath];
+  const shortcutHint = useShortcutHint();
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      const isShortcut =
+        (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k";
+      if (!isShortcut) return;
+      e.preventDefault();
+      setPaletteOpen((open) => !open);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   return (
     <header className="flex h-13 shrink-0 items-center gap-3 border-b border-border bg-surface-2 px-5">
@@ -66,25 +96,29 @@ export function DashboardTopbar() {
       <div className="ml-auto flex items-center gap-3">
         <button
           type="button"
+          onClick={() => setPaletteOpen(true)}
           className="flex items-center gap-2 rounded-md border border-border-strong bg-surface-1 px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
           <SearchIcon className="size-3.5" />
           <span>Search</span>
           <kbd className="rounded border border-border-strong bg-surface-2 px-1 font-mono text-[10px] leading-none text-muted-foreground">
-            ⌘K
+            {shortcutHint}
           </kbd>
         </button>
 
-        <div className="flex items-center gap-2 rounded-full border border-green-mid bg-green-light px-3 py-1.5">
-          <span className="relative flex size-1.75 shrink-0 items-center justify-center">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green opacity-50" />
-            <span className="relative inline-flex size-1.75 rounded-full bg-green" />
+        <div className="flex h-8 shrink-0 items-center gap-2 rounded-md border border-green-mid/70 bg-green-light/60 px-2.5 transition-colors hover:border-green-mid hover:bg-green-light">
+          <span className="relative flex size-2 shrink-0 items-center justify-center">
+            <span className="absolute size-full animate-ping rounded-full bg-green/30" />
+            <span className="relative size-1.5 rounded-full bg-green" />
           </span>
-          <span className="text-[11px] font-medium whitespace-nowrap text-green">
-            sandbox
+
+          <span className="text-[10px] font-semibold tracking-[0.08em] text-green">
+            SANDBOX
           </span>
-          <span className="text-[11px] text-green/40">·</span>
-          <span className="font-mono text-[11px] whitespace-nowrap text-green/80">
-            :{port}
+
+          <span className="h-3.5 w-px bg-green-mid/50" />
+
+          <span className="font-mono text-[11px] tabular-nums text-green/70">
+            127.0.0.1:{port}
           </span>
         </div>
 
@@ -103,6 +137,12 @@ export function DashboardTopbar() {
           <span className="sr-only">Toggle theme</span>
         </button>
       </div>
+
+      <CommandPalette
+        items={commandItems}
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+      />
     </header>
   );
 }
