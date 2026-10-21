@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
@@ -44,12 +44,15 @@ function VerticalDivider() {
   return <div className="h-5 w-px shrink-0 bg-border-strong" />;
 }
 
-function useShortcutHint() {
-  const isMac =
-    typeof navigator !== "undefined" &&
-    /mac/i.test(navigator.platform ?? navigator.userAgent);
+const subscribeNoop = () => () => {};
 
-  return isMac ? "⌘K" : "Ctrl K";
+function useShortcutHint() {
+  return useSyncExternalStore(
+    subscribeNoop,
+    () =>
+      /mac/i.test(navigator.platform || navigator.userAgent) ? "⌘K" : "Ctrl K",
+    () => "Ctrl K",
+  );
 }
 
 export function DashboardTopbar() {
@@ -105,20 +108,17 @@ export function DashboardTopbar() {
           </kbd>
         </button>
 
-        <div className="flex h-8 shrink-0 items-center gap-2 rounded-md border border-green-mid/70 bg-green-light/60 px-2.5 transition-colors hover:border-green-mid hover:bg-green-light">
-          <span className="relative flex size-2 shrink-0 items-center justify-center">
-            <span className="absolute size-full animate-ping rounded-full bg-green/30" />
-            <span className="relative size-1.5 rounded-full bg-green" />
+        <div className="flex items-center gap-2 rounded-full border border-green-mid bg-green-light px-3 py-1.5">
+          <span className="relative flex size-1.75 shrink-0 items-center justify-center">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green opacity-50" />
+            <span className="relative inline-flex size-1.75 rounded-full bg-green" />
           </span>
-
-          <span className="text-[10px] font-semibold tracking-[0.08em] text-green">
-            SANDBOX
+          <span className="text-[11px] font-medium whitespace-nowrap text-green">
+            sandbox
           </span>
-
-          <span className="h-3.5 w-px bg-green-mid/50" />
-
-          <span className="font-mono text-[11px] tabular-nums text-green/70">
-            127.0.0.1:{port}
+          <span className="text-[11px] text-green/40">·</span>
+          <span className="font-mono text-[11px] whitespace-nowrap text-green/80">
+            :{port}
           </span>
         </div>
 
