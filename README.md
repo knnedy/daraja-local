@@ -7,8 +7,8 @@ A local, offline emulator of Safaricom's M-Pesa Daraja API. Build and test STK P
 
 Testing against Safaricom's sandbox means exposing a public callback URL and having no way to make a payment fail on demand. Daraja Local runs on your machine, speaks the same API, and lets you choose what happens: approve a payment, fail it with a wrong PIN, let it time out, or reject a C2B payment from your own validation endpoint.
 
-![Daraja Local dashboard](docs/assets/dashboard.png)
-_The dashboard: live stats, recent activity, and your project's credentials._
+![STK Push with the Virtual Phone](docs/assets/stk-push.png)
+_STK Push: a pending request on the Virtual Phone. You choose the outcome._
 
 ---
 
@@ -81,6 +81,16 @@ As in the real API, every request field is a JSON string. `CallBackURL` can be a
 - **Daraja-shaped validation and errors.** The password check, phone and amount rules, and Daraja's error codes and HTTP statuses are reproduced, so a malformed request fails the way it would against Safaricom.
 - **Request Log.** Every request, response and callback, grouped by transaction. Filter by type and status, search by phone number, reference or ID, page back through history, and copy any payload.
 - **Live dashboard.** Stats, activity and the Virtual Phone update as requests arrive.
+
+---
+
+## Screenshots
+
+![C2B payment flow](docs/assets/c2b.png)
+_C2B: your registered URLs, and a simulated payment traced through validation and confirmation._
+
+![Daraja Local dashboard](docs/assets/dashboard.png)
+_Overview: live stats, recent activity and your project's credentials._
 
 ---
 
