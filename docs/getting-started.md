@@ -84,7 +84,7 @@ Daraja Local listens on `127.0.0.1` only. Other machines can't reach it, and nei
 
 `daraja.db` is a SQLite file in the data directory. It holds your projects, settings and request log.
 
-Pending STK Push requests are held in memory, not in the database. A request still waiting on the Virtual Phone when you stop the server is dropped, and no callback is ever sent for it. Its log entries remain.
+Pending STK Push requests are held in memory, not in the database. A request still waiting on the Virtual Phone when you stop the server is dropped, and no callback is ever sent for it. Its log entries remain. A callback that is still being retried when you stop the server is abandoned, and its log entry is never written.
 
 To start fresh, stop the server and delete the data directory.
 
