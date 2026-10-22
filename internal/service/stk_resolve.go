@@ -35,7 +35,8 @@ func (s *STKService) Resolve(ctx context.Context, checkoutRequestID string, outc
 func (s *STKService) deliverAndLog(ctx context.Context, session stk.Session, outcome stk.Outcome) {
 	var callback stk.CallbackBody
 	if session.ResultCode == stk.ResultCodeSuccess {
-		callback = stk.BuildCallback(session, stk.GenerateMpesaReceiptNumber(), time.Now().Unix())
+		txDate, _ := strconv.ParseInt(time.Now().Format("20060102150405"), 10, 64)
+		callback = stk.BuildCallback(session, stk.GenerateMpesaReceiptNumber(), txDate)
 	} else {
 		callback = stk.BuildCallback(session, "", 0)
 	}
