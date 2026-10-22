@@ -13,7 +13,7 @@ import (
 )
 
 // Resolve marks a pending session resolved with the given outcome, then
-// delivers the callback with retries and logs the outbound delivery.
+// delivers the callback in the background and logs the delivery.
 func (s *STKService) Resolve(ctx context.Context, checkoutRequestID string, outcome stk.Outcome) error {
 	resultCode, resultDesc, ok := outcome.Result()
 	if !ok {
@@ -25,13 +25,14 @@ func (s *STKService) Resolve(ctx context.Context, checkoutRequestID string, outc
 		return response.ErrNotFound
 	}
 
-	s.deliverAndLog(ctx, session, outcome)
+	// Retries can take ~30s, so delivery must outlive the HTTP request,
+	// which cancels its context when the handler returns.
+	go s.deliverAndLog(context.WithoutCancel(ctx), session, outcome)
 	return nil
 }
 
-// deliverAndLog builds the callback body, delivers it with retries, and
-// writes a single outbound request_log row summarizing the whole
-// delivery attempts count and final status but not one row per attempt.
+// deliverAndLog delivers the callback with retries and writes a single
+// outbound request_log row covering all attempts.
 func (s *STKService) deliverAndLog(ctx context.Context, session stk.Session, outcome stk.Outcome) {
 	var callback stk.CallbackBody
 	if session.ResultCode == stk.ResultCodeSuccess {
