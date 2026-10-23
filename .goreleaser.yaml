@@ -34,6 +34,7 @@ archives:
       - README.md
       - LICENSE
       - CONTRIBUTING.md
+      - docs/*.md
 checksum:
   name_template: "checksums.txt"
 changelog:
