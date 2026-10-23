@@ -49,7 +49,7 @@ func (s *C2BService) RegisterURL(ctx context.Context, project repository.Project
 		return c2b.AcceptResponse{}, internalError()
 	}
 
-	accept := c2b.NewAcceptResponse("Success")
+	accept := c2b.NewAcceptResponse("success")
 	s.logInbound(ctx, project.ID, accept.ConversationID, req, "accepted")
 	s.logSyncAccept(ctx, project.ID, accept)
 	return accept, nil

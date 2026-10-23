@@ -39,12 +39,17 @@ func ValidateRegisterURL(req RegisterURLRequest, project repository.Project) *Va
 // validateNoMpesaInURL replicates a confirmed real Daraja quirk: any
 // registered callback URL containing the literal substring "mpesa" is
 // rejected outright.
+var blockedURLWords = []string{"mpesa", "m-pesa", "safaricom"}
+
 func validateNoMpesaInURL(url, field string) *ValidationError {
-	if strings.Contains(strings.ToLower(url), "mpesa") {
-		return &ValidationError{
-			HTTPStatus:   http.StatusBadRequest,
-			ErrorCode:    "400.002.02",
-			ErrorMessage: "Bad Request - Invalid " + field + " - URL has the word MPESA",
+	lower := strings.ToLower(url)
+	for _, word := range blockedURLWords {
+		if strings.Contains(lower, word) {
+			return &ValidationError{
+				HTTPStatus:   http.StatusBadRequest,
+				ErrorCode:    "400.002.02",
+				ErrorMessage: "Bad Request - Invalid " + field + " - URL has the word " + strings.ToUpper(word),
+			}
 		}
 	}
 	return nil

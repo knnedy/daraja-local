@@ -1,14 +1,12 @@
 package c2b
 
-// AcceptResponse is the synchronous envelope returned by both
-// registerurl and simulate on success.
-// OriginatorConversationID's JSON tag is deliberately misspelled to
-// match real Daraja's actual wire response exactly — Safaricom's own
-// API ships this field as "OriginatorCoversationID" (missing the "n").
-// Confirmed, long-standing Daraja quirk — do not "fix" the tag.
+// AcceptResponse is the synchronous reply to registerurl and simulate.
+// The OriginatorConversationID tag is misspelled on purpose: Safaricom's
+// wire field is "OriginatorCoversationID". Do not fix it.
 type AcceptResponse struct {
 	OriginatorConversationID string `json:"OriginatorCoversationID"`
 	ConversationID           string `json:"ConversationID"`
+	ResponseCode             string `json:"ResponseCode"`
 	ResponseDescription      string `json:"ResponseDescription"`
 }
 
@@ -16,6 +14,7 @@ func NewAcceptResponse(description string) AcceptResponse {
 	return AcceptResponse{
 		OriginatorConversationID: GenerateOriginatorConversationID(),
 		ConversationID:           GenerateConversationID(),
+		ResponseCode:             "0",
 		ResponseDescription:      description,
 	}
 }
