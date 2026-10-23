@@ -3,7 +3,7 @@
 import { CheckIcon, CopyIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
 import { useActiveProjectStore } from "@/store/active-project";
-import { useAppConfigStore } from "@/store/app-config";
+import { useApiPort } from "@/hooks/use-api-port";
 import { useProject } from "@/hooks/use-projects";
 import type { Project } from "@/lib/types/project";
 
@@ -78,7 +78,7 @@ function EnvVarRow({ envVar }: { envVar: EnvVar }) {
 export default function EnvCard() {
   const slug = useActiveProjectStore((s) => s.slug);
   const { data: project } = useProject(slug ?? "");
-  const port = useAppConfigStore((s) => s.port);
+  const port = useApiPort();
 
   if (!project) {
     return <div className="h-40 animate-pulse rounded-lg bg-surface-1" />;

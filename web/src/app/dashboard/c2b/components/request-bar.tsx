@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CheckIcon, CopyIcon } from "lucide-react";
-import { useAppConfigStore } from "@/store/app-config";
+import { useApiPort } from "@/hooks/use-api-port";
 
 export default function RequestBar({
   path,
@@ -11,7 +11,7 @@ export default function RequestBar({
   path: string;
   label: string;
 }) {
-  const port = useAppConfigStore((s) => s.port);
+  const port = useApiPort();
   const [copied, setCopied] = useState(false);
   const fullUrl = `http://localhost:${port}${path}`;
 

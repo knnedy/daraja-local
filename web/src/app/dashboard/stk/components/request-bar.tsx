@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CheckIcon, CopyIcon, TerminalIcon } from "lucide-react";
-import { useAppConfigStore } from "@/store/app-config";
+import { useApiPort } from "@/hooks/use-api-port";
 
 const PATH = "/mpesa/stkpush/v1/processrequest";
 
@@ -24,7 +24,7 @@ const CURL = (url: string) => `curl -X POST ${url} \\
   }'`;
 
 export default function RequestBar() {
-  const port = useAppConfigStore((s) => s.port);
+  const port = useApiPort();
   const [copied, setCopied] = useState<"url" | "curl" | null>(null);
   const baseUrl = `http://localhost:${port}`;
   const fullUrl = `${baseUrl}${PATH}`;

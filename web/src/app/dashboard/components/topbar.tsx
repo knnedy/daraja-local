@@ -17,7 +17,7 @@ import { RxDashboard } from "react-icons/rx";
 import { HiOutlineDevicePhoneMobile } from "react-icons/hi2";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useActiveProjectStore } from "@/store/active-project";
-import { useAppConfigStore } from "@/store/app-config";
+import { useApiPort } from "@/hooks/use-api-port";
 import { useProject } from "@/hooks/use-projects";
 import { stripTrailingSlash } from "@/lib/utils";
 import CommandPalette from "@/components/command-palette";
@@ -60,7 +60,7 @@ export function DashboardTopbar() {
   const normalizedPath = pathname ? stripTrailingSlash(pathname) : "";
   const slug = useActiveProjectStore((s) => s.slug);
   const { data: project } = useProject(slug ?? "");
-  const port = useAppConfigStore((s) => s.port);
+  const port = useApiPort();
   const { theme, setTheme } = useTheme();
   const page = pages[normalizedPath];
   const shortcutHint = useShortcutHint();
