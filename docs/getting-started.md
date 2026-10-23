@@ -50,11 +50,11 @@ The secret and the passkey are masked until you click the eye icon. To rotate cr
 
 Daraja Local has no command-line flags. It's configured with environment variables, all optional:
 
-| Variable                | Default                   | What it does                                                                                               |
-| ----------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `DARAJA_LOCAL_PORT`     | `7060`, moving up if busy | Pins the port. If the port is already in use, Daraja Local exits with an error instead of picking another. |
-| `DARAJA_LOCAL_DATA_DIR` | `~/.daraja-local`         | Where `daraja.db` is stored.                                                                               |
-| `DARAJA_LOCAL_ENV`      | unset                     | Set to `development` only when working on the dashboard itself. Allows CORS from `http://localhost:3000`.  |
+| Variable                | Default                   | What it does                                                                                                         |
+| ----------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `DARAJA_LOCAL_PORT`     | `7060`, moving up if busy | Pins the port (1–65535). If the port is already in use, Daraja Local exits with an error instead of picking another. |
+| `DARAJA_LOCAL_DATA_DIR` | `~/.daraja-local`         | Where `daraja.db` is stored.                                                                                         |
+| `DARAJA_LOCAL_ENV`      | unset                     | Set to `development` only when working on the dashboard itself. Allows CORS from `http://localhost:3000`.            |
 
 ```bash
 # pin the port
