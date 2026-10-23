@@ -63,8 +63,8 @@ func resolveDataDir() (string, error) {
 func resolvePort() (int, error) {
 	if raw := os.Getenv("DARAJA_LOCAL_PORT"); raw != "" {
 		pinned, err := strconv.Atoi(raw)
-		if err != nil {
-			return 0, fmt.Errorf("DARAJA_LOCAL_PORT %q is not a valid port number", raw)
+		if err != nil || pinned < 1 || pinned > 65535 {
+			return 0, fmt.Errorf("DARAJA_LOCAL_PORT %q is not a valid port (use 1-65535)", raw)
 		}
 
 		if !portFree(pinned) {
