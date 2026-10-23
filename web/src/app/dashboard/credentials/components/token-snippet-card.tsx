@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useActiveProjectStore } from "@/store/active-project";
-import { useAppConfigStore } from "@/store/app-config";
+import { useApiPort } from "@/hooks/use-api-port";
 import { useProject } from "@/hooks/use-projects";
 
 function buildSnippets(
@@ -74,7 +74,7 @@ function SnippetBlock({ code }: { code: string }) {
 export default function TokenSnippetCard() {
   const slug = useActiveProjectStore((s) => s.slug) ?? "";
   const { data: project } = useProject(slug);
-  const port = useAppConfigStore((s) => s.port);
+  const port = useApiPort();
 
   if (!project) {
     return <div className="h-64 animate-pulse rounded-lg bg-surface-1" />;

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useActiveProjectStore } from "@/store/active-project";
-import { useAppConfigStore } from "@/store/app-config";
+import { useApiPort } from "@/hooks/use-api-port";
 import { useProject } from "@/hooks/use-projects";
 import { useUpdateProjectName } from "@/hooks/use-projects";
 
@@ -17,7 +17,7 @@ function formatDate(iso: string): string {
 export default function ProjectIdentityCard() {
   const slug = useActiveProjectStore((s) => s.slug) ?? "";
   const { data: project } = useProject(slug);
-  const port = useAppConfigStore((s) => s.port);
+  const port = useApiPort();
   const updateName = useUpdateProjectName(slug);
 
   const [name, setName] = useState("");
