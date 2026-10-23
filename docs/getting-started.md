@@ -93,3 +93,6 @@ To start fresh, stop the server and delete the data directory.
 - [Using it with your app](using-with-your-app.md): point your backend at Daraja Local
 - [STK Push](stk-push.md)
 - [C2B](c2b.md)
+- [Request Log](request-log.md): see what your app sent and what Daraja Local sent back
+- [Troubleshooting](troubleshooting.md): common problems and their fixes
+- [Fidelity](fidelity.md): how Daraja Local differs from Safaricom's Daraja
