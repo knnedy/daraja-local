@@ -96,12 +96,12 @@ _Overview: live stats, recent activity and your project's credentials._
 
 ## What's emulated
 
-| API               | Route                                   |
-| ----------------- | --------------------------------------- |
-| OAuth token       | `GET /oauth/v1/generate`                |
-| STK Push          | `POST /mpesa/stkpush/v1/processrequest` |
-| C2B register URLs | `POST /mpesa/c2b/v2/registerurl`        |
-| C2B simulate      | `POST /mpesa/c2b/v2/simulate`           |
+| API               | Route                                                              |
+| ----------------- | ------------------------------------------------------------------ |
+| OAuth token       | `GET /oauth/v1/generate`                                           |
+| STK Push          | `POST /mpesa/stkpush/v1/processrequest`                            |
+| C2B register URLs | `POST /mpesa/c2b/v1/registerurl`, `POST /mpesa/c2b/v2/registerurl` |
+| C2B simulate      | `POST /mpesa/c2b/v1/simulate`, `POST /mpesa/c2b/v2/simulate`       |
 
 Not implemented: STK Push query, B2C, B2B, Reversal, Account Balance, Transaction Status.
 
