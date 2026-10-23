@@ -7,6 +7,7 @@ const ERROR_OUTCOMES = new Set([
   "cancelled",
   "insufficient_balance",
   "timeout",
+  "rejected",
 ]);
 
 export function groupStatus(group: LogGroup): {
@@ -15,6 +16,9 @@ export function groupStatus(group: LogGroup): {
 } {
   if (group.finalStatus === "rejected") {
     return { label: "rejected", tone: "error" };
+  }
+  if (group.finalStatus === "failed") {
+    return { label: "delivery failed", tone: "error" };
   }
   if (!group.finalOutcome) {
     return { label: "pending", tone: "pending" };
