@@ -1,4 +1,4 @@
-import { RequestLogEntry } from "@/hooks/use-request-log";
+import type { RequestLogEntry } from "./types/request-log";
 import { CreateProjectInput, UpdateProjectInput } from "./schemas/project";
 import { UpdateSettingsInput } from "./schemas/settings";
 import {
@@ -9,6 +9,7 @@ import {
 import { SettingsResponse } from "./types/settings";
 import { PendingSessionsResponse, StkOutcome } from "./types/stk";
 
+// Empty in the embedded build (same-origin); only set for `make dev`.
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
