@@ -3,7 +3,7 @@
 build: web-build go-build
 
 web-build:
-	cd web && pnpm install && pnpm run build
+	cd web && pnpm install && NEXT_PUBLIC_API_URL= pnpm run build
 	@test -f web/out/index.html || \
 		(echo "ERROR: web/out/index.html not found. Frontend build failed." && exit 1)
 	rm -rf cmd/daraja-local/out
@@ -18,10 +18,10 @@ run: build
 dev:
 	@trap 'kill 0' EXIT INT TERM; \
 	echo "Starting GO backend on :7060 (air hot-reload)..."; \
-	DARAJA_LOCAL_ENV=development air & \
+	DARAJA_LOCAL_ENV=development DARAJA_LOCAL_PORT=7060 air & \
 	echo "Starting Next.js dev server on :3000..."; \
-	cd web && pnpm dev; \
+	cd web && NEXT_PUBLIC_API_URL=http://127.0.0.1:7060 pnpm dev; \
 	wait
-	
+
 clean:
 	rm -rf web/out web/.next bin cmd/daraja-local/out
