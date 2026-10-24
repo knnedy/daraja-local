@@ -110,7 +110,7 @@ export default function PaymentFlow({
   const validationDetail = session.rejected
     ? "not reached"
     : !validation
-      ? "skipped — validation off"
+      ? "skipped — no ValidationURL"
       : validation.fallback
         ? `unreachable · fell back to ${validation.accepted ? "accept" : "reject"}`
         : `${validation.accepted ? "accepted" : "rejected"} · ${validation.resultCode || "—"}`;

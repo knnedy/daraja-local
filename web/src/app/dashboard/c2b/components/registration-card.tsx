@@ -36,7 +36,9 @@ export default function RegistrationCard({
   registration: Registration | null;
 }) {
   const registered = registration !== null;
-  const validationOn = registration?.responseType === "Cancelled";
+  const validationOn = Boolean(registration?.validationUrl);
+  const fallbackWord =
+    registration?.responseType === "Cancelled" ? "rejected" : "accepted";
 
   return (
     <div className="flex flex-col gap-4 rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm">
@@ -94,8 +96,8 @@ export default function RegistrationCard({
             </div>
             <p className="mt-1 text-[10.5px] leading-relaxed text-muted-foreground">
               {validationOn
-                ? "ResponseType is Cancelled — every payment calls your ValidationURL first and waits for its ResultCode."
-                : "ResponseType is Completed — validation is skipped entirely and payments go straight to confirmation."}
+                ? `Every payment calls your ValidationURL first. If it can't answer, the payment is ${fallbackWord} (ResponseType: ${registration.responseType}).`
+                : "No ValidationURL registered, so payments go straight to confirmation."}
             </p>
           </div>
         </>
