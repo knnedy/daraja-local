@@ -6,8 +6,8 @@ C2B (Customer to Business) covers customers paying your Paybill or Till number d
 
 1. **Register your URLs, once.** Your app calls `registerurl` with a `ConfirmationURL`, an optional `ValidationURL` and a `ResponseType`.
 2. **A payment happens.** In Daraja Local you call `simulate`. It answers immediately, and the rest happens in the background.
-3. **Validation, optional.** If validation is on, Daraja Local POSTs the payment to your `ValidationURL` and waits for your answer. This is your one chance to reject it.
-4. **Confirmation.** Unless your validation rejected the payment, Daraja Local POSTs it to your `ConfirmationURL`. A confirmation can't be rejected, because the money has already moved.
+3. **Validation, optional.** If you registered a `ValidationURL`, Daraja Local POSTs the payment to it and waits for your answer. This is your one chance to reject it.
+4. **Confirmation.** Unless the payment was rejected, Daraja Local POSTs it to your `ConfirmationURL`. A confirmation can't be rejected, because the money has already moved.
 
 The C2B page shows each step as it happens, and the [Request Log](request-log.md) keeps the history.
 
@@ -27,7 +27,7 @@ All need the same Bearer token as STK Push.
 ```json
 {
   "ShortCode": "<shortcode>",
-  "ResponseType": "Cancelled",
+  "ResponseType": "Completed",
   "ConfirmationURL": "http://127.0.0.1:4000/c2b/confirmation",
   "ValidationURL": "http://127.0.0.1:4000/c2b/validation"
 }
@@ -55,12 +55,16 @@ The response:
 
 `OriginatorCoversationID` is spelled that way on purpose. It's Safaricom's own typo, and Daraja Local copies it so your client sees the same field name.
 
-### What `ResponseType` does here
+### What `ResponseType` does
 
-- **`Completed`:** validation is off. Every payment goes straight to confirmation.
-- **`Cancelled`:** validation is on. Daraja Local calls your `ValidationURL` for each payment, and if it can't get a usable answer it rejects the payment. With no `ValidationURL` set, `Cancelled` behaves like `Completed`.
+`ResponseType` is the default action when your `ValidationURL` can't answer, because it's unreachable, slow, or sent a reply Daraja Local can't read:
 
-This is a simplification. In real Daraja, validation is switched on per shortcode by Safaricom, and `ResponseType` only decides what happens when your `ValidationURL` can't be reached. See [Fidelity](fidelity.md).
+| `ResponseType` | If the `ValidationURL` can't answer                   |
+| -------------- | ----------------------------------------------------- |
+| `Completed`    | The payment is accepted and the confirmation is sent. |
+| `Cancelled`    | The payment is rejected and no confirmation is sent.  |
+
+It doesn't turn validation on or off. Registering a `ValidationURL` does that, and with none registered, payments go straight to confirmation. In real Daraja, validation only runs after Safaricom enables it for your shortcode. Daraja Local calls your `ValidationURL` whenever you register one.
 
 ## Simulate a payment
 
@@ -74,13 +78,13 @@ This is a simplification. In real Daraja, validation is switched on per shortcod
 }
 ```
 
-| Field           | Rule                                                                  |
-| --------------- | --------------------------------------------------------------------- |
-| `ShortCode`     | Must equal your project's shortcode.                                  |
-| `CommandID`     | `CustomerPayBillOnline` (Paybill) or `CustomerBuyGoodsOnline` (Till). |
-| `Amount`        | A whole number greater than zero, as a string.                        |
-| `Msisdn`        | The paying customer's number. Passed through as given.                |
-| `BillRefNumber` | The account reference. Passed through as given.                       |
+| Field           | Rule                                                                                           |
+| --------------- | ---------------------------------------------------------------------------------------------- |
+| `ShortCode`     | Must equal your project's shortcode.                                                           |
+| `CommandID`     | `CustomerPayBillOnline` (Paybill) or `CustomerBuyGoodsOnline` (Till).                          |
+| `Amount`        | A whole number greater than zero, as a string.                                                 |
+| `Msisdn`        | `254`, then `7` or `1`, then 8 more digits. Safaricom's sandbox test number is `254708374149`. |
+| `BillRefNumber` | The account reference. Passed through as given.                                                |
 
 You must call `registerurl` first. Otherwise `simulate` fails, because there'd be nowhere to send the confirmation. That rule is Daraja Local's own: real Daraja would silently have nowhere to deliver.
 
@@ -110,7 +114,7 @@ The same body goes to both the validation and the confirmation URL:
   "InvoiceNumber": "",
   "OrgAccountBalance": "",
   "ThirdPartyTransID": "",
-  "MSISDN": "254708374149",
+  "MSISDN": "bbff37cea44ac0b2d964ee0dfb8d2df8513dc7ba1b36129a929fc3fbd6dd4af4",
   "FirstName": "",
   "MiddleName": "",
   "LastName": ""
@@ -119,11 +123,32 @@ The same body goes to both the validation and the confirmation URL:
 
 `TransactionType` is `Buy Goods` for `CustomerBuyGoodsOnline`. `TransID` is the same in validation and confirmation, so use it to match them up and to deduplicate. The name, invoice and balance fields arrive blank, because Daraja Local has no subscriber data.
 
-**Don't rely on `MSISDN`.** Real Daraja v2 sends a SHA-256 hash of the customer's number in this field, not the number itself. Daraja Local currently sends the plain number you passed to `simulate`. Code that reads it will work here and break against Safaricom.
+### The `MSISDN` is a hash
+
+As in Daraja v2, you don't receive the customer's phone number. `MSISDN` is the lowercase hex SHA-256 hash of the 12-digit number (`254…`, no `+`). To match a payment to a customer, hash the numbers you have on file and compare:
+
+```bash
+printf '254708374149' | sha256sum
+```
+
+```go
+sum := sha256.Sum256([]byte("254708374149"))
+hash := hex.EncodeToString(sum[:])
+```
+
+```js
+import { createHash } from "node:crypto";
+const hash = createHash("sha256").update("254708374149").digest("hex");
+```
+
+```python
+import hashlib
+hash = hashlib.sha256(b"254708374149").hexdigest()
+```
 
 ## Validation
 
-Validation only runs when `ResponseType` is `Cancelled` and a `ValidationURL` is registered. It's a single attempt with a 10 second timeout, and there are no retries.
+Validation runs when a `ValidationURL` is registered. It's a single attempt with a 10 second timeout, and there are no retries.
 
 Reply with HTTP 200 and a JSON body. `ResultCode` must be a string, and `"0"` accepts:
 
@@ -142,13 +167,15 @@ Any other `ResultCode` rejects the payment. Daraja documents these codes for rej
 | `C2B00015`   | Invalid shortcode      |
 | `C2B00016`   | Other error            |
 
-Daraja Local treats every non-`"0"` code the same way. A rejected payment never gets a confirmation. If your `ValidationURL` is unreachable, answers with a non-200 status, times out, or returns a body Daraja Local can't read, the payment is rejected too. The C2B page marks that case as a fallback.
+Daraja Local treats every non-`"0"` code the same way. A rejected payment never gets a confirmation.
+
+If your `ValidationURL` is unreachable, answers with a non-200 status, times out, or returns a body Daraja Local can't read, the registered `ResponseType` decides. The C2B page marks that case as a fallback.
 
 ## Confirmation
 
-Confirmation is sent after validation passes, or straight away when validation is off. Your answer doesn't change anything. Daraja Local only records whether it got HTTP 200.
+Confirmation is sent after validation accepts the payment, or straight away when there's no `ValidationURL`. Your answer doesn't change anything. Daraja Local only records whether it got HTTP 200.
 
-If delivery fails, Daraja Local makes up to three attempts, waiting 1 second after the first failure and 2 after the second, each with a 10 second timeout. Real Daraja is reported not to retry C2B notifications at all. Design your handler for one delivery, and reconcile payments some other way too.
+If delivery fails, Daraja Local makes up to three attempts, waiting 1 second after the first failure and 2 after the second, each with a 10 second timeout. Real Daraja is reported not to retry C2B notifications at all, though that comes from a single source. Design your handler for one delivery, and reconcile payments some other way too.
 
 ## Handler examples
 
@@ -226,7 +253,7 @@ curl -X POST "$DARAJA_BASE_URL/mpesa/c2b/v2/registerurl" \
   -H "Content-Type: application/json" \
   -d "{
     \"ShortCode\": \"$DARAJA_SHORTCODE\",
-    \"ResponseType\": \"Cancelled\",
+    \"ResponseType\": \"Completed\",
     \"ConfirmationURL\": \"http://127.0.0.1:4000/c2b/confirmation\",
     \"ValidationURL\": \"http://127.0.0.1:4000/c2b/validation\"
   }"
@@ -243,4 +270,7 @@ curl -X POST "$DARAJA_BASE_URL/mpesa/c2b/v2/simulate" \
   }"
 ```
 
-Open the C2B page. The payment flow lights up as validation and confirmation complete. Change `BillRefNumber` to `""` and simulate again to watch a rejection stop the flow before confirmation.
+Open the C2B page. The payment flow lights up as validation and confirmation complete. Two experiments are worth trying:
+
+- Simulate again with `"BillRefNumber": ""`. Your validation rejects it, and no confirmation is sent.
+- Stop your server and simulate. With `Completed` the payment is accepted by fallback and the confirmation fails to deliver. With `Cancelled` it's rejected.

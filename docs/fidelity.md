@@ -21,23 +21,27 @@ Each known difference below says how sure we are.
 - Error bodies: `requestId`, `errorCode`, `errorMessage`. Codes include `400.002.02`, `400.008.01`, `404.001.03` and `500.001.1001`.
 - STK `ResultCode` values `0`, `1`, `1032`, `1037` and `2001`, and a callback with no `CallbackMetadata` on failure.
 - STK callback metadata types: `Amount`, `TransactionDate` (`yyyyMMddHHmmss`) and `PhoneNumber` are numbers, and `MpesaReceiptNumber` is a string.
+- C2B `MSISDN` is the lowercase hex SHA-256 of the number. The algorithm and input were checked against a real sandbox sample, and the hash matched exactly.
+- C2B `ResponseType` is the default action when your `ValidationURL` can't answer: `Completed` accepts, `Cancelled` rejects.
 - Quirks kept on purpose: Safaricom's `OriginatorCoversationID` typo, `ResultCode` as a string in C2B validation replies, and C2B URLs rejected for containing `mpesa`, `m-pesa` or `safaricom`.
 
 ## Known differences
 
-| Area                     | Daraja Local                                                                                          | Real Daraja                                                                                                                 | Confidence  |
-| ------------------------ | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| C2B `MSISDN` in payloads | The plain number you passed to `simulate`.                                                            | v2 sends a SHA-256 hash of the number.                                                                                      | Medium-high |
-| C2B validation switch    | `ResponseType: Cancelled` turns validation on, `Completed` turns it off.                              | Safaricom enables validation per shortcode. `ResponseType` only sets what happens when your `ValidationURL` is unreachable. | Medium      |
-| C2B callback retries     | Confirmation is retried up to 3 times.                                                                | Reported to be sent once, with no retry.                                                                                    | Medium      |
-| `registerurl` response   | Includes a `ConversationID` and `ResponseCode`.                                                       | v2 samples show `OriginatorCoversationID`, `ResponseCode` and `ResponseDescription` without `ConversationID`.               | Medium      |
-| `simulate` response      | Includes `ResponseCode`.                                                                              | Most sandbox samples omit it.                                                                                               | Medium      |
-| `simulate` on `v2`       | Answered, as an alias.                                                                                | Safaricom's docs list `v1`. Whether a real `v2` exists is unverified.                                                       | Low         |
-| Callback URLs            | `http://` and `localhost` accepted.                                                                   | HTTPS required in production, and localhost refused.                                                                        | High        |
-| Blocked-word error text  | `URL has the word MPESA` is observed. The text for `m-pesa` and `safaricom` follows the same pattern. | Exact wording for those two is unverified.                                                                                  | Low         |
-| `TransAmount` format     | Echoes your `Amount` string, e.g. `"500"`.                                                            | Some samples show decimals, e.g. `"1.00"`.                                                                                  | Low         |
-| STK callback metadata    | No `Balance` item.                                                                                    | Real callbacks often include a `Balance` item.                                                                              | Medium      |
-| `ResultDesc` wording     | Follows Daraja's wording for the main outcomes, but may differ.                                       | Safaricom's own text.                                                                                                       | Medium      |
+| Area                    | Daraja Local                                                                             | Real Daraja                                                                                 | Confidence |
+| ----------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------- |
+| C2B validation trigger  | Your `ValidationURL` is called whenever one is registered.                               | Safaricom must enable external validation for the shortcode first. Otherwise it never runs. | High       |
+| C2B callback retries    | Confirmation is retried up to 3 times.                                                   | Reported to be sent once, with no retry.                                                    | Low        |
+| `registerurl` response  | Includes `ConversationID` and `ResponseCode`, so clients reading either field work.      | v2 samples omit `ConversationID`. v1 samples omit `ResponseCode`.                           | Medium     |
+| `simulate` response     | Includes `ResponseCode`.                                                                 | Most sandbox samples omit it.                                                               | Medium     |
+| `simulate` on `v2`      | Answered, as an alias.                                                                   | Safaricom's docs list `v1`. Whether a real `v2` exists is unverified.                       | Low        |
+| `MSISDN` on `v1` paths  | Always the hash, whichever path you registered through.                                  | v1 behavior is unverified.                                                                  | Low        |
+| Registering twice       | Replaces the previous URLs.                                                              | Reportedly allowed once, with changes made through Safaricom.                               | Medium     |
+| Callback URLs           | `http://` and `localhost` accepted.                                                      | HTTPS required in production, and localhost refused.                                        | High       |
+| Blocked-word error text | `URL has the word MPESA` was observed. The text for `m-pesa` and `safaricom` follows it. | Exact wording for those two is unverified.                                                  | Low        |
+| `Msisdn` error text     | `Bad Request - Invalid Msisdn`.                                                          | Unverified.                                                                                 | Low        |
+| `TransAmount` format    | Echoes your `Amount` string, e.g. `"500"`.                                               | Some samples show decimals, e.g. `"1.00"`.                                                  | Low        |
+| STK callback metadata   | No `Balance` item.                                                                       | Some real callbacks include a `Balance` item with no value.                                 | Low        |
+| `ResultDesc` wording    | Follows Daraja's wording for the main outcomes, but may differ.                          | Safaricom's own text.                                                                       | Medium     |
 
 ## Validation that is looser than Daraja
 
@@ -46,7 +50,7 @@ Daraja Local does not check these, and real Daraja may:
 - STK `Timestamp` freshness. Only the format is checked.
 - STK `TransactionType`, `PartyA`, `PartyB`, `CallBackURL` and `AccountReference`.
 - STK and C2B amount upper limits. Any whole number above zero passes.
-- C2B `Msisdn` and `BillRefNumber`, which are passed through as given.
+- C2B `BillRefNumber`, which is passed through as given.
 
 A `TransactionDesc` over 182 characters returns error code `1025` with a custom message. That code and text haven't been checked against Daraja.
 
