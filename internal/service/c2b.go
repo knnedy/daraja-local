@@ -9,9 +9,6 @@ import (
 	"github.com/knnedy/daraja-local/internal/repository"
 )
 
-// C2BService owns the C2B simulation lifecycle: URL registration and
-// simulated payments, including calling a project's own registered
-// ValidationURL/ConfirmationURL.
 type C2BService struct {
 	db *repository.DB
 }
@@ -33,7 +30,7 @@ func (s *C2BService) RegisterURL(ctx context.Context, project repository.Project
 	}
 
 	externalValidation := int64(0)
-	if req.ResponseType == "Cancelled" {
+	if req.ValidationURL != "" {
 		externalValidation = 1
 	}
 
@@ -73,10 +70,7 @@ func (s *C2BService) Simulate(ctx context.Context, project repository.Project, r
 
 	payload := c2b.BuildPayload(req, project.ShortCode)
 
-	// Runs after the synchronous response above has already returned —
-	// same "respond first, notify after" shape as STK's autoTimeout,
-	// just dispatched immediately rather than on a timer since there's
-	// no waiting-on-a-human step in C2B.
+	// Respond first, then validate and confirm in the background.
 	go s.runValidationAndConfirmation(context.Background(), project.ID, settings, payload, accept.ConversationID)
 
 	return accept, nil
@@ -85,7 +79,9 @@ func (s *C2BService) Simulate(ctx context.Context, project repository.Project, r
 func (s *C2BService) runValidationAndConfirmation(ctx context.Context, projectID int64, settings repository.ProjectSetting, payload c2b.Payload, correlationID string) {
 	accepted := true
 
-	if settings.C2bResponseType == "Cancelled" && settings.ValidationUrl != "" {
+	// A registered ValidationURL turns validation on. ResponseType is only
+	// the fallback when that URL can't answer.
+	if settings.ValidationUrl != "" {
 		result := c2b.CallValidation(ctx, settings.ValidationUrl, payload, settings.C2bResponseType)
 		s.logValidation(ctx, projectID, correlationID, result)
 		accepted = result.Accepted

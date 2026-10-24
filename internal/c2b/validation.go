@@ -2,14 +2,18 @@ package c2b
 
 import (
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/knnedy/daraja-local/internal/repository"
 )
 
-// ValidateRegisterURL runs the synchronous checks real Daraja performs
-// before accepting a RegisterURL call.
+var (
+	blockedURLWords = []string{"mpesa", "m-pesa", "safaricom"}
+	msisdnPattern   = regexp.MustCompile(`^254[17]\d{8}$`)
+)
+
 func ValidateRegisterURL(req RegisterURLRequest, project repository.Project) *ValidationError {
 	if req.ShortCode != project.ShortCode {
 		return &ValidationError{
@@ -36,11 +40,7 @@ func ValidateRegisterURL(req RegisterURLRequest, project repository.Project) *Va
 	return nil
 }
 
-// validateNoMpesaInURL replicates a confirmed real Daraja quirk: any
-// registered callback URL containing the literal substring "mpesa" is
-// rejected outright.
-var blockedURLWords = []string{"mpesa", "m-pesa", "safaricom"}
-
+// Daraja rejects callback URLs containing these words, in any case.
 func validateNoMpesaInURL(url, field string) *ValidationError {
 	lower := strings.ToLower(url)
 	for _, word := range blockedURLWords {
@@ -55,10 +55,8 @@ func validateNoMpesaInURL(url, field string) *ValidationError {
 	return nil
 }
 
-// ValidateSimulate runs the synchronous checks before accepting a
-// Simulate call. The registration check (settings.CallbackUrl == "")
-// is a deliberate Daraja Local behavior, not a captured real Daraja
-// error — flagged so it's never mistaken for verified wire fidelity.
+// ValidateSimulate checks a simulate call. Rejecting it before registerurl
+// is emulator-only; real Daraja would silently have nowhere to deliver.
 func ValidateSimulate(req SimulateRequest, project repository.Project, settings repository.ProjectSetting) *ValidationError {
 	if req.ShortCode != project.ShortCode {
 		return &ValidationError{
@@ -87,6 +85,13 @@ func ValidateSimulate(req SimulateRequest, project repository.Project, settings 
 			HTTPStatus:   http.StatusBadRequest,
 			ErrorCode:    "400.002.02",
 			ErrorMessage: "Bad Request - Invalid Amount",
+		}
+	}
+	if !msisdnPattern.MatchString(req.Msisdn) {
+		return &ValidationError{
+			HTTPStatus:   http.StatusBadRequest,
+			ErrorCode:    "400.002.02",
+			ErrorMessage: "Bad Request - Invalid Msisdn",
 		}
 	}
 	return nil

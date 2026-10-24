@@ -1,10 +1,11 @@
 package c2b
 
-import "time"
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"time"
+)
 
-// Payload mirrors real Daraja's C2B validation/confirmation request
-// body field-for-field — same shape is POSTed to both ValidationURL
-// and ConfirmationURL.
 type Payload struct {
 	TransactionType   string `json:"TransactionType"`
 	TransID           string `json:"TransID"`
@@ -21,8 +22,8 @@ type Payload struct {
 	LastName          string `json:"LastName"`
 }
 
-// BuildPayload constructs the payload sent to a project's registered
-// C2B URLs for a simulated payment.
+// BuildPayload builds the body POSTed to both ValidationURL and ConfirmationURL.
+// Name, invoice and balance fields stay empty: there is no subscriber data.
 func BuildPayload(req SimulateRequest, shortCode string) Payload {
 	transactionType := "Pay Bill"
 	if req.CommandID == "CustomerBuyGoodsOnline" {
@@ -35,6 +36,12 @@ func BuildPayload(req SimulateRequest, shortCode string) Payload {
 		TransAmount:       req.Amount,
 		BusinessShortCode: shortCode,
 		BillRefNumber:     req.BillRefNumber,
-		MSISDN:            req.Msisdn,
+		MSISDN:            hashMSISDN(req.Msisdn),
 	}
+}
+
+// Daraja v2 sends the customer's number as a lowercase hex SHA-256 hash.
+func hashMSISDN(msisdn string) string {
+	sum := sha256.Sum256([]byte(msisdn))
+	return hex.EncodeToString(sum[:])
 }
