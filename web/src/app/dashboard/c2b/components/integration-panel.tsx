@@ -16,21 +16,21 @@ const simulateBody = `{
   "ShortCode": "<shortcode>",
   "CommandID": "CustomerPayBillOnline",
   "Amount": "500",
-  "Msisdn": "254712345678",
+  "Msisdn": "254708374149",
   "BillRefNumber": "INV1001"
 }`;
 
 const outboundPayload = `{
   "TransactionType": "Pay Bill",
   "TransID": "RKTQDM7W6S",
-  "TransTime": "20260920101500",
+  "TransTime": "20261022101500",
   "TransAmount": "500",
   "BusinessShortCode": "<shortcode>",
   "BillRefNumber": "INV1001",
   "InvoiceNumber": "",
   "OrgAccountBalance": "",
   "ThirdPartyTransID": "",
-  "MSISDN": "254712345678",
+  "MSISDN": "bbff37cea44ac0b2d964ee0dfb8d2df8513dc7ba1b36129a929fc3fbd6dd4af4",
   "FirstName": "",
   "MiddleName": "",
   "LastName": ""
@@ -64,19 +64,22 @@ export default function IntegrationPanel() {
         {tab === "Register" && (
           <>
             <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
-              Call this once per shortcode — the mapping is stored, not sent per
-              payment. Set ResponseType to{" "}
-              <span className="font-mono text-foreground">Cancelled</span> to
-              turn external validation on,{" "}
-              <span className="font-mono text-foreground">Completed</span> to
-              skip it.
+              Call this once per shortcode. Register a{" "}
+              <span className="font-mono text-foreground">ValidationURL</span>{" "}
+              to have every payment checked first.{" "}
+              <span className="font-mono text-foreground">ResponseType</span>{" "}
+              decides what happens when that URL can&apos;t answer:{" "}
+              <span className="font-mono text-foreground">Completed</span>{" "}
+              accepts the payment,{" "}
+              <span className="font-mono text-foreground">Cancelled</span>{" "}
+              rejects it.
             </p>
             <pre className="overflow-x-auto rounded-md border border-terminal-border bg-terminal-bg p-3.5 font-mono text-[12px] leading-relaxed text-terminal-green">
               {registerBody}
             </pre>
             <p className="mt-2 text-[11px] text-amber">
-              Neither URL may contain the word &quot;mpesa&quot; — Daraja
-              rejects those outright.
+              Neither URL may contain &quot;mpesa&quot;, &quot;m-pesa&quot; or
+              &quot;safaricom&quot; — Daraja rejects those outright.
             </p>
           </>
         )}
@@ -84,7 +87,7 @@ export default function IntegrationPanel() {
           <>
             <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
               Sandbox-only — stands in for a customer paying your Paybill from
-              their own phone.
+              their own phone. Msisdn must look like 2547XXXXXXXX.
             </p>
             <pre className="overflow-x-auto rounded-md border border-terminal-border bg-terminal-bg p-3.5 font-mono text-[12px] leading-relaxed text-terminal-green">
               {simulateBody}
@@ -99,8 +102,9 @@ export default function IntegrationPanel() {
           <>
             <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
               The same body is POSTed to your ValidationURL and your
-              ConfirmationURL. Customer name, invoice and balance fields arrive
-              blank — there&apos;s no real subscriber data to draw on.
+              ConfirmationURL. Name, invoice and balance fields arrive blank,
+              and MSISDN is the SHA-256 hash of the customer&apos;s number, as
+              in Daraja v2:
             </p>
             <pre className="overflow-x-auto rounded-md border border-terminal-border bg-terminal-bg p-3.5 font-mono text-[12px] leading-relaxed text-terminal-green">
               {outboundPayload}

@@ -27,7 +27,7 @@ const steps = [
     to: "You",
     title: "Validation — optional, off by default",
     detail:
-      "Only fires if you enabled it. Safaricom asks your ValidationURL 'should I allow this?' — your one chance to reject before the money moves. Most real integrations skip this and reconcile mismatches afterward instead.",
+      "Optional, and off unless Safaricom enables it for your shortcode (in Daraja Local, registering a ValidationURL turns it on). Safaricom asks your ValidationURL 'should I allow this?' — your one chance to reject before the money moves. Most real integrations skip this and reconcile mismatches afterward instead.",
   },
   {
     from: "Safaricom",
