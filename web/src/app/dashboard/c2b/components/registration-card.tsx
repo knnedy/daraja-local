@@ -2,7 +2,7 @@
 
 import { CheckCircle2Icon, CircleDashedIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Registration } from "../lib/sessions";
+import type { C2BRegistration } from "@/lib/types/c2b";
 
 function UrlRow({
   label,
@@ -33,9 +33,9 @@ function UrlRow({
 export default function RegistrationCard({
   registration,
 }: {
-  registration: Registration | null;
+  registration: C2BRegistration | null;
 }) {
-  const registered = registration !== null;
+  const registered = registration?.registered ?? false;
   const validationOn = Boolean(registration?.validationUrl);
   const fallbackWord =
     registration?.responseType === "Cancelled" ? "rejected" : "accepted";
@@ -48,7 +48,7 @@ export default function RegistrationCard({
             Registered URLs
           </p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Live from your last registerurl call
+            Set by your last registerurl call
           </p>
         </div>
         <span
@@ -67,7 +67,7 @@ export default function RegistrationCard({
         </span>
       </div>
 
-      {registered ? (
+      {registration && registered ? (
         <>
           <UrlRow
             label="Confirmation URL"

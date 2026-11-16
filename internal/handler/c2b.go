@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+
 	"github.com/knnedy/daraja-local/internal/auth"
 	"github.com/knnedy/daraja-local/internal/c2b"
 	"github.com/knnedy/daraja-local/internal/repository"
@@ -14,6 +16,7 @@ import (
 type C2BService interface {
 	RegisterURL(ctx context.Context, project repository.Project, req c2b.RegisterURLRequest) (c2b.AcceptResponse, *c2b.ValidationError)
 	Simulate(ctx context.Context, project repository.Project, req c2b.SimulateRequest) (c2b.AcceptResponse, *c2b.ValidationError)
+	Registration(ctx context.Context, projectID int64) (c2b.Registration, bool, error)
 }
 
 type C2BHandler struct {
@@ -67,4 +70,32 @@ func (h *C2BHandler) Simulate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.JSON(w, http.StatusOK, accept)
+}
+
+type registrationResponse struct {
+	Registered      bool   `json:"registered"`
+	ConfirmationURL string `json:"confirmationUrl"`
+	ValidationURL   string `json:"validationUrl"`
+	ResponseType    string `json:"responseType"`
+}
+
+// Registration handles GET /api/projects/{slug}/c2b/registration.
+func (h *C2BHandler) Registration(w http.ResponseWriter, r *http.Request) {
+	project, err := h.projectService.Get(r.Context(), chi.URLParam(r, "slug"))
+	if err != nil {
+		writeServiceError(w, err, "failed to get project")
+		return
+	}
+
+	registration, registered, err := h.service.Registration(r.Context(), project.ID)
+	if err != nil {
+		writeServiceError(w, err, "failed to get registration")
+		return
+	}
+	response.JSON(w, http.StatusOK, registrationResponse{
+		Registered:      registered,
+		ConfirmationURL: registration.ConfirmationURL,
+		ValidationURL:   registration.ValidationURL,
+		ResponseType:    registration.ResponseType,
+	})
 }

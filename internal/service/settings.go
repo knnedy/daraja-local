@@ -16,12 +16,11 @@ func NewSettingsService(db *repository.DB) *SettingsService {
 	return &SettingsService{db: db}
 }
 
+// UpdateSettingsInput holds the simulation defaults. C2B registration is
+// not here: only registerurl changes it.
 type UpdateSettingsInput struct {
-	CallbackUrl               string
-	StkTimeoutSeconds         int64
-	C2bResponseType           string
-	ExternalValidationDefault int64
-	DefaultPhoneNumber        string
+	StkTimeoutSeconds  int64
+	DefaultPhoneNumber string
 }
 
 func (s *SettingsService) Get(ctx context.Context, slug string) (repository.ProjectSetting, error) {
@@ -41,19 +40,10 @@ func (s *SettingsService) Update(ctx context.Context, slug string, input UpdateS
 	if err != nil {
 		return repository.ProjectSetting{}, response.ErrNotFound
 	}
-	current, err := s.db.Queries().GetSettingsByProjectID(ctx, project.ID)
-	if err != nil {
-		return repository.ProjectSetting{}, fmt.Errorf("service: get settings: %w", err)
-	}
 
-	// ValidationURL is owned by C2B registerurl, so carry it forward.
-	return s.db.Queries().UpdateSettings(ctx, repository.UpdateSettingsParams{
-		CallbackUrl:               input.CallbackUrl,
-		ValidationUrl:             current.ValidationUrl,
-		StkTimeoutSeconds:         input.StkTimeoutSeconds,
-		C2bResponseType:           input.C2bResponseType,
-		ExternalValidationDefault: input.ExternalValidationDefault,
-		DefaultPhoneNumber:        input.DefaultPhoneNumber,
-		ProjectID:                 project.ID,
+	return s.db.Queries().UpdateSimulationDefaults(ctx, repository.UpdateSimulationDefaultsParams{
+		StkTimeoutSeconds:  input.StkTimeoutSeconds,
+		DefaultPhoneNumber: input.DefaultPhoneNumber,
+		ProjectID:          project.ID,
 	})
 }

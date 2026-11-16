@@ -49,38 +49,61 @@ func (q *Queries) GetSettingsByProjectID(ctx context.Context, projectID int64) (
 	return i, err
 }
 
-const updateSettings = `-- name: UpdateSettings :one
+const updateRegistration = `-- name: UpdateRegistration :one
 UPDATE "project_settings"
 SET "callback_url" = ?,
     "validation_url" = ?,
-    "stk_timeout_seconds" = ?,
     "c2b_response_type" = ?,
-    "external_validation_default" = ?,
+    "external_validation_default" = ?
+WHERE "project_id" = ?
+RETURNING project_id, callback_url, validation_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number
+`
+
+type UpdateRegistrationParams struct {
+	CallbackUrl               string
+	ValidationUrl             string
+	C2bResponseType           string
+	ExternalValidationDefault int64
+	ProjectID                 int64
+}
+
+func (q *Queries) UpdateRegistration(ctx context.Context, arg UpdateRegistrationParams) (ProjectSetting, error) {
+	row := q.db.QueryRowContext(ctx, updateRegistration,
+		arg.CallbackUrl,
+		arg.ValidationUrl,
+		arg.C2bResponseType,
+		arg.ExternalValidationDefault,
+		arg.ProjectID,
+	)
+	var i ProjectSetting
+	err := row.Scan(
+		&i.ProjectID,
+		&i.CallbackUrl,
+		&i.ValidationUrl,
+		&i.StkTimeoutSeconds,
+		&i.C2bResponseType,
+		&i.ExternalValidationDefault,
+		&i.DefaultPhoneNumber,
+	)
+	return i, err
+}
+
+const updateSimulationDefaults = `-- name: UpdateSimulationDefaults :one
+UPDATE "project_settings"
+SET "stk_timeout_seconds" = ?,
     "default_phone_number" = ?
 WHERE "project_id" = ?
 RETURNING project_id, callback_url, validation_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number
 `
 
-type UpdateSettingsParams struct {
-	CallbackUrl               string
-	ValidationUrl             string
-	StkTimeoutSeconds         int64
-	C2bResponseType           string
-	ExternalValidationDefault int64
-	DefaultPhoneNumber        string
-	ProjectID                 int64
+type UpdateSimulationDefaultsParams struct {
+	StkTimeoutSeconds  int64
+	DefaultPhoneNumber string
+	ProjectID          int64
 }
 
-func (q *Queries) UpdateSettings(ctx context.Context, arg UpdateSettingsParams) (ProjectSetting, error) {
-	row := q.db.QueryRowContext(ctx, updateSettings,
-		arg.CallbackUrl,
-		arg.ValidationUrl,
-		arg.StkTimeoutSeconds,
-		arg.C2bResponseType,
-		arg.ExternalValidationDefault,
-		arg.DefaultPhoneNumber,
-		arg.ProjectID,
-	)
+func (q *Queries) UpdateSimulationDefaults(ctx context.Context, arg UpdateSimulationDefaultsParams) (ProjectSetting, error) {
+	row := q.db.QueryRowContext(ctx, updateSimulationDefaults, arg.StkTimeoutSeconds, arg.DefaultPhoneNumber, arg.ProjectID)
 	var i ProjectSetting
 	err := row.Scan(
 		&i.ProjectID,

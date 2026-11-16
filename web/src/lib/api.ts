@@ -6,6 +6,7 @@ import {
   Project,
   ProjectsResponse,
 } from "./types/project";
+import { C2BRegistration } from "./types/c2b";
 import { SettingsResponse } from "./types/settings";
 import { PendingSessionsResponse, StkOutcome } from "./types/stk";
 
@@ -135,6 +136,12 @@ export const api = {
       },
     },
     c2b: {
+      registration(slug: string): Promise<C2BRegistration> {
+        return request<C2BRegistration>(
+          `/api/projects/${encodeURIComponent(slug)}/c2b/registration`,
+        );
+      },
+
       listRequestLog(slug: string, limit: number): Promise<RequestLogEntry[]> {
         return request<RequestLogEntry[]>(
           `/api/projects/${encodeURIComponent(slug)}/c2b/request-log?limit=${limit}`,

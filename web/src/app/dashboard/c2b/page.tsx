@@ -6,17 +6,17 @@ import RegistrationCard from "./components/registration-card";
 import PaymentFlow from "./components/payment-flow";
 import PayloadConsole from "./components/payload-console";
 import HowItWorks from "./components/how-it-works";
-import { deriveRegistration, derivePayments } from "./lib/sessions";
-import { useC2BRequestLog } from "@/hooks/use-c2b";
+import { derivePayments } from "./lib/sessions";
+import { useC2BRegistration, useC2BRequestLog } from "@/hooks/use-c2b";
 import { useActiveProjectStore } from "@/store/active-project";
 
 export default function C2BPage() {
   const slug = useActiveProjectStore((s) => s.slug);
   const { data: entries = [] } = useC2BRequestLog(slug ?? "");
+  const { data: registration } = useC2BRegistration(slug ?? "");
 
   if (!slug) return null;
 
-  const registration = deriveRegistration(entries);
   const payments = derivePayments(entries);
 
   return (
@@ -43,7 +43,7 @@ export default function C2BPage() {
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px] lg:items-start">
         <IntegrationPanel />
-        <RegistrationCard registration={registration} />
+        <RegistrationCard registration={registration ?? null} />
       </div>
 
       <PaymentFlow session={payments[0] ?? null} />

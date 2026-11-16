@@ -29,14 +29,6 @@ export type PaymentSession = {
   confirmation: ConfirmationStep | null;
 };
 
-export type Registration = {
-  createdAt: string;
-  shortCode: string;
-  responseType: string;
-  confirmationUrl: string;
-  validationUrl: string;
-};
-
 function parse<T>(raw: string): T | null {
   try {
     return JSON.parse(raw) as T;
@@ -54,35 +46,6 @@ function groupByCorrelation(entries: RequestLogEntry[]) {
     else groups.set(key, [entry]);
   }
   return groups;
-}
-
-/** Latest successful registerurl call, or null if never registered. */
-export function deriveRegistration(
-  entries: RequestLogEntry[],
-): Registration | null {
-  for (const entry of entries) {
-    if (
-      entry.operation !== "c2b_register" ||
-      entry.step !== "request" ||
-      entry.status !== "accepted"
-    )
-      continue;
-    const body = parse<{
-      ShortCode?: string;
-      ResponseType?: string;
-      ConfirmationURL?: string;
-      ValidationURL?: string;
-    }>(entry.payload);
-    if (!body) continue;
-    return {
-      createdAt: entry.createdAt,
-      shortCode: body.ShortCode ?? "",
-      responseType: body.ResponseType ?? "Completed",
-      confirmationUrl: body.ConfirmationURL ?? "",
-      validationUrl: body.ValidationURL ?? "",
-    };
-  }
-  return null;
 }
 
 /** Simulated payments, newest first. */

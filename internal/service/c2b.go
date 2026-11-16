@@ -25,23 +25,17 @@ func (s *C2BService) RegisterURL(ctx context.Context, project repository.Project
 		return c2b.AcceptResponse{}, err
 	}
 
-	current, dbErr := s.db.Queries().GetSettingsByProjectID(ctx, project.ID)
-	if dbErr != nil {
-		return c2b.AcceptResponse{}, internalError()
-	}
-
 	externalValidation := int64(0)
 	if req.ValidationURL != "" {
 		externalValidation = 1
 	}
 
-	if _, dbErr := s.db.Queries().UpdateSettings(ctx, repository.UpdateSettingsParams{
+	// Registering again replaces the previous registration.
+	if _, dbErr := s.db.Queries().UpdateRegistration(ctx, repository.UpdateRegistrationParams{
 		CallbackUrl:               req.ConfirmationURL,
 		ValidationUrl:             req.ValidationURL,
-		StkTimeoutSeconds:         current.StkTimeoutSeconds,
 		C2bResponseType:           req.ResponseType,
 		ExternalValidationDefault: externalValidation,
-		DefaultPhoneNumber:        current.DefaultPhoneNumber,
 		ProjectID:                 project.ID,
 	}); dbErr != nil {
 		return c2b.AcceptResponse{}, internalError()
@@ -50,6 +44,20 @@ func (s *C2BService) RegisterURL(ctx context.Context, project repository.Project
 	accept := c2b.NewAcceptResponse("success")
 	s.log.Accepted(ctx, project.ID, requestlog.C2BRegister, accept.ConversationID, req, accept)
 	return accept, nil
+}
+
+// Registration returns a project's current C2B registration, and false if
+// registerurl has never been called.
+func (s *C2BService) Registration(ctx context.Context, projectID int64) (c2b.Registration, bool, error) {
+	settings, err := s.db.Queries().GetSettingsByProjectID(ctx, projectID)
+	if err != nil {
+		return c2b.Registration{}, false, err
+	}
+	return c2b.Registration{
+		ConfirmationURL: settings.CallbackUrl,
+		ValidationURL:   settings.ValidationUrl,
+		ResponseType:    settings.C2bResponseType,
+	}, settings.CallbackUrl != "", nil
 }
 
 func (s *C2BService) Simulate(ctx context.Context, project repository.Project, req c2b.SimulateRequest) (c2b.AcceptResponse, *c2b.ValidationError) {

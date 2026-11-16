@@ -5,33 +5,26 @@ import { CheckIcon, CopyIcon } from "lucide-react";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useApiPort } from "@/hooks/use-api-port";
 import { useProject } from "@/hooks/use-projects";
-import { useProjectSettings } from "@/hooks/use-settings";
 import type { Project } from "@/lib/types/project";
-import type { ProjectSettings } from "@/lib/types/settings";
 
-function buildEnvTemplate(
-  baseUrl: string,
-  project: Project,
-  settings: ProjectSettings,
-) {
+function buildEnvTemplate(baseUrl: string, project: Project) {
   return `DARAJA_BASE_URL=${baseUrl}
 DARAJA_SHORTCODE=${project.shortCode}
 DARAJA_CONSUMER_KEY=${project.consumerKey}
 DARAJA_CONSUMER_SECRET=${project.consumerSecret}
 DARAJA_PASSKEY=${project.passkey}
-DARAJA_CALLBACK_URL=${settings.callbackUrl}`;
+DARAJA_CALLBACK_URL=${project.callbackBaseUrl}`;
 }
 
 export default function EnvExportCard() {
   const slug = useActiveProjectStore((s) => s.slug) ?? "";
   const { data: project } = useProject(slug);
-  const { data: settings } = useProjectSettings(slug);
   const port = useApiPort();
   const [copied, setCopied] = useState(false);
 
-  const ready = project && settings;
+  const ready = project;
   const envTemplate = ready
-    ? buildEnvTemplate(`http://127.0.0.1:${port}`, project, settings)
+    ? buildEnvTemplate(`http://127.0.0.1:${port}`, project)
     : "";
 
   function copy() {
@@ -67,8 +60,8 @@ export default function EnvExportCard() {
         <div className="h-32 animate-pulse rounded-md bg-[#0B120D]" />
       )}
       <p className="text-[10.5px] text-muted-foreground">
-        Reflects this project&apos;s real credentials and current callback URL.
-        Rotate from Credentials, edit the callback URL above.
+        Reflects this project&apos;s real credentials and callback URL. Rotate
+        credentials from the Credentials page.
       </p>
     </div>
   );

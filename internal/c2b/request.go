@@ -19,3 +19,11 @@ type SimulateRequest struct {
 	Msisdn        string `json:"Msisdn"`
 	BillRefNumber string `json:"BillRefNumber"`
 }
+
+// Registration is a project's current ConfirmationURL, optional ValidationURL
+// and ResponseType, as last set through registerurl.
+type Registration struct {
+	ConfirmationURL string
+	ValidationURL   string
+	ResponseType    string
+}

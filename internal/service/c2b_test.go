@@ -104,3 +104,43 @@ func TestSimulatedPaymentIsConfirmedWhenValidationURLIsDownAndResponseTypeComple
 		t.Fatalf("second POST = %s, want the ConfirmationURL", got)
 	}
 }
+
+func TestRegistrationReflectsTheLatestRegisterURL(t *testing.T) {
+	ctx := context.Background()
+	db, err := repository.Open(filepath.Join(t.TempDir(), "test.db"))
+	if err != nil {
+		t.Fatalf("open db: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	project, err := NewProjectService(db).Create(ctx, CreateProjectInput{Name: "Shop"})
+	if err != nil {
+		t.Fatalf("create project: %v", err)
+	}
+	svc := NewC2BService(db, requestlog.New(db), delivery.New(&developerServer{posts: make(chan string, 1)}, delivery.NoBackoff))
+
+	if _, registered, err := svc.Registration(ctx, project.ID); err != nil || registered {
+		t.Fatalf("new project: registered = %v, err = %v", registered, err)
+	}
+
+	register := func(req c2b.RegisterURLRequest) {
+		t.Helper()
+		req.ShortCode = project.ShortCode
+		if _, vErr := svc.RegisterURL(ctx, project, req); vErr != nil {
+			t.Fatalf("register: %v", vErr)
+		}
+	}
+
+	register(c2b.RegisterURLRequest{ResponseType: "Cancelled", ConfirmationURL: confirmationURL, ValidationURL: validationURL})
+	got, registered, err := svc.Registration(ctx, project.ID)
+	want := c2b.Registration{ConfirmationURL: confirmationURL, ValidationURL: validationURL, ResponseType: "Cancelled"}
+	if err != nil || !registered || got != want {
+		t.Fatalf("registration = %+v (registered %v, err %v), want %+v", got, registered, err, want)
+	}
+
+	register(c2b.RegisterURLRequest{ResponseType: "Completed", ConfirmationURL: confirmationURL})
+	got, _, _ = svc.Registration(ctx, project.ID)
+	if got.ValidationURL != "" || got.ResponseType != "Completed" {
+		t.Errorf("registering again did not replace: %+v", got)
+	}
+}

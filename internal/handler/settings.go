@@ -23,22 +23,16 @@ func NewSettingsHandler(s SettingsService) *SettingsHandler {
 }
 
 type settingsResponse struct {
-	ProjectID                 int64  `json:"projectId"`
-	CallbackUrl               string `json:"callbackUrl"`
-	StkTimeoutSeconds         int64  `json:"stkTimeoutSeconds"`
-	C2bResponseType           string `json:"c2bResponseType"`
-	ExternalValidationDefault bool   `json:"externalValidationDefault"`
-	DefaultPhoneNumber        string `json:"defaultPhoneNumber"`
+	ProjectID          int64  `json:"projectId"`
+	StkTimeoutSeconds  int64  `json:"stkTimeoutSeconds"`
+	DefaultPhoneNumber string `json:"defaultPhoneNumber"`
 }
 
 func toSettingsResponse(s repository.ProjectSetting) settingsResponse {
 	return settingsResponse{
-		ProjectID:                 s.ProjectID,
-		CallbackUrl:               s.CallbackUrl,
-		StkTimeoutSeconds:         s.StkTimeoutSeconds,
-		C2bResponseType:           s.C2bResponseType,
-		ExternalValidationDefault: s.ExternalValidationDefault != 0,
-		DefaultPhoneNumber:        s.DefaultPhoneNumber,
+		ProjectID:          s.ProjectID,
+		StkTimeoutSeconds:  s.StkTimeoutSeconds,
+		DefaultPhoneNumber: s.DefaultPhoneNumber,
 	}
 }
 
@@ -55,11 +49,8 @@ func (h *SettingsHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 type updateSettingsRequest struct {
-	CallbackUrl               string `json:"callbackUrl"`
-	StkTimeoutSeconds         int64  `json:"stkTimeoutSeconds"`
-	C2bResponseType           string `json:"c2bResponseType"`
-	ExternalValidationDefault bool   `json:"externalValidationDefault"`
-	DefaultPhoneNumber        string `json:"defaultPhoneNumber"`
+	StkTimeoutSeconds  int64  `json:"stkTimeoutSeconds"`
+	DefaultPhoneNumber string `json:"defaultPhoneNumber"`
 }
 
 // Update handles PUT /api/projects/{slug}/settings.
@@ -75,26 +66,14 @@ func (h *SettingsHandler) Update(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusUnprocessableEntity, "stkTimeoutSeconds must be between 5 and 60")
 		return
 	}
-	if req.C2bResponseType != "Completed" && req.C2bResponseType != "Cancelled" {
-		response.Error(w, http.StatusUnprocessableEntity, `c2bResponseType must be "Completed" or "Cancelled"`)
-		return
-	}
 	if !phoneNumberPattern.MatchString(req.DefaultPhoneNumber) {
 		response.Error(w, http.StatusUnprocessableEntity, "defaultPhoneNumber must be in the format 254XXXXXXXXX")
 		return
 	}
 
-	externalValidationDefault := int64(0)
-	if req.ExternalValidationDefault {
-		externalValidationDefault = 1
-	}
-
 	settings, err := h.service.Update(r.Context(), slug, service.UpdateSettingsInput{
-		CallbackUrl:               req.CallbackUrl,
-		StkTimeoutSeconds:         req.StkTimeoutSeconds,
-		C2bResponseType:           req.C2bResponseType,
-		ExternalValidationDefault: externalValidationDefault,
-		DefaultPhoneNumber:        req.DefaultPhoneNumber,
+		StkTimeoutSeconds:  req.StkTimeoutSeconds,
+		DefaultPhoneNumber: req.DefaultPhoneNumber,
 	})
 	if err != nil {
 		writeServiceError(w, err, "failed to update settings")

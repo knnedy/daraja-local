@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { CheckIcon } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useProjectSettings } from "@/hooks/use-settings";
 import { useUpdateSettings } from "@/hooks/use-settings";
@@ -16,10 +14,6 @@ export default function SimulationDefaultsCard() {
   const updateSettings = useUpdateSettings(slug);
 
   const [stkTimeout, setStkTimeout] = useState(20);
-  const [externalValidation, setExternalValidation] = useState(false);
-  const [responseType, setResponseType] = useState<"Completed" | "Cancelled">(
-    "Completed",
-  );
   const [phoneNumber, setPhoneNumber] = useState("");
 
   const [syncedSettings, setSyncedSettings] = useState<ProjectSettings | null>(
@@ -28,8 +22,6 @@ export default function SimulationDefaultsCard() {
   if (settings && settings !== syncedSettings) {
     setSyncedSettings(settings);
     setStkTimeout(settings.stkTimeoutSeconds);
-    setExternalValidation(settings.externalValidationDefault);
-    setResponseType(settings.c2bResponseType);
     setPhoneNumber(settings.defaultPhoneNumber);
   }
 
@@ -41,8 +33,6 @@ export default function SimulationDefaultsCard() {
   const isDirty =
     settings !== undefined &&
     (stkTimeout !== settings.stkTimeoutSeconds ||
-      externalValidation !== settings.externalValidationDefault ||
-      responseType !== settings.c2bResponseType ||
       phoneNumber.trim() !== settings.defaultPhoneNumber);
 
   const canSave =
@@ -51,10 +41,7 @@ export default function SimulationDefaultsCard() {
   function handleSave() {
     if (!settings || !canSave) return;
     updateSettings.mutate({
-      callbackUrl: settings.callbackUrl,
       stkTimeoutSeconds: stkTimeout,
-      c2bResponseType: responseType,
-      externalValidationDefault: externalValidation,
       defaultPhoneNumber: phoneNumber.trim(),
     });
   }
@@ -106,49 +93,6 @@ export default function SimulationDefaultsCard() {
             Enter a valid number in the format 254XXXXXXXXX
           </p>
         )}
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium text-muted-foreground">
-          C2B response type
-        </label>
-        <div className="flex gap-2">
-          {(["Completed", "Cancelled"] as const).map((option) => (
-            <button
-              key={option}
-              type="button"
-              disabled={!settings}
-              onClick={() => setResponseType(option)}
-              className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60 ${
-                responseType === option
-                  ? "border-green bg-green-light text-green"
-                  : "border-border bg-surface-2 text-muted-foreground hover:text-foreground"
-              }`}>
-              {option}
-            </button>
-          ))}
-        </div>
-        <p className="text-[10.5px] text-muted-foreground">
-          What happens if your ValidationURL is unreachable — accept anyway, or
-          cancel the transaction.
-        </p>
-      </div>
-
-      <div className="flex items-center justify-between rounded-md border border-border bg-surface-2 px-3 py-2.5">
-        <Label htmlFor="default-external-validation" className="cursor-pointer">
-          <p className="text-[12.5px] font-medium text-foreground">
-            External validation by default
-          </p>
-          <p className="text-[10.5px] font-normal text-muted-foreground">
-            New C2B sessions start with this on or off
-          </p>
-        </Label>
-        <Switch
-          id="default-external-validation"
-          checked={externalValidation}
-          disabled={!settings}
-          onCheckedChange={setExternalValidation}
-        />
       </div>
 
       <div className="flex items-center gap-3">
