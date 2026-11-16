@@ -25,12 +25,13 @@ type Operation string
 
 const (
 	STKPush     Operation = "stk_push"
+	STKQuery    Operation = "stk_query"
 	C2BRegister Operation = "c2b_register"
 	C2BSimulate Operation = "c2b_simulate"
 )
 
 func (o Operation) kind() Kind {
-	if o == STKPush {
+	if o == STKPush || o == STKQuery {
 		return KindSTKPush
 	}
 	return KindC2B
@@ -71,11 +72,11 @@ func (l *Log) Accepted(ctx context.Context, projectID int64, op Operation, trans
 	l.write(ctx, entry{projectID: projectID, op: op, step: stepAcceptance, transactionID: transactionID, direction: directionOutbound, status: statusAccepted}, acceptance)
 }
 
-// Rejected records a request that failed request validation and the error sent
-// back. Neither Entry has a transaction ID, so they are not grouped.
-func (l *Log) Rejected(ctx context.Context, projectID int64, op Operation, request any, validationErr *daraja.ValidationError) {
-	l.write(ctx, entry{projectID: projectID, op: op, step: stepRequest, direction: directionInbound, status: statusRejected}, request)
-	l.write(ctx, entry{projectID: projectID, op: op, step: stepRejection, direction: directionOutbound, status: statusRejected}, struct {
+// Rejected records a request Daraja Local refused and the error sent back.
+// With no transaction ID yet, pass "" and the two Entries stay ungrouped.
+func (l *Log) Rejected(ctx context.Context, projectID int64, op Operation, transactionID string, request any, validationErr *daraja.ValidationError) {
+	l.write(ctx, entry{projectID: projectID, op: op, step: stepRequest, transactionID: transactionID, direction: directionInbound, status: statusRejected}, request)
+	l.write(ctx, entry{projectID: projectID, op: op, step: stepRejection, transactionID: transactionID, direction: directionOutbound, status: statusRejected}, struct {
 		HTTPStatus   int    `json:"httpStatus"`
 		ErrorCode    string `json:"errorCode"`
 		ErrorMessage string `json:"errorMessage"`

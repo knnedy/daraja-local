@@ -99,6 +99,42 @@ curl -X POST "http://127.0.0.1:7060/api/projects/<slug>/stk/<CheckoutRequestID>/
 
 Valid outcomes are `approved`, `wrong_pin`, `insufficient_balance`, `cancelled` and `timeout`. A successful call returns 204 with no body, and the callback is sent in the background. Resolving a request that is unknown or already resolved returns an error.
 
-## Not implemented
+## Querying a request
 
-STK Push Query (`/mpesa/stkpushquery/v1/query`) is not implemented, so calls to it will fail. See [Fidelity](fidelity.md) for how Daraja Local differs from the real API.
+STK Push Query tells your app how a request ended without waiting for the callback. Use it when a callback never arrives.
+
+```
+POST /mpesa/stkpushquery/v1/query
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+```json
+{
+  "BusinessShortCode": "<shortcode>",
+  "Password": "<base64(shortcode + passkey + timestamp)>",
+  "Timestamp": "20261022101500",
+  "CheckoutRequestID": "ws_CO_191220191020363925"
+}
+```
+
+Once the request has an outcome, you get 200 with its `ResultCode` and `ResultDesc`:
+
+```json
+{
+  "ResponseCode": "0",
+  "ResponseDescription": "The service request has been accepted successfully",
+  "MerchantRequestID": "29115-34620561-1",
+  "CheckoutRequestID": "ws_CO_191220191020363925",
+  "ResultCode": "1032",
+  "ResultDesc": "Request cancelled by user"
+}
+```
+
+`ResultCode` is a string here and a number in the callback. A `ResponseCode` of `0` only means the query worked; read `ResultCode` for the payment.
+
+While the request is still pending on the Virtual Phone, the query returns HTTP 500 with `errorCode` `500.001.1001` and `errorMessage` `The transaction is being processed`. Treat that as "ask again later", not as a failed payment.
+
+A `CheckoutRequestID` that Daraja Local does not know, or that belongs to another project, returns HTTP 400 with `errorCode` `400.002.02`. Requests are held in memory, so every ID is unknown after a restart.
+
+Queries are written to the request log alongside the request they ask about. See [Fidelity](fidelity.md) for how sure we are about each of these responses.

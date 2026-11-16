@@ -42,8 +42,12 @@ export function groupEntries(entries: RequestLogEntry[]): LogGroup[] {
     const oldest = rows[rows.length - 1];
     const kinds = new Set(rows.map((r) => r.kind));
 
-    const resolved = rows.find((r) => r.outcome);
-    const rejected = rows.find((r) => r.status === "rejected");
+    // A status query reads a payment; it never decides how the payment ended.
+    const decisive = rows.some((r) => r.operation !== "stk_query")
+      ? rows.filter((r) => r.operation !== "stk_query")
+      : rows;
+    const resolved = decisive.find((r) => r.outcome);
+    const rejected = decisive.find((r) => r.status === "rejected");
 
     const summary =
       peek(oldest.payload, ["Amount", "amount", "TransAmount"]) &&

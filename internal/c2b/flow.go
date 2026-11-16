@@ -25,7 +25,7 @@ func NewFlow(db *repository.DB, log *requestlog.Log, deliverer *delivery.Deliver
 
 func (f *Flow) RegisterURL(ctx context.Context, project repository.Project, req RegisterURLRequest) (AcceptResponse, *daraja.ValidationError) {
 	if err := ValidateRegisterURL(req, project); err != nil {
-		f.log.Rejected(ctx, project.ID, requestlog.C2BRegister, req, err)
+		f.log.Rejected(ctx, project.ID, requestlog.C2BRegister, "", req, err)
 		return AcceptResponse{}, err
 	}
 
@@ -71,7 +71,7 @@ func (f *Flow) Simulate(ctx context.Context, project repository.Project, req Sim
 	}
 
 	if err := ValidateSimulate(req, project, settings); err != nil {
-		f.log.Rejected(ctx, project.ID, requestlog.C2BSimulate, req, err)
+		f.log.Rejected(ctx, project.ID, requestlog.C2BSimulate, "", req, err)
 		return AcceptResponse{}, err
 	}
 

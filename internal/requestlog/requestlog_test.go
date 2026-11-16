@@ -72,7 +72,7 @@ func TestAcceptedWritesAGroupedRequestAndAcceptance(t *testing.T) {
 
 func TestRejectedWritesTwoUngroupedEntries(t *testing.T) {
 	log, projectID := newLog(t)
-	log.Rejected(context.Background(), projectID, C2BRegister, map[string]string{"Amount": "x"}, &daraja.ValidationError{
+	log.Rejected(context.Background(), projectID, C2BRegister, "", map[string]string{"Amount": "x"}, &daraja.ValidationError{
 		HTTPStatus: 400, ErrorCode: "400.002.02", ErrorMessage: "Bad Request - Invalid Amount",
 	})
 

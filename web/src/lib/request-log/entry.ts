@@ -9,7 +9,10 @@ const BAD = "text-terminal-red";
 export function entryTag(entry: RequestLogEntry): EntryTag {
   switch (entry.step) {
     case "request":
-      return { label: "REQ", className: "text-terminal-blue" };
+      return {
+        label: entry.operation === "stk_query" ? "QRY" : "REQ",
+        className: "text-terminal-blue",
+      };
     case "acceptance":
       return { label: "ACK", className: GOOD };
     case "rejection":

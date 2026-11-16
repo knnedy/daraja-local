@@ -39,7 +39,7 @@ func NewLifecycle(db *repository.DB, log *requestlog.Log, deliverer *delivery.De
 // valid, opens a pending Session that times out on its own.
 func (l *Lifecycle) Accept(ctx context.Context, project repository.Project, req Request) (Session, *daraja.ValidationError) {
 	if validationErr := Validate(req, project); validationErr != nil {
-		l.log.Rejected(ctx, project.ID, requestlog.STKPush, req, validationErr)
+		l.log.Rejected(ctx, project.ID, requestlog.STKPush, "", req, validationErr)
 		return Session{}, validationErr
 	}
 
@@ -85,6 +85,54 @@ func (l *Lifecycle) Accept(ctx context.Context, project repository.Project, req 
 	l.mu.Unlock()
 
 	return session, nil
+}
+
+// Query reports the outcome of a project's Session, as Daraja's STK Push Query
+// does. A Session still pending answers with Daraja's "being processed" error.
+func (l *Lifecycle) Query(ctx context.Context, project repository.Project, req QueryRequest) (QueryResponse, *daraja.ValidationError) {
+	if validationErr := validatePassword(req.BusinessShortCode, req.Password, req.Timestamp, project); validationErr != nil {
+		l.log.Rejected(ctx, project.ID, requestlog.STKQuery, "", req, validationErr)
+		return QueryResponse{}, validationErr
+	}
+
+	l.mu.Lock()
+	tracked, ok := l.sessions[req.CheckoutRequestID]
+	var session Session
+	if ok {
+		session = tracked.Session
+	}
+	l.mu.Unlock()
+
+	if !ok || session.ProjectID != project.ID {
+		validationErr := &daraja.ValidationError{
+			HTTPStatus:   400,
+			ErrorCode:    "400.002.02",
+			ErrorMessage: "Bad Request - Invalid CheckoutRequestID",
+		}
+		l.log.Rejected(ctx, project.ID, requestlog.STKQuery, "", req, validationErr)
+		return QueryResponse{}, validationErr
+	}
+
+	if !session.Resolved {
+		validationErr := &daraja.ValidationError{
+			HTTPStatus:   500,
+			ErrorCode:    "500.001.1001",
+			ErrorMessage: "The transaction is being processed",
+		}
+		l.log.Rejected(ctx, project.ID, requestlog.STKQuery, session.CheckoutRequestID, req, validationErr)
+		return QueryResponse{}, validationErr
+	}
+
+	result := QueryResponse{
+		ResponseCode:        "0",
+		ResponseDescription: "The service request has been accepted successfully",
+		MerchantRequestID:   session.MerchantRequestID,
+		CheckoutRequestID:   session.CheckoutRequestID,
+		ResultCode:          strconv.Itoa(session.ResultCode),
+		ResultDesc:          session.ResultDesc,
+	}
+	l.log.Accepted(ctx, project.ID, requestlog.STKQuery, session.CheckoutRequestID, req, result)
+	return result, nil
 }
 
 // Pending returns a project's unresolved Sessions, for the Virtual Phone.

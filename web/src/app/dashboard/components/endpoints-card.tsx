@@ -13,17 +13,19 @@ type Endpoint = {
 
 function countHits(entries: RequestLogEntry[]) {
   let stk = 0;
+  let query = 0;
   let register = 0;
   let simulate = 0;
 
   for (const e of entries) {
     if (e.step !== "request") continue;
     if (e.operation === "stk_push") stk++;
+    else if (e.operation === "stk_query") query++;
     else if (e.operation === "c2b_register") register++;
     else if (e.operation === "c2b_simulate") simulate++;
   }
 
-  return { stk, register, simulate };
+  return { stk, query, register, simulate };
 }
 
 function MethodBadge({ method }: { method: Endpoint["method"] }) {
@@ -59,6 +61,13 @@ export default function EndpointsCard({
       description: "STK Push (Lipa na M-Pesa Online)",
       href: "/dashboard/stk",
       count: hits.stk,
+    },
+    {
+      method: "POST",
+      path: "/mpesa/stkpushquery/v1/query",
+      description: "STK Push Query",
+      href: "/dashboard/stk",
+      count: hits.query,
     },
     {
       method: "POST",

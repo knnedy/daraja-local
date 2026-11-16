@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/knnedy/daraja-local/internal/daraja"
 	"github.com/knnedy/daraja-local/internal/delivery"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/requestlog"
@@ -378,5 +379,99 @@ func TestAnUndeliverableCallbackIsLoggedAsFailed(t *testing.T) {
 	}
 	if err := json.Unmarshal([]byte(last.Payload), &logged); err != nil || len(logged.Attempts) != 3 || logged.Attempts[0].Err != "connection refused" {
 		t.Errorf("logged attempts = %+v (%v)", logged.Attempts, err)
+	}
+}
+
+func (f *fixture) query(checkoutRequestID string) (QueryResponse, *daraja.ValidationError) {
+	req := f.request()
+	return f.lifecycle.Query(context.Background(), f.project, QueryRequest{
+		BusinessShortCode: req.BusinessShortCode,
+		Password:          req.Password,
+		Timestamp:         req.Timestamp,
+		CheckoutRequestID: checkoutRequestID,
+	})
+}
+
+func TestQueryOnAPendingSessionSaysBeingProcessed(t *testing.T) {
+	f := newFixture(t)
+	session := f.accept(t)
+
+	_, validationErr := f.query(session.CheckoutRequestID)
+	if validationErr == nil || validationErr.HTTPStatus != 500 || validationErr.ErrorCode != "500.001.1001" || validationErr.ErrorMessage != "The transaction is being processed" {
+		t.Fatalf("validation error = %+v", validationErr)
+	}
+	if len(f.lifecycle.Pending(f.project.ID)) != 1 {
+		t.Error("a query changed the session")
+	}
+
+	entries := f.entries(t)
+	last := entries[len(entries)-1]
+	if last.Operation != "stk_query" || last.Step != "rejection" || last.CorrelationID.String != session.CheckoutRequestID {
+		t.Errorf("query entry = %+v", last)
+	}
+}
+
+func TestQueryReportsTheOutcomeOnceResolved(t *testing.T) {
+	codes := map[Outcome]string{
+		OutcomeApproved:            "0",
+		OutcomeInsufficientBalance: "1",
+		OutcomeCancelled:           "1032",
+		OutcomeTimeout:             "1037",
+		OutcomeWrongPIN:            "2001",
+	}
+	for outcome, code := range codes {
+		t.Run(string(outcome), func(t *testing.T) {
+			f := newFixture(t)
+			session := f.accept(t)
+			if err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, outcome); err != nil {
+				t.Fatalf("resolve: %v", err)
+			}
+
+			got, validationErr := f.query(session.CheckoutRequestID)
+			if validationErr != nil {
+				t.Fatalf("query: %+v", validationErr)
+			}
+			if got.ResultCode != code || got.ResultDesc == "" || got.ResponseCode != "0" {
+				t.Errorf("query = %+v, want ResultCode %s", got, code)
+			}
+			if got.CheckoutRequestID != session.CheckoutRequestID || got.MerchantRequestID != session.MerchantRequestID {
+				t.Errorf("ids = %s / %s", got.CheckoutRequestID, got.MerchantRequestID)
+			}
+		})
+	}
+}
+
+func TestQueryReportsATimeoutNobodyResolved(t *testing.T) {
+	f := newFixture(t)
+	session := f.accept(t)
+	f.clock.Advance(20 * time.Second)
+
+	got, validationErr := f.query(session.CheckoutRequestID)
+	if validationErr != nil || got.ResultCode != "1037" {
+		t.Fatalf("query = %+v, err = %+v", got, validationErr)
+	}
+}
+
+func TestQueryRefusals(t *testing.T) {
+	f := newFixture(t)
+	session := f.accept(t)
+
+	if _, validationErr := f.query("ws_CO_unknown"); validationErr == nil || validationErr.HTTPStatus != 400 {
+		t.Errorf("unknown session: %+v", validationErr)
+	}
+
+	other := f.project
+	other.ID++
+	req := f.request()
+	if _, validationErr := f.lifecycle.Query(context.Background(), other, QueryRequest{
+		BusinessShortCode: req.BusinessShortCode, Password: req.Password, Timestamp: req.Timestamp, CheckoutRequestID: session.CheckoutRequestID,
+	}); validationErr == nil || validationErr.HTTPStatus != 400 {
+		t.Errorf("another project's session: %+v", validationErr)
+	}
+
+	if _, validationErr := f.lifecycle.Query(context.Background(), f.project, QueryRequest{
+		BusinessShortCode: req.BusinessShortCode, Password: "d3Jvbmc=", Timestamp: req.Timestamp, CheckoutRequestID: session.CheckoutRequestID,
+	}); validationErr == nil || validationErr.ErrorMessage != "[MerchantValidate] - Wrong credentials" {
+		t.Errorf("wrong password: %+v", validationErr)
 	}
 }

@@ -17,7 +17,7 @@ var phoneNumberPattern = regexp.MustCompile(`^254[17]\d{8}$`)
 // Validate runs all synchronous checks real Daraja performs before ever
 // accepting an STK Push request, returns nil if the request is valid
 func Validate(req Request, project repository.Project) *daraja.ValidationError {
-	if err := validatePassword(req, project); err != nil {
+	if err := validatePassword(req.BusinessShortCode, req.Password, req.Timestamp, project); err != nil {
 		return err
 	}
 	if err := validatePhoneNumber(req.PhoneNumber); err != nil {
@@ -33,22 +33,22 @@ func Validate(req Request, project repository.Project) *daraja.ValidationError {
 }
 
 // validatePassword replicates real Daraja's Password check
-func validatePassword(req Request, project repository.Project) *daraja.ValidationError {
-	decoded, err := base64.StdEncoding.DecodeString(req.Password)
+func validatePassword(shortCode, password, timestamp string, project repository.Project) *daraja.ValidationError {
+	decoded, err := base64.StdEncoding.DecodeString(password)
 	if err != nil {
 		return wrongCredentials()
 	}
 
-	if req.BusinessShortCode != project.ShortCode {
+	if shortCode != project.ShortCode {
 		return merchantDoesNotExist()
 	}
 
-	expected := project.ShortCode + project.Passkey + req.Timestamp
+	expected := project.ShortCode + project.Passkey + timestamp
 	if string(decoded) != expected {
 		return wrongCredentials()
 	}
 
-	if _, err := time.Parse("20060102150405", req.Timestamp); err != nil {
+	if _, err := time.Parse("20060102150405", timestamp); err != nil {
 		return wrongCredentials()
 	}
 

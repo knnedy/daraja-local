@@ -9,17 +9,19 @@ When Daraja Local and Safaricom disagree, Safaricom is right. If you find a diff
 Daraja Local has not been tested against Safaricom directly. Its behavior comes from Daraja documentation as reproduced in community SDKs, and from sandbox responses published in open-source repositories and tutorials. Confidence depends on the area:
 
 - **OAuth and STK Push:** high. Many independent sources agree.
+- **STK Push Query:** medium for a resolved request, lower for a pending or unknown one. Safaricom's documentation covers only the resolved case.
 - **C2B response shapes and payloads:** medium. Samples differ between versions and sources.
 
 Each known difference below says how sure we are.
 
 ## What matches
 
-- Routes: `GET /oauth/v1/generate`, `POST /mpesa/stkpush/v1/processrequest`, and C2B `registerurl` and `simulate` on `v1` and `v2`.
+- Routes: `GET /oauth/v1/generate`, `POST /mpesa/stkpush/v1/processrequest`, `POST /mpesa/stkpushquery/v1/query`, and C2B `registerurl` and `simulate` on `v1` and `v2`.
 - Authentication: Basic auth for the token, then Bearer. The STK password is `base64(shortcode + passkey + timestamp)`.
 - Request fields are JSON strings, including amounts and phone numbers.
 - Error bodies: `requestId`, `errorCode`, `errorMessage`. Codes include `400.002.02`, `400.008.01`, `404.001.03` and `500.001.1001`.
 - STK `ResultCode` values `0`, `1`, `1032`, `1037` and `2001`, and a callback with no `CallbackMetadata` on failure.
+- STK Push Query answers a resolved request with `ResponseCode`, `ResponseDescription`, `MerchantRequestID`, `CheckoutRequestID`, `ResultCode` and `ResultDesc`, with `ResultCode` as a string.
 - STK callback metadata types: `Amount`, `TransactionDate` (`yyyyMMddHHmmss`) and `PhoneNumber` are numbers, and `MpesaReceiptNumber` is a string.
 - C2B `MSISDN` is the lowercase hex SHA-256 of the number. The algorithm and input were checked against a real sandbox sample, and the hash matched exactly.
 - C2B `ResponseType` is the default action when your `ValidationURL` can't answer: `Completed` accepts, `Cancelled` rejects.
@@ -67,3 +69,7 @@ These exist because Daraja Local is a local tool, not because Daraja works this 
 ## Not implemented
 
 STK Push Query, B2C, B2B, Reversal, Account Balance and Transaction Status.
+| STK Query while pending | HTTP 500, `errorCode` `500.001.1001`, `The transaction is being processed`. | Several integrators report this. One report shows HTTP 200 with `ResultCode` `1001` instead. | Medium |
+| STK Query, unknown ID | HTTP 400, `errorCode` `400.002.02`, `Bad Request - Invalid CheckoutRequestID`. | Not documented, and no captured response was found. The code and text are our guess. | Low |
+| STK Query `ResultCode` | Always a string. | The documented sample quotes it. The same page's field table calls it numeric. | Medium |
+| STK Query after restart | Every `CheckoutRequestID` is unknown, because requests are held in memory. | Safaricom keeps them. How long is unverified. | Low |

@@ -1,4 +1,8 @@
-export type RequestLogOperation = "stk_push" | "c2b_register" | "c2b_simulate";
+export type RequestLogOperation =
+  | "stk_push"
+  | "stk_query"
+  | "c2b_register"
+  | "c2b_simulate";
 
 export type RequestLogStep =
   | "request"

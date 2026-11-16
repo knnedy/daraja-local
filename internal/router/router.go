@@ -81,6 +81,7 @@ func New(
 	r.Group(func(r chi.Router) {
 		r.Use(auth.RequireBearer(tokenSvc))
 		r.Post("/mpesa/stkpush/v1/processrequest", stkHandler.ProcessRequest)
+		r.Post("/mpesa/stkpushquery/v1/query", stkHandler.Query)
 		r.Post("/mpesa/c2b/v1/registerurl", c2bHandler.RegisterURL)
 		r.Post("/mpesa/c2b/v1/simulate", c2bHandler.Simulate)
 		r.Post("/mpesa/c2b/v2/registerurl", c2bHandler.RegisterURL)

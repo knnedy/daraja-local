@@ -100,10 +100,11 @@ _Overview: live stats, recent activity and your project's credentials._
 | ----------------- | ------------------------------------------------------------------ |
 | OAuth token       | `GET /oauth/v1/generate`                                           |
 | STK Push          | `POST /mpesa/stkpush/v1/processrequest`                            |
+| STK Push Query    | `POST /mpesa/stkpushquery/v1/query`                                |
 | C2B register URLs | `POST /mpesa/c2b/v1/registerurl`, `POST /mpesa/c2b/v2/registerurl` |
 | C2B simulate      | `POST /mpesa/c2b/v1/simulate`, `POST /mpesa/c2b/v2/simulate`       |
 
-Not implemented: STK Push query, B2C, B2B, Reversal, Account Balance, Transaction Status.
+Not implemented: B2C, B2B, Reversal, Account Balance, Transaction Status.
 
 ---
 
