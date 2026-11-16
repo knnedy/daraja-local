@@ -70,7 +70,7 @@ func (s *STKService) ProcessRequest(ctx context.Context, project repository.Proj
 	// Automatic resolution if nobody acts on it via the Virtual Phone so it
 	// matches real Daraja's own DS-timeout behavior.
 	time.AfterFunc(time.Duration(settings.StkTimeoutSeconds)*time.Second, func() {
-		s.autoTimeout(session.CheckoutRequestID)
+		s.autoTimeout(project.ID, session.CheckoutRequestID)
 	})
 
 	return session, nil

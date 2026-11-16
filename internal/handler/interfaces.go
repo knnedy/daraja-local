@@ -26,6 +26,6 @@ type SettingsService interface {
 type STKService interface {
 	ProcessRequest(ctx context.Context, project repository.Project, req stk.Request) (stk.Session, *stk.ValidationError)
 	ListPending(projectID int64) []stk.Session
-	Resolve(ctx context.Context, checkoutRequestID string, outcome stk.Outcome) error
+	Resolve(ctx context.Context, projectID int64, checkoutRequestID string, outcome stk.Outcome) error
 	ListRequestLog(ctx context.Context, projectID int64, limit int64) ([]repository.RequestLog, error)
 }

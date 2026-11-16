@@ -14,13 +14,13 @@ import (
 
 // Resolve marks a pending session resolved with the given outcome, then
 // delivers the callback in the background and logs the delivery.
-func (s *STKService) Resolve(ctx context.Context, checkoutRequestID string, outcome stk.Outcome) error {
+func (s *STKService) Resolve(ctx context.Context, projectID int64, checkoutRequestID string, outcome stk.Outcome) error {
 	resultCode, resultDesc, ok := outcome.Result()
 	if !ok {
 		return response.ErrValidation
 	}
 
-	session, ok := s.store.Resolve(checkoutRequestID, resultCode, resultDesc)
+	session, ok := s.store.Resolve(projectID, checkoutRequestID, resultCode, resultDesc)
 	if !ok {
 		return response.ErrNotFound
 	}

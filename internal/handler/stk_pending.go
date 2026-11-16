@@ -61,13 +61,19 @@ type resolveSessionRequest struct {
 func (h *STKHandler) Resolve(w http.ResponseWriter, r *http.Request) {
 	checkoutRequestID := chi.URLParam(r, "checkoutRequestId")
 
+	project, err := h.projectService.Get(r.Context(), chi.URLParam(r, "slug"))
+	if err != nil {
+		writeServiceError(w, err, "failed to get project")
+		return
+	}
+
 	var req resolveSessionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	if err := h.service.Resolve(r.Context(), checkoutRequestID, stk.Outcome(req.Outcome)); err != nil {
+	if err := h.service.Resolve(r.Context(), project.ID, checkoutRequestID, stk.Outcome(req.Outcome)); err != nil {
 		writeServiceError(w, err, "failed to resolve session")
 		return
 	}

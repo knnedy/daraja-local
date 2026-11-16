@@ -74,15 +74,14 @@ func (s *Store) ListPending(projectID int64) []Session {
 	return pending
 }
 
-// Resolve marks a session resolved with the given outcome. Returns the
-// resolved session and true, or false if the session doesn't exist or
-// was already resolved
-func (s *Store) Resolve(CheckoutRequestID string, resultCode int, resultDesc string) (Session, bool) {
+// Resolve marks a project's session resolved with the given outcome. Returns false
+// if it doesn't exist, belongs to another project, or was already resolved
+func (s *Store) Resolve(projectID int64, CheckoutRequestID string, resultCode int, resultDesc string) (Session, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	session, ok := s.sessions[CheckoutRequestID]
-	if !ok || session.Resolved {
+	if !ok || session.Resolved || session.ProjectID != strconv.FormatInt(projectID, 10) {
 		return Session{}, false
 	}
 
