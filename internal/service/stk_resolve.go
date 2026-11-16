@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/knnedy/daraja-local/internal/delivery"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/response"
 	"github.com/knnedy/daraja-local/internal/stk"
@@ -42,7 +43,7 @@ func (s *STKService) deliverAndLog(ctx context.Context, session stk.Session, out
 		callback = stk.BuildCallback(session, "", 0)
 	}
 
-	result := stk.DeliverCallback(ctx, session.CallbackURL, callback)
+	result := s.deliverer.Deliver(ctx, session.CallbackURL, callback)
 
 	status := "delivered"
 	if !result.Delivered {
@@ -50,8 +51,8 @@ func (s *STKService) deliverAndLog(ctx context.Context, session stk.Session, out
 	}
 
 	payload, err := json.Marshal(struct {
-		Callback stk.CallbackBody    `json:"callback"`
-		Attempts []stk.AttemptResult `json:"attempts"`
+		Callback stk.CallbackBody   `json:"callback"`
+		Attempts []delivery.Attempt `json:"attempts"`
 	}{Callback: callback, Attempts: result.Attempts})
 	if err != nil {
 		return

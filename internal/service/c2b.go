@@ -6,15 +6,17 @@ import (
 	"encoding/json"
 
 	"github.com/knnedy/daraja-local/internal/c2b"
+	"github.com/knnedy/daraja-local/internal/delivery"
 	"github.com/knnedy/daraja-local/internal/repository"
 )
 
 type C2BService struct {
-	db *repository.DB
+	db        *repository.DB
+	deliverer *delivery.Deliverer
 }
 
-func NewC2BService(db *repository.DB) *C2BService {
-	return &C2BService{db: db}
+func NewC2BService(db *repository.DB, deliverer *delivery.Deliverer) *C2BService {
+	return &C2BService{db: db, deliverer: deliverer}
 }
 
 func (s *C2BService) RegisterURL(ctx context.Context, project repository.Project, req c2b.RegisterURLRequest) (c2b.AcceptResponse, *c2b.ValidationError) {
@@ -82,7 +84,8 @@ func (s *C2BService) runValidationAndConfirmation(ctx context.Context, projectID
 	// A registered ValidationURL turns validation on. ResponseType is only
 	// the fallback when that URL can't answer.
 	if settings.ValidationUrl != "" {
-		result := c2b.CallValidation(ctx, settings.ValidationUrl, payload, settings.C2bResponseType)
+		reply, err := s.deliverer.PostOnce(ctx, settings.ValidationUrl, payload)
+		result := c2b.DecideValidation(reply, err, settings.C2bResponseType)
 		s.logValidation(ctx, projectID, correlationID, result)
 		accepted = result.Accepted
 	}
@@ -189,7 +192,7 @@ func (s *C2BService) logValidation(ctx context.Context, projectID int64, correla
 }
 
 func (s *C2BService) deliverConfirmationAndLog(ctx context.Context, projectID int64, confirmationURL string, payload c2b.Payload, correlationID string) {
-	result := c2b.Deliver(ctx, confirmationURL, payload)
+	result := s.deliverer.Deliver(ctx, confirmationURL, payload)
 
 	status := "delivered"
 	if !result.Delivered {
@@ -197,8 +200,8 @@ func (s *C2BService) deliverConfirmationAndLog(ctx context.Context, projectID in
 	}
 
 	logPayload, err := json.Marshal(struct {
-		Payload  c2b.Payload         `json:"payload"`
-		Attempts []c2b.AttemptResult `json:"attempts"`
+		Payload  c2b.Payload        `json:"payload"`
+		Attempts []delivery.Attempt `json:"attempts"`
 	}{payload, result.Attempts})
 	if err != nil {
 		return

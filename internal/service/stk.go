@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/knnedy/daraja-local/internal/delivery"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/stk"
 )
@@ -16,12 +17,13 @@ import (
 // validating incoming requests, tracking pending sessions and
 // resolving them into delivered callbacks.
 type STKService struct {
-	db    *repository.DB
-	store *stk.Store
+	db        *repository.DB
+	store     *stk.Store
+	deliverer *delivery.Deliverer
 }
 
-func NewSTKService(db *repository.DB, store *stk.Store) *STKService {
-	return &STKService{db: db, store: store}
+func NewSTKService(db *repository.DB, store *stk.Store, deliverer *delivery.Deliverer) *STKService {
+	return &STKService{db: db, store: store, deliverer: deliverer}
 }
 
 // ProcessRequest validates an incoming STK Push request against the

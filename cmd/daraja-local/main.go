@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/knnedy/daraja-local/internal/config"
+	"github.com/knnedy/daraja-local/internal/delivery"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/router"
 	"github.com/knnedy/daraja-local/internal/service"
@@ -49,8 +50,9 @@ func run() error {
 	projectSvc := service.NewProjectService(db)
 	settingsSvc := service.NewSettingsService(db)
 	tokenSvc := service.NewTokenService(db, tokenStore)
-	stkSvc := service.NewSTKService(db, stkStore)
-	c2bSvc := service.NewC2BService(db)
+	deliverer := delivery.New(delivery.NewHTTPPoster(), delivery.LinearBackoff)
+	stkSvc := service.NewSTKService(db, stkStore, deliverer)
+	c2bSvc := service.NewC2BService(db, deliverer)
 	requestLogSvc := service.NewRequestLogService(db)
 	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSvc, c2bSvc, requestLogSvc, staticFS, cfg.IsDev)
 

@@ -2,24 +2,20 @@ package c2b
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"net/http"
-	"time"
+
+	"github.com/knnedy/daraja-local/internal/delivery"
 )
 
-var validationHTTPClient = &http.Client{Timeout: 10 * time.Second}
-
-// ValidationResult captures the outcome of calling a project's
-// registered ValidationURL for a simulated payment.
+// ValidationResult is the decision on a simulated payment after asking
+// the project's ValidationURL. Field names are read by the dashboard.
 type ValidationResult struct {
 	Accepted   bool
 	ResultCode string
 	ResultDesc string
-	// Fallback is true when the outcome was NOT determined by the dev's
-	// own response — the call failed, timed out, or returned something
-	// unparseable, and responseType's documented fallback rule was used
-	// instead (Completed -> accept, Cancelled -> reject).
+	// Fallback is true when the ValidationURL couldn't answer and
+	// ResponseType decided instead (Completed accepts, Cancelled rejects).
 	Fallback   bool
 	HTTPStatus int
 	Err        string
@@ -30,19 +26,18 @@ type validationResponseBody struct {
 	ResultDesc string `json:"ResultDesc"`
 }
 
-// CallValidation POSTs payload to validationURL onc— no retry,
-func CallValidation(ctx context.Context, validationURL string, payload Payload, responseType string) ValidationResult {
+// DecideValidation turns the ValidationURL's reply (or the error reaching it)
+// into a decision, falling back to responseType when the reply is unusable.
+func DecideValidation(reply delivery.Reply, postErr error, responseType string) ValidationResult {
 	fallback := func(errMsg string, status int) ValidationResult {
 		accepted := responseType == "Completed"
 		desc := "Rejected — ValidationURL unreachable, ResponseType=Cancelled"
 		if accepted {
 			desc = "Accepted — ValidationURL unreachable, ResponseType=Completed"
 		}
-		// ResultCode intentionally left empty here: this outcome is
-		// synthesized by Daraja Local's own fallback logic
+		// ResultCode stays empty: this outcome is Daraja Local's own.
 		return ValidationResult{
 			Accepted:   accepted,
-			ResultCode: "",
 			ResultDesc: desc,
 			Fallback:   true,
 			HTTPStatus: status,
@@ -50,36 +45,22 @@ func CallValidation(ctx context.Context, validationURL string, payload Payload, 
 		}
 	}
 
-	body, err := json.Marshal(payload)
-	if err != nil {
-		return fallback(err.Error(), 0)
+	if postErr != nil {
+		return fallback(postErr.Error(), 0)
 	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, validationURL, bytes.NewReader(body))
-	if err != nil {
-		return fallback(err.Error(), 0)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := validationHTTPClient.Do(req)
-	if err != nil {
-		return fallback(err.Error(), 0)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fallback("", resp.StatusCode)
+	if reply.StatusCode != http.StatusOK {
+		return fallback("", reply.StatusCode)
 	}
 
 	var parsed validationResponseBody
-	if err := json.NewDecoder(resp.Body).Decode(&parsed); err != nil {
-		return fallback("unparseable response body: "+err.Error(), resp.StatusCode)
+	if err := json.NewDecoder(bytes.NewReader(reply.Body)).Decode(&parsed); err != nil {
+		return fallback("unparseable response body: "+err.Error(), reply.StatusCode)
 	}
 
 	return ValidationResult{
 		Accepted:   parsed.ResultCode == "0",
 		ResultCode: parsed.ResultCode,
 		ResultDesc: parsed.ResultDesc,
-		HTTPStatus: resp.StatusCode,
+		HTTPStatus: reply.StatusCode,
 	}
 }
