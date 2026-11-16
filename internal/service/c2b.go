@@ -2,27 +2,26 @@ package service
 
 import (
 	"context"
-	"database/sql"
-	"encoding/json"
 
 	"github.com/knnedy/daraja-local/internal/c2b"
 	"github.com/knnedy/daraja-local/internal/delivery"
 	"github.com/knnedy/daraja-local/internal/repository"
+	"github.com/knnedy/daraja-local/internal/requestlog"
 )
 
 type C2BService struct {
 	db        *repository.DB
+	log       *requestlog.Log
 	deliverer *delivery.Deliverer
 }
 
-func NewC2BService(db *repository.DB, deliverer *delivery.Deliverer) *C2BService {
-	return &C2BService{db: db, deliverer: deliverer}
+func NewC2BService(db *repository.DB, log *requestlog.Log, deliverer *delivery.Deliverer) *C2BService {
+	return &C2BService{db: db, log: log, deliverer: deliverer}
 }
 
 func (s *C2BService) RegisterURL(ctx context.Context, project repository.Project, req c2b.RegisterURLRequest) (c2b.AcceptResponse, *c2b.ValidationError) {
 	if err := c2b.ValidateRegisterURL(req, project); err != nil {
-		s.logInbound(ctx, project.ID, "", req, "rejected")
-		s.logSyncError(ctx, project.ID, err)
+		s.log.Rejected(ctx, project.ID, requestlog.KindC2B, req, err)
 		return c2b.AcceptResponse{}, err
 	}
 
@@ -49,8 +48,7 @@ func (s *C2BService) RegisterURL(ctx context.Context, project repository.Project
 	}
 
 	accept := c2b.NewAcceptResponse("success")
-	s.logInbound(ctx, project.ID, accept.ConversationID, req, "accepted")
-	s.logSyncAccept(ctx, project.ID, accept)
+	s.log.Accepted(ctx, project.ID, requestlog.KindC2B, accept.ConversationID, req, accept)
 	return accept, nil
 }
 
@@ -61,14 +59,12 @@ func (s *C2BService) Simulate(ctx context.Context, project repository.Project, r
 	}
 
 	if err := c2b.ValidateSimulate(req, project, settings); err != nil {
-		s.logInbound(ctx, project.ID, "", req, "rejected")
-		s.logSyncError(ctx, project.ID, err)
+		s.log.Rejected(ctx, project.ID, requestlog.KindC2B, req, err)
 		return c2b.AcceptResponse{}, err
 	}
 
 	accept := c2b.NewAcceptResponse("Accept the service request successfully.")
-	s.logInbound(ctx, project.ID, accept.ConversationID, req, "accepted")
-	s.logSyncAccept(ctx, project.ID, accept)
+	s.log.Accepted(ctx, project.ID, requestlog.KindC2B, accept.ConversationID, req, accept)
 
 	payload := c2b.BuildPayload(req, project.ShortCode)
 
@@ -78,7 +74,7 @@ func (s *C2BService) Simulate(ctx context.Context, project repository.Project, r
 	return accept, nil
 }
 
-func (s *C2BService) runValidationAndConfirmation(ctx context.Context, projectID int64, settings repository.ProjectSetting, payload c2b.Payload, correlationID string) {
+func (s *C2BService) runValidationAndConfirmation(ctx context.Context, projectID int64, settings repository.ProjectSetting, payload c2b.Payload, transactionID string) {
 	accepted := true
 
 	// A registered ValidationURL turns validation on. ResponseType is only
@@ -86,7 +82,7 @@ func (s *C2BService) runValidationAndConfirmation(ctx context.Context, projectID
 	if settings.ValidationUrl != "" {
 		reply, err := s.deliverer.PostOnce(ctx, settings.ValidationUrl, payload)
 		result := c2b.DecideValidation(reply, err, settings.C2bResponseType)
-		s.logValidation(ctx, projectID, correlationID, result)
+		s.log.Validation(ctx, projectID, transactionID, result.Accepted, result.Fallback, result)
 		accepted = result.Accepted
 	}
 
@@ -94,7 +90,8 @@ func (s *C2BService) runValidationAndConfirmation(ctx context.Context, projectID
 		return
 	}
 
-	s.deliverConfirmationAndLog(ctx, projectID, settings.CallbackUrl, payload, correlationID)
+	result := s.deliverer.Deliver(ctx, settings.CallbackUrl, payload)
+	s.log.Delivery(ctx, projectID, requestlog.KindC2B, transactionID, "confirmed", payload, result)
 }
 
 func internalError() *c2b.ValidationError {
@@ -103,118 +100,4 @@ func internalError() *c2b.ValidationError {
 		ErrorCode:    "500.001.1001",
 		ErrorMessage: "internal error resolving project settings",
 	}
-}
-
-func (s *C2BService) logInbound(ctx context.Context, projectID int64, correlationID string, req any, status string) {
-	payload, err := json.Marshal(req)
-	if err != nil {
-		return
-	}
-
-	var corrID sql.NullString
-	if correlationID != "" {
-		corrID = sql.NullString{String: correlationID, Valid: true}
-	}
-
-	_, _ = s.db.Queries().CreateRequestLogEntry(ctx, repository.CreateRequestLogEntryParams{
-		ProjectID:     projectID,
-		CorrelationID: corrID,
-		Kind:          "c2b",
-		Direction:     "inbound",
-		Status:        status,
-		Attempts:      1,
-		Payload:       string(payload),
-	})
-}
-
-func (s *C2BService) logSyncAccept(ctx context.Context, projectID int64, accept c2b.AcceptResponse) {
-	payload, err := json.Marshal(accept)
-	if err != nil {
-		return
-	}
-
-	_, _ = s.db.Queries().CreateRequestLogEntry(ctx, repository.CreateRequestLogEntryParams{
-		ProjectID:     projectID,
-		CorrelationID: sql.NullString{String: accept.ConversationID, Valid: true},
-		Kind:          "c2b",
-		Direction:     "outbound",
-		Status:        "accepted",
-		Attempts:      1,
-		Payload:       string(payload),
-	})
-}
-
-func (s *C2BService) logSyncError(ctx context.Context, projectID int64, validationErr *c2b.ValidationError) {
-	payload, err := json.Marshal(struct {
-		HTTPStatus   int    `json:"httpStatus"`
-		ErrorCode    string `json:"errorCode"`
-		ErrorMessage string `json:"errorMessage"`
-	}{validationErr.HTTPStatus, validationErr.ErrorCode, validationErr.ErrorMessage})
-	if err != nil {
-		return
-	}
-
-	_, _ = s.db.Queries().CreateRequestLogEntry(ctx, repository.CreateRequestLogEntryParams{
-		ProjectID: projectID,
-		Kind:      "c2b",
-		Direction: "outbound",
-		Status:    "rejected",
-		Attempts:  1,
-		Payload:   string(payload),
-	})
-}
-
-func (s *C2BService) logValidation(ctx context.Context, projectID int64, correlationID string, result c2b.ValidationResult) {
-	payload, err := json.Marshal(result)
-	if err != nil {
-		return
-	}
-
-	status := "delivered"
-	if result.Fallback {
-		status = "fallback"
-	}
-	outcome := "rejected"
-	if result.Accepted {
-		outcome = "accepted"
-	}
-
-	_, _ = s.db.Queries().CreateRequestLogEntry(ctx, repository.CreateRequestLogEntryParams{
-		ProjectID:     projectID,
-		CorrelationID: sql.NullString{String: correlationID, Valid: true},
-		Kind:          "c2b",
-		Direction:     "outbound",
-		Status:        status,
-		Outcome:       sql.NullString{String: outcome, Valid: true},
-		Attempts:      1,
-		Payload:       string(payload),
-	})
-}
-
-func (s *C2BService) deliverConfirmationAndLog(ctx context.Context, projectID int64, confirmationURL string, payload c2b.Payload, correlationID string) {
-	result := s.deliverer.Deliver(ctx, confirmationURL, payload)
-
-	status := "delivered"
-	if !result.Delivered {
-		status = "failed"
-	}
-
-	logPayload, err := json.Marshal(struct {
-		Payload  c2b.Payload        `json:"payload"`
-		Attempts []delivery.Attempt `json:"attempts"`
-	}{payload, result.Attempts})
-	if err != nil {
-		return
-	}
-
-	_, _ = s.db.Queries().CreateRequestLogEntry(ctx, repository.CreateRequestLogEntryParams{
-		ProjectID:     projectID,
-		CorrelationID: sql.NullString{String: correlationID, Valid: true},
-		Kind:          "c2b",
-		Direction:     "outbound",
-		Status:        status,
-		Outcome:       sql.NullString{String: "confirmed", Valid: true},
-		Attempts:      int64(len(result.Attempts)),
-		Payload:       string(logPayload),
-	})
 }

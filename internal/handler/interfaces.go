@@ -28,7 +28,3 @@ type STKSessions interface {
 	Pending(projectID int64) []stk.Session
 	Resolve(projectID int64, checkoutRequestID string, outcome stk.Outcome) error
 }
-
-type STKService interface {
-	ListRequestLog(ctx context.Context, projectID int64, limit int64) ([]repository.RequestLog, error)
-}

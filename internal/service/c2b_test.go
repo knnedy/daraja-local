@@ -10,6 +10,7 @@ import (
 	"github.com/knnedy/daraja-local/internal/c2b"
 	"github.com/knnedy/daraja-local/internal/delivery"
 	"github.com/knnedy/daraja-local/internal/repository"
+	"github.com/knnedy/daraja-local/internal/requestlog"
 )
 
 const (
@@ -57,7 +58,7 @@ func simulateWithValidation(t *testing.T, server *developerServer, responseType 
 		t.Fatalf("create project: %v", err)
 	}
 
-	svc := NewC2BService(db, delivery.New(server, delivery.NoBackoff))
+	svc := NewC2BService(db, requestlog.New(db), delivery.New(server, delivery.NoBackoff))
 	if _, vErr := svc.RegisterURL(ctx, project, c2b.RegisterURLRequest{
 		ShortCode:       project.ShortCode,
 		ResponseType:    responseType,

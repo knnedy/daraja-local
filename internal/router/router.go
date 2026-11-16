@@ -10,6 +10,7 @@ import (
 
 	"github.com/knnedy/daraja-local/internal/auth"
 	"github.com/knnedy/daraja-local/internal/handler"
+	"github.com/knnedy/daraja-local/internal/requestlog"
 	"github.com/knnedy/daraja-local/internal/service"
 )
 
@@ -18,9 +19,8 @@ func New(
 	settingsSvc handler.SettingsService,
 	tokenSvc *service.TokenService,
 	stkSessions handler.STKSessions,
-	stkSvc handler.STKService,
 	c2bSvc handler.C2BService,
-	requestLogSvc handler.RequestLogService,
+	requestLog handler.RequestLog,
 	staticFS fs.FS,
 	isDev bool,
 ) http.Handler {
@@ -40,9 +40,9 @@ func New(
 	projectHandler := handler.NewProjectHandler(projectSvc)
 	settingsHandler := handler.NewSettingsHandler(settingsSvc)
 	oauthHandler := handler.NewOAuthHandler(tokenSvc)
-	stkHandler := handler.NewSTKHandler(projectSvc, stkSessions, stkSvc)
+	stkHandler := handler.NewSTKHandler(projectSvc, stkSessions)
 	c2bHandler := handler.NewC2BHandler(projectSvc, c2bSvc)
-	requestLogHandler := handler.NewRequestLogHandler(projectSvc, requestLogSvc)
+	requestLogHandler := handler.NewRequestLogHandler(projectSvc, requestLog)
 
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/projects", func(r chi.Router) {
@@ -59,17 +59,17 @@ func New(
 				r.Get("/settings", settingsHandler.Get)
 				r.Put("/settings", settingsHandler.Update)
 
-				r.Get("/request-log", requestLogHandler.List)
+				r.Get("/request-log", requestLogHandler.List(""))
 				r.Delete("/request-log", requestLogHandler.Clear)
 
 				r.Route("/stk", func(r chi.Router) {
 					r.Get("/pending", stkHandler.ListPending)
 					r.Post("/{checkoutRequestId}/resolve", stkHandler.Resolve)
-					r.Get("/request-log", stkHandler.ListRequestLog)
+					r.Get("/request-log", requestLogHandler.List(requestlog.KindSTKPush))
 				})
 
 				r.Route("/c2b", func(r chi.Router) {
-					r.Get("/request-log", c2bHandler.ListRequestLog)
+					r.Get("/request-log", requestLogHandler.List(requestlog.KindC2B))
 				})
 			})
 		})

@@ -14,7 +14,6 @@ import (
 type C2BService interface {
 	RegisterURL(ctx context.Context, project repository.Project, req c2b.RegisterURLRequest) (c2b.AcceptResponse, *c2b.ValidationError)
 	Simulate(ctx context.Context, project repository.Project, req c2b.SimulateRequest) (c2b.AcceptResponse, *c2b.ValidationError)
-	ListRequestLog(ctx context.Context, projectID int64, limit int64) ([]repository.RequestLog, error)
 }
 
 type C2BHandler struct {

@@ -12,11 +12,10 @@ import (
 type STKHandler struct {
 	projectService ProjectService
 	sessions       STKSessions
-	service        STKService
 }
 
-func NewSTKHandler(projectService ProjectService, sessions STKSessions, s STKService) *STKHandler {
-	return &STKHandler{projectService: projectService, sessions: sessions, service: s}
+func NewSTKHandler(projectService ProjectService, sessions STKSessions) *STKHandler {
+	return &STKHandler{projectService: projectService, sessions: sessions}
 }
 
 func (h *STKHandler) ProcessRequest(w http.ResponseWriter, r *http.Request) {

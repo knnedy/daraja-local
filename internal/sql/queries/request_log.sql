@@ -5,27 +5,11 @@ RETURNING *;
 
 -- name: ListRequestLogEntries :many
 SELECT * FROM "request_log"
-WHERE "project_id" = ?
-ORDER BY "created_at" DESC
-LIMIT ?;
-
--- name: ListRequestLogEntriesByKind :many
-SELECT * FROM "request_log"
-WHERE "project_id" = ? AND "kind" = ?
-ORDER BY "created_at" DESC
-LIMIT ?;
-
--- name: ListRequestLogEntriesFirstPage :many
-SELECT * FROM "request_log"
-WHERE "project_id" = ?
+WHERE "project_id" = sqlc.arg(project_id)
+  AND (sqlc.narg(kind) IS NULL OR "kind" = sqlc.narg(kind))
+  AND (sqlc.narg(before_id) IS NULL OR "id" < sqlc.narg(before_id))
 ORDER BY "id" DESC
-LIMIT ?;
-
--- name: ListRequestLogEntriesNextPage :many
-SELECT * FROM "request_log"
-WHERE "project_id" = ? AND "id" < ?
-ORDER BY "id" DESC
-LIMIT ?;
+LIMIT sqlc.arg(row_limit);
 
 -- name: ClearRequestLog :exec
 DELETE FROM "request_log" WHERE "project_id" = ?;

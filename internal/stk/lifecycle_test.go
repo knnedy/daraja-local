@@ -12,6 +12,7 @@ import (
 
 	"github.com/knnedy/daraja-local/internal/delivery"
 	"github.com/knnedy/daraja-local/internal/repository"
+	"github.com/knnedy/daraja-local/internal/requestlog"
 	"github.com/knnedy/daraja-local/internal/response"
 )
 
@@ -127,7 +128,7 @@ func newFixture(t *testing.T) *fixture {
 		db:      db,
 		project: project,
 	}
-	f.lifecycle = NewLifecycle(db, delivery.New(f.app, delivery.NoBackoff), f.clock)
+	f.lifecycle = NewLifecycle(db, requestlog.New(db), delivery.New(f.app, delivery.NoBackoff), f.clock)
 	t.Cleanup(func() {
 		f.lifecycle.Wait()
 		_ = db.Close()
@@ -164,9 +165,7 @@ func (f *fixture) accept(t *testing.T) Session {
 // entries returns the project's STK request log, oldest first.
 func (f *fixture) entries(t *testing.T) []repository.RequestLog {
 	t.Helper()
-	rows, err := f.db.Queries().ListRequestLogEntriesByKind(context.Background(), repository.ListRequestLogEntriesByKindParams{
-		ProjectID: f.project.ID, Kind: "stk_push", Limit: 50,
-	})
+	rows, err := requestlog.New(f.db).List(context.Background(), f.project.ID, requestlog.Filter{Kind: requestlog.KindSTKPush, Limit: 50})
 	if err != nil {
 		t.Fatalf("list request log: %v", err)
 	}

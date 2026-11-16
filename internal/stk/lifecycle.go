@@ -8,6 +8,7 @@ import (
 
 	"github.com/knnedy/daraja-local/internal/delivery"
 	"github.com/knnedy/daraja-local/internal/repository"
+	"github.com/knnedy/daraja-local/internal/requestlog"
 	"github.com/knnedy/daraja-local/internal/response"
 )
 
@@ -15,6 +16,7 @@ import (
 // request validation, the pending set, resolve-once, timeout and the request log.
 type Lifecycle struct {
 	db        *repository.DB
+	log       *requestlog.Log
 	deliverer *delivery.Deliverer
 	clock     Clock
 
@@ -28,15 +30,15 @@ type trackedSession struct {
 	stopTimeout func()
 }
 
-func NewLifecycle(db *repository.DB, deliverer *delivery.Deliverer, clock Clock) *Lifecycle {
-	return &Lifecycle{db: db, deliverer: deliverer, clock: clock, sessions: make(map[string]*trackedSession)}
+func NewLifecycle(db *repository.DB, log *requestlog.Log, deliverer *delivery.Deliverer, clock Clock) *Lifecycle {
+	return &Lifecycle{db: db, log: log, deliverer: deliverer, clock: clock, sessions: make(map[string]*trackedSession)}
 }
 
 // Accept validates an STK Push against the project's credentials and, if
 // valid, opens a pending Session that times out on its own.
 func (l *Lifecycle) Accept(ctx context.Context, project repository.Project, req Request) (Session, *ValidationError) {
 	if validationErr := Validate(req, project); validationErr != nil {
-		l.logRejected(ctx, project.ID, req, validationErr)
+		l.log.Rejected(ctx, project.ID, requestlog.KindSTKPush, req, validationErr)
 		return Session{}, validationErr
 	}
 
@@ -70,7 +72,7 @@ func (l *Lifecycle) Accept(ctx context.Context, project repository.Project, req 
 		TimeoutAt:         now.Add(timeout),
 	}
 
-	l.logAccepted(ctx, session, req)
+	l.log.Accepted(ctx, project.ID, requestlog.KindSTKPush, session.CheckoutRequestID, req, session.AcceptResponse())
 
 	// Nobody acting on the Virtual Phone resolves as Daraja's DS timeout.
 	tracked := &trackedSession{Session: session}
@@ -146,5 +148,5 @@ func (l *Lifecycle) deliver(session Session, outcome Outcome) {
 	callback := BuildCallback(session, receipt, transactionDate)
 
 	result := l.deliverer.Deliver(ctx, session.CallbackURL, callback)
-	l.logDelivery(ctx, session, outcome, callback, result)
+	l.log.Delivery(ctx, session.ProjectID, requestlog.KindSTKPush, session.CheckoutRequestID, string(outcome), callback, result)
 }
