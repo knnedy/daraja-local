@@ -38,7 +38,7 @@ func NewLifecycle(db *repository.DB, log *requestlog.Log, deliverer *delivery.De
 // valid, opens a pending Session that times out on its own.
 func (l *Lifecycle) Accept(ctx context.Context, project repository.Project, req Request) (Session, *ValidationError) {
 	if validationErr := Validate(req, project); validationErr != nil {
-		l.log.Rejected(ctx, project.ID, requestlog.KindSTKPush, req, validationErr)
+		l.log.Rejected(ctx, project.ID, requestlog.STKPush, req, validationErr)
 		return Session{}, validationErr
 	}
 
@@ -72,7 +72,7 @@ func (l *Lifecycle) Accept(ctx context.Context, project repository.Project, req 
 		TimeoutAt:         now.Add(timeout),
 	}
 
-	l.log.Accepted(ctx, project.ID, requestlog.KindSTKPush, session.CheckoutRequestID, req, session.AcceptResponse())
+	l.log.Accepted(ctx, project.ID, requestlog.STKPush, session.CheckoutRequestID, req, session.AcceptResponse())
 
 	// Nobody acting on the Virtual Phone resolves as Daraja's DS timeout.
 	tracked := &trackedSession{Session: session}
@@ -148,5 +148,5 @@ func (l *Lifecycle) deliver(session Session, outcome Outcome) {
 	callback := BuildCallback(session, receipt, transactionDate)
 
 	result := l.deliverer.Deliver(ctx, session.CallbackURL, callback)
-	l.log.Delivery(ctx, session.ProjectID, requestlog.KindSTKPush, session.CheckoutRequestID, string(outcome), callback, result)
+	l.log.Delivery(ctx, session.ProjectID, requestlog.STKPush, session.CheckoutRequestID, string(outcome), callback, result)
 }

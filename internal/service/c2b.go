@@ -21,7 +21,7 @@ func NewC2BService(db *repository.DB, log *requestlog.Log, deliverer *delivery.D
 
 func (s *C2BService) RegisterURL(ctx context.Context, project repository.Project, req c2b.RegisterURLRequest) (c2b.AcceptResponse, *c2b.ValidationError) {
 	if err := c2b.ValidateRegisterURL(req, project); err != nil {
-		s.log.Rejected(ctx, project.ID, requestlog.KindC2B, req, err)
+		s.log.Rejected(ctx, project.ID, requestlog.C2BRegister, req, err)
 		return c2b.AcceptResponse{}, err
 	}
 
@@ -48,7 +48,7 @@ func (s *C2BService) RegisterURL(ctx context.Context, project repository.Project
 	}
 
 	accept := c2b.NewAcceptResponse("success")
-	s.log.Accepted(ctx, project.ID, requestlog.KindC2B, accept.ConversationID, req, accept)
+	s.log.Accepted(ctx, project.ID, requestlog.C2BRegister, accept.ConversationID, req, accept)
 	return accept, nil
 }
 
@@ -59,12 +59,12 @@ func (s *C2BService) Simulate(ctx context.Context, project repository.Project, r
 	}
 
 	if err := c2b.ValidateSimulate(req, project, settings); err != nil {
-		s.log.Rejected(ctx, project.ID, requestlog.KindC2B, req, err)
+		s.log.Rejected(ctx, project.ID, requestlog.C2BSimulate, req, err)
 		return c2b.AcceptResponse{}, err
 	}
 
 	accept := c2b.NewAcceptResponse("Accept the service request successfully.")
-	s.log.Accepted(ctx, project.ID, requestlog.KindC2B, accept.ConversationID, req, accept)
+	s.log.Accepted(ctx, project.ID, requestlog.C2BSimulate, accept.ConversationID, req, accept)
 
 	payload := c2b.BuildPayload(req, project.ShortCode)
 
@@ -91,7 +91,7 @@ func (s *C2BService) runValidationAndConfirmation(ctx context.Context, projectID
 	}
 
 	result := s.deliverer.Deliver(ctx, settings.CallbackUrl, payload)
-	s.log.Delivery(ctx, projectID, requestlog.KindC2B, transactionID, "confirmed", payload, result)
+	s.log.Delivery(ctx, projectID, requestlog.C2BSimulate, transactionID, "confirmed", payload, result)
 }
 
 func internalError() *c2b.ValidationError {

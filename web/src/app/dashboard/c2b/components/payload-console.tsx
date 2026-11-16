@@ -4,34 +4,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { RequestLogEntry } from "@/lib/types/request-log";
 import Link from "next/link";
-
-function lineMeta(entry: RequestLogEntry): { label: string; color: string } {
-  if (entry.direction === "inbound") {
-    return { label: "REQ", color: "text-terminal-blue" };
-  }
-  if (entry.status === "rejected") {
-    return { label: "ERR", color: "text-terminal-red" };
-  }
-  if (entry.status === "accepted") {
-    return { label: "ACK", color: "text-terminal-green" };
-  }
-  if (entry.outcome === "confirmed") {
-    return {
-      label: "CB",
-      color:
-        entry.status === "delivered"
-          ? "text-terminal-green"
-          : "text-terminal-red",
-    };
-  }
-  return {
-    label: "VAL",
-    color:
-      entry.outcome === "accepted"
-        ? "text-terminal-green"
-        : "text-terminal-red",
-  };
-}
+import { entryTag } from "@/lib/request-log/entry";
 
 function pretty(payload: string) {
   try {
@@ -44,7 +17,7 @@ function pretty(payload: string) {
 const COLLAPSE_LINES = 6;
 
 function LogLine({ entry }: { entry: RequestLogEntry }) {
-  const { label, color } = lineMeta(entry);
+  const { label, className: color } = entryTag(entry);
   const [expanded, setExpanded] = useState(false);
   const body = pretty(entry.payload);
   const lines = body.split("\n");

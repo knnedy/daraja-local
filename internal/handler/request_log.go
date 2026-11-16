@@ -32,6 +32,8 @@ type requestLogEntryResponse struct {
 	ID            int64   `json:"id"`
 	CorrelationID *string `json:"correlationId"`
 	Kind          string  `json:"kind"`
+	Operation     string  `json:"operation"`
+	Step          string  `json:"step"`
 	Direction     string  `json:"direction"`
 	Status        string  `json:"status"`
 	Outcome       *string `json:"outcome"`
@@ -44,6 +46,8 @@ func toRequestLogEntryResponse(e repository.RequestLog) requestLogEntryResponse 
 	out := requestLogEntryResponse{
 		ID:        e.ID,
 		Kind:      e.Kind,
+		Operation: e.Operation,
+		Step:      e.Step,
 		Direction: e.Direction,
 		Status:    e.Status,
 		Attempts:  e.Attempts,

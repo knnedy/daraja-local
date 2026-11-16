@@ -42,4 +42,6 @@ type RequestLog struct {
 	Attempts      int64
 	Payload       string
 	CreatedAt     string
+	Operation     string
+	Step          string
 }

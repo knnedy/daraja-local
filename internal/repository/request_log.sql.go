@@ -20,15 +20,17 @@ func (q *Queries) ClearRequestLog(ctx context.Context, projectID int64) error {
 }
 
 const createRequestLogEntry = `-- name: CreateRequestLogEntry :one
-INSERT INTO "request_log" ("project_id", "correlation_id", "kind", "direction", "status", "outcome", "attempts", "payload")
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, project_id, correlation_id, kind, direction, status, outcome, attempts, payload, created_at
+INSERT INTO "request_log" ("project_id", "correlation_id", "kind", "operation", "step", "direction", "status", "outcome", "attempts", "payload")
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING id, project_id, correlation_id, kind, direction, status, outcome, attempts, payload, created_at, operation, step
 `
 
 type CreateRequestLogEntryParams struct {
 	ProjectID     int64
 	CorrelationID sql.NullString
 	Kind          string
+	Operation     string
+	Step          string
 	Direction     string
 	Status        string
 	Outcome       sql.NullString
@@ -41,6 +43,8 @@ func (q *Queries) CreateRequestLogEntry(ctx context.Context, arg CreateRequestLo
 		arg.ProjectID,
 		arg.CorrelationID,
 		arg.Kind,
+		arg.Operation,
+		arg.Step,
 		arg.Direction,
 		arg.Status,
 		arg.Outcome,
@@ -59,12 +63,14 @@ func (q *Queries) CreateRequestLogEntry(ctx context.Context, arg CreateRequestLo
 		&i.Attempts,
 		&i.Payload,
 		&i.CreatedAt,
+		&i.Operation,
+		&i.Step,
 	)
 	return i, err
 }
 
 const listRequestLogEntries = `-- name: ListRequestLogEntries :many
-SELECT id, project_id, correlation_id, kind, direction, status, outcome, attempts, payload, created_at FROM "request_log"
+SELECT id, project_id, correlation_id, kind, direction, status, outcome, attempts, payload, created_at, operation, step FROM "request_log"
 WHERE "project_id" = ?1
   AND (?2 IS NULL OR "kind" = ?2)
   AND (?3 IS NULL OR "id" < ?3)
@@ -104,6 +110,8 @@ func (q *Queries) ListRequestLogEntries(ctx context.Context, arg ListRequestLogE
 			&i.Attempts,
 			&i.Payload,
 			&i.CreatedAt,
+			&i.Operation,
+			&i.Step,
 		); err != nil {
 			return nil, err
 		}

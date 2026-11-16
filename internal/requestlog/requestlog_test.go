@@ -47,7 +47,7 @@ func oldestFirst(t *testing.T, log *Log, projectID int64, filter Filter) []repos
 
 func TestAcceptedWritesAGroupedRequestAndAcceptance(t *testing.T) {
 	log, projectID := newLog(t)
-	log.Accepted(context.Background(), projectID, KindSTKPush, "ws_CO_1", map[string]string{"Amount": "100"}, map[string]string{"ResponseCode": "0"})
+	log.Accepted(context.Background(), projectID, STKPush, "ws_CO_1", map[string]string{"Amount": "100"}, map[string]string{"ResponseCode": "0"})
 
 	entries := oldestFirst(t, log, projectID, Filter{})
 	if len(entries) != 2 {
@@ -61,15 +61,18 @@ func TestAcceptedWritesAGroupedRequestAndAcceptance(t *testing.T) {
 		t.Errorf("acceptance = %+v", acceptance)
 	}
 	for _, e := range entries {
-		if e.CorrelationID.String != "ws_CO_1" || e.Kind != "stk_push" || e.Outcome.Valid || e.Attempts != 1 {
+		if e.CorrelationID.String != "ws_CO_1" || e.Kind != "stk_push" || e.Operation != "stk_push" || e.Outcome.Valid || e.Attempts != 1 {
 			t.Errorf("entry = %+v", e)
 		}
+	}
+	if request.Step != "request" || acceptance.Step != "acceptance" {
+		t.Errorf("steps = %q, %q", request.Step, acceptance.Step)
 	}
 }
 
 func TestRejectedWritesTwoUngroupedEntries(t *testing.T) {
 	log, projectID := newLog(t)
-	log.Rejected(context.Background(), projectID, KindC2B, map[string]string{"Amount": "x"}, &daraja.ValidationError{
+	log.Rejected(context.Background(), projectID, C2BRegister, map[string]string{"Amount": "x"}, &daraja.ValidationError{
 		HTTPStatus: 400, ErrorCode: "400.002.02", ErrorMessage: "Bad Request - Invalid Amount",
 	})
 
@@ -78,9 +81,12 @@ func TestRejectedWritesTwoUngroupedEntries(t *testing.T) {
 		t.Fatalf("entries = %+v", entries)
 	}
 	for _, e := range entries {
-		if e.Status != "rejected" || e.CorrelationID.Valid || e.Kind != "c2b" {
+		if e.Status != "rejected" || e.CorrelationID.Valid || e.Kind != "c2b" || e.Operation != "c2b_register" {
 			t.Errorf("entry = %+v", e)
 		}
+	}
+	if entries[0].Step != "request" || entries[1].Step != "rejection" {
+		t.Errorf("steps = %q, %q", entries[0].Step, entries[1].Step)
 	}
 	if want := `{"httpStatus":400,"errorCode":"400.002.02","errorMessage":"Bad Request - Invalid Amount"}`; entries[1].Payload != want {
 		t.Errorf("error payload = %s", entries[1].Payload)
@@ -102,7 +108,7 @@ func TestValidationRecordsWhoDecided(t *testing.T) {
 		log.Validation(context.Background(), projectID, "AG_1", tt.accepted, tt.fallback, struct{ Accepted bool }{tt.accepted})
 
 		e := oldestFirst(t, log, projectID, Filter{})[0]
-		if e.Status != tt.wantStatus || e.Outcome.String != tt.wantOutcome || e.Direction != "outbound" || e.CorrelationID.String != "AG_1" {
+		if e.Status != tt.wantStatus || e.Outcome.String != tt.wantOutcome || e.Direction != "outbound" || e.CorrelationID.String != "AG_1" || e.Step != "validation" || e.Operation != "c2b_simulate" {
 			t.Errorf("accepted=%v fallback=%v: entry = %+v", tt.accepted, tt.fallback, e)
 		}
 	}
@@ -115,11 +121,14 @@ func TestDeliveryRecordsEveryAttemptInOneEntry(t *testing.T) {
 	}}
 	delivered := delivery.Result{Delivered: true, Attempts: []delivery.Attempt{{StatusCode: 200}}}
 
-	log.Delivery(context.Background(), projectID, KindSTKPush, "ws_CO_1", "approved", map[string]int{"ResultCode": 0}, failed)
-	log.Delivery(context.Background(), projectID, KindC2B, "AG_1", "confirmed", map[string]string{"TransID": "RKT"}, delivered)
+	log.Delivery(context.Background(), projectID, STKPush, "ws_CO_1", "approved", map[string]int{"ResultCode": 0}, failed)
+	log.Delivery(context.Background(), projectID, C2BSimulate, "AG_1", "confirmed", map[string]string{"TransID": "RKT"}, delivered)
 
 	entries := oldestFirst(t, log, projectID, Filter{})
 	stk, c2b := entries[0], entries[1]
+	if stk.Step != "callback" || c2b.Step != "confirmation" || c2b.Kind != "c2b" {
+		t.Errorf("steps = %q, %q", stk.Step, c2b.Step)
+	}
 	if stk.Status != "failed" || stk.Attempts != 3 || stk.Outcome.String != "approved" {
 		t.Errorf("stk delivery = %+v", stk)
 	}
@@ -145,9 +154,9 @@ func TestDeliveryRecordsEveryAttemptInOneEntry(t *testing.T) {
 func TestListFiltersPagesAndClears(t *testing.T) {
 	ctx := context.Background()
 	log, projectID := newLog(t)
-	log.Accepted(ctx, projectID, KindSTKPush, "ws_CO_1", "req", "ack")
-	log.Accepted(ctx, projectID, KindC2B, "AG_1", "req", "ack")
-	log.Accepted(ctx, projectID, KindSTKPush, "ws_CO_2", "req", "ack")
+	log.Accepted(ctx, projectID, STKPush, "ws_CO_1", "req", "ack")
+	log.Accepted(ctx, projectID, C2BSimulate, "AG_1", "req", "ack")
+	log.Accepted(ctx, projectID, STKPush, "ws_CO_2", "req", "ack")
 
 	all, err := log.List(ctx, projectID, Filter{Limit: 50})
 	if err != nil || len(all) != 6 {

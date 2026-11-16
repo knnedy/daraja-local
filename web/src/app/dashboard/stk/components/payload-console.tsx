@@ -4,28 +4,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useRequestLog } from "@/hooks/use-request-log";
 import type { RequestLogEntry } from "@/lib/types/stk";
-import Link from "next/dist/client/link";
-
-function lineMeta(entry: RequestLogEntry): { label: string; color: string } {
-  if (entry.direction === "inbound") {
-    return { label: "REQ", color: "text-blue" };
-  }
-  switch (entry.status) {
-    case "accepted":
-      return { label: "ACK", color: "text-terminal-green" };
-    case "rejected":
-      return { label: "ERR", color: "text-destructive" };
-    case "delivered":
-      return { label: "CB", color: "text-terminal-green" };
-    case "failed":
-      return { label: "CB", color: "text-destructive" };
-    default:
-      return {
-        label: entry.status.toUpperCase(),
-        color: "text-terminal-fg-muted",
-      };
-  }
-}
+import Link from "next/link";
+import { entryTag } from "@/lib/request-log/entry";
 
 function formatTime(iso: string) {
   return iso.slice(11, 23);
@@ -42,7 +22,7 @@ function prettyPayload(payload: string) {
 const COLLAPSE_LINES = 6;
 
 function LogLine({ entry }: { entry: RequestLogEntry }) {
-  const { label, color } = lineMeta(entry);
+  const { label, className: color } = entryTag(entry);
   const [expanded, setExpanded] = useState(false);
   const pretty = prettyPayload(entry.payload);
   const lines = pretty.split("\n");

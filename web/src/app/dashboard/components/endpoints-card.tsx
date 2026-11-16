@@ -11,24 +11,16 @@ type Endpoint = {
   count?: number;
 };
 
-function hasKey(payload: string, key: string): boolean {
-  try {
-    return key in (JSON.parse(payload) as Record<string, unknown>);
-  } catch {
-    return false;
-  }
-}
-
 function countHits(entries: RequestLogEntry[]) {
   let stk = 0;
   let register = 0;
   let simulate = 0;
 
   for (const e of entries) {
-    if (e.direction !== "inbound") continue;
-    if (e.kind === "stk_push") stk++;
-    else if (hasKey(e.payload, "ConfirmationURL")) register++;
-    else if (hasKey(e.payload, "CommandID")) simulate++;
+    if (e.step !== "request") continue;
+    if (e.operation === "stk_push") stk++;
+    else if (e.operation === "c2b_register") register++;
+    else if (e.operation === "c2b_simulate") simulate++;
   }
 
   return { stk, register, simulate };

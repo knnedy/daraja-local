@@ -61,19 +61,24 @@ export function deriveRegistration(
   entries: RequestLogEntry[],
 ): Registration | null {
   for (const entry of entries) {
-    if (entry.direction !== "inbound" || entry.status !== "accepted") continue;
+    if (
+      entry.operation !== "c2b_register" ||
+      entry.step !== "request" ||
+      entry.status !== "accepted"
+    )
+      continue;
     const body = parse<{
       ShortCode?: string;
       ResponseType?: string;
       ConfirmationURL?: string;
       ValidationURL?: string;
     }>(entry.payload);
-    if (!body?.ConfirmationURL) continue;
+    if (!body) continue;
     return {
       createdAt: entry.createdAt,
       shortCode: body.ShortCode ?? "",
       responseType: body.ResponseType ?? "Completed",
-      confirmationUrl: body.ConfirmationURL,
+      confirmationUrl: body.ConfirmationURL ?? "",
       validationUrl: body.ValidationURL ?? "",
     };
   }
@@ -85,7 +90,9 @@ export function derivePayments(entries: RequestLogEntry[]): PaymentSession[] {
   const sessions: PaymentSession[] = [];
 
   for (const [id, rows] of groupByCorrelation(entries)) {
-    const inbound = rows.find((r) => r.direction === "inbound");
+    const inbound = rows.find(
+      (r) => r.operation === "c2b_simulate" && r.step === "request",
+    );
     if (!inbound) continue;
 
     const body = parse<{
@@ -94,32 +101,29 @@ export function derivePayments(entries: RequestLogEntry[]): PaymentSession[] {
       Msisdn?: string;
       BillRefNumber?: string;
     }>(inbound.payload);
-    if (!body?.CommandID) continue;
 
     const session: PaymentSession = {
       id,
       createdAt: inbound.createdAt,
       rejected: inbound.status === "rejected",
       rejectionMessage: null,
-      amount: body.Amount ?? "0",
-      msisdn: body.Msisdn ?? "",
-      billRef: body.BillRefNumber ?? "",
-      commandId: body.CommandID,
+      amount: body?.Amount ?? "0",
+      msisdn: body?.Msisdn ?? "",
+      billRef: body?.BillRefNumber ?? "",
+      commandId: body?.CommandID ?? "",
       transId: null,
       validation: null,
       confirmation: null,
     };
 
     for (const row of rows) {
-      if (row.direction !== "outbound") continue;
-
-      if (row.status === "rejected") {
+      if (row.step === "rejection") {
         const err = parse<{ errorMessage?: string }>(row.payload);
         session.rejectionMessage = err?.errorMessage ?? null;
         continue;
       }
 
-      if (row.outcome === "accepted" || row.outcome === "rejected") {
+      if (row.step === "validation") {
         const result = parse<{
           Accepted?: boolean;
           Fallback?: boolean;
@@ -140,7 +144,7 @@ export function derivePayments(entries: RequestLogEntry[]): PaymentSession[] {
         continue;
       }
 
-      if (row.outcome === "confirmed") {
+      if (row.step === "confirmation") {
         const delivery = parse<{ payload?: { TransID?: string } }>(row.payload);
         session.transId = delivery?.payload?.TransID ?? null;
         session.confirmation = {
