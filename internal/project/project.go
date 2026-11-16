@@ -1,8 +1,10 @@
-package service
+package project
 
 import (
 	"context"
 	"crypto/rand"
+	"database/sql"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -13,20 +15,21 @@ import (
 
 var slugInvalidChars = regexp.MustCompile(`[^a-z0-9]+`)
 
-type ProjectService struct {
+// Projects creates and manages Projects and their Credentials.
+type Projects struct {
 	db *repository.DB
 }
 
-func NewProjectService(db *repository.DB) *ProjectService {
-	return &ProjectService{db: db}
+func NewProjects(db *repository.DB) *Projects {
+	return &Projects{db: db}
 }
 
-type CreateProjectInput struct {
+type CreateInput struct {
 	Name            string
 	CallbackBaseUrl string
 }
 
-func (s *ProjectService) Create(ctx context.Context, input CreateProjectInput) (repository.Project, error) {
+func (s *Projects) Create(ctx context.Context, input CreateInput) (repository.Project, error) {
 	slug, err := s.uniqueSlug(ctx, input.Name)
 	if err != nil {
 		return repository.Project{}, err
@@ -34,19 +37,19 @@ func (s *ProjectService) Create(ctx context.Context, input CreateProjectInput) (
 
 	shortCode, err := randomDigits(6)
 	if err != nil {
-		return repository.Project{}, fmt.Errorf("service: generate short code: %w", err)
+		return repository.Project{}, fmt.Errorf("project: generate short code: %w", err)
 	}
 	consumerKey, err := randomHex(20)
 	if err != nil {
-		return repository.Project{}, fmt.Errorf("service: generate consumer key: %w", err)
+		return repository.Project{}, fmt.Errorf("project: generate consumer key: %w", err)
 	}
 	consumerSecret, err := randomHex(20)
 	if err != nil {
-		return repository.Project{}, fmt.Errorf("service: generate consumer secret: %w", err)
+		return repository.Project{}, fmt.Errorf("project: generate consumer secret: %w", err)
 	}
 	passkey, err := randomHex(32)
 	if err != nil {
-		return repository.Project{}, fmt.Errorf("service: generate passkey: %w", err)
+		return repository.Project{}, fmt.Errorf("project: generate passkey: %w", err)
 	}
 
 	var project repository.Project
@@ -78,11 +81,11 @@ func (s *ProjectService) Create(ctx context.Context, input CreateProjectInput) (
 	return project, nil
 }
 
-func (s *ProjectService) List(ctx context.Context) ([]repository.Project, error) {
+func (s *Projects) List(ctx context.Context) ([]repository.Project, error) {
 	return s.db.Queries().ListProjects(ctx)
 }
 
-func (s *ProjectService) Get(ctx context.Context, slug string) (repository.Project, error) {
+func (s *Projects) Get(ctx context.Context, slug string) (repository.Project, error) {
 	p, err := s.db.Queries().GetProjectBySlug(ctx, slug)
 	if err != nil {
 		return repository.Project{}, response.ErrNotFound
@@ -92,7 +95,7 @@ func (s *ProjectService) Get(ctx context.Context, slug string) (repository.Proje
 
 // Touch marks a project as the active one, called whenever the frontend
 // switches the active project in the sidebar.
-func (s *ProjectService) Touch(ctx context.Context, slug string) error {
+func (s *Projects) Touch(ctx context.Context, slug string) error {
 	return s.db.Queries().TouchProjectLastActive(ctx, slug)
 }
 
@@ -100,48 +103,57 @@ type UpdateNameInput struct {
 	Name string
 }
 
-func (s *ProjectService) UpdateName(ctx context.Context, slug string, input UpdateNameInput) (repository.Project, error) {
-	return s.db.Queries().UpdateProjectName(ctx, repository.UpdateProjectNameParams{
+func (s *Projects) UpdateName(ctx context.Context, slug string, input UpdateNameInput) (repository.Project, error) {
+	project, err := s.db.Queries().UpdateProjectName(ctx, repository.UpdateProjectNameParams{
 		Name: input.Name,
 		Slug: slug,
 	})
+	return project, notFoundIfNoRows(err)
 }
 
 // RegenerateCredentials rotates consumer key, consumer secret, and
 // passkey — the "Regenerate" action on the Credentials page.
-func (s *ProjectService) RegenerateCredentials(ctx context.Context, slug string) (repository.Project, error) {
+func (s *Projects) RegenerateCredentials(ctx context.Context, slug string) (repository.Project, error) {
 	consumerKey, err := randomHex(20)
 	if err != nil {
-		return repository.Project{}, fmt.Errorf("service: generate consumer key: %w", err)
+		return repository.Project{}, fmt.Errorf("project: generate consumer key: %w", err)
 	}
 	consumerSecret, err := randomHex(20)
 	if err != nil {
-		return repository.Project{}, fmt.Errorf("service: generate consumer secret: %w", err)
+		return repository.Project{}, fmt.Errorf("project: generate consumer secret: %w", err)
 	}
 	passkey, err := randomHex(32)
 	if err != nil {
-		return repository.Project{}, fmt.Errorf("service: generate passkey: %w", err)
+		return repository.Project{}, fmt.Errorf("project: generate passkey: %w", err)
 	}
 
-	return s.db.Queries().RegenerateProjectCredentials(ctx, repository.RegenerateProjectCredentialsParams{
+	project, err := s.db.Queries().RegenerateProjectCredentials(ctx, repository.RegenerateProjectCredentialsParams{
 		ConsumerKey:    consumerKey,
 		ConsumerSecret: consumerSecret,
 		Passkey:        passkey,
 		Slug:           slug,
 	})
+	return project, notFoundIfNoRows(err)
 }
 
-func (s *ProjectService) Delete(ctx context.Context, slug string) error {
+func notFoundIfNoRows(err error) error {
+	if errors.Is(err, sql.ErrNoRows) {
+		return response.ErrNotFound
+	}
+	return err
+}
+
+func (s *Projects) Delete(ctx context.Context, slug string) error {
 	return s.db.Queries().DeleteProject(ctx, slug)
 }
 
-func (s *ProjectService) uniqueSlug(ctx context.Context, name string) (string, error) {
+func (s *Projects) uniqueSlug(ctx context.Context, name string) (string, error) {
 	base := slugify(name)
 	slug := base
 	for suffix := 2; ; suffix++ {
 		exists, err := s.db.Queries().SlugExists(ctx, slug)
 		if err != nil {
-			return "", fmt.Errorf("service: check slug uniqueness: %w", err)
+			return "", fmt.Errorf("project: check slug uniqueness: %w", err)
 		}
 		if !exists {
 			return slug, nil

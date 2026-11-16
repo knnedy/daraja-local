@@ -1,4 +1,4 @@
-package service
+package project
 
 import (
 	"context"
@@ -21,7 +21,7 @@ func TestSettingsUpdateLeavesRegistrationAlone(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = db.Close() })
 
-	project, err := NewProjectService(db).Create(ctx, CreateProjectInput{Name: "Shop"})
+	project, err := NewProjects(db).Create(ctx, CreateInput{Name: "Shop"})
 	if err != nil {
 		t.Fatalf("create project: %v", err)
 	}
@@ -35,7 +35,7 @@ func TestSettingsUpdateLeavesRegistrationAlone(t *testing.T) {
 		t.Fatalf("register urls: %v", err)
 	}
 
-	updated, err := NewSettingsService(db).Update(ctx, project.Slug, UpdateSettingsInput{
+	updated, err := NewSettings(db).Update(ctx, project.Slug, UpdateSettingsInput{
 		StkTimeoutSeconds:  30,
 		DefaultPhoneNumber: "254712345678",
 	})

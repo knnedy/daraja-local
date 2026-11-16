@@ -51,20 +51,22 @@ cmd/daraja-local/     entrypoint, startup banner, embeds the built frontend
 internal/auth/        Bearer-token middleware
 internal/config/      config loading
 internal/network/     port selection
-internal/daraja/      mechanics shared by every endpoint family (validation error, retrying delivery)
-internal/stk/         STK Push domain: sessions, validation, callbacks
-internal/c2b/         C2B domain: URL registration, simulate, validation/confirmation payloads
-internal/service/     business logic
+internal/project/     projects, credentials and simulation defaults
+internal/token/       access tokens: issuing and validating
+internal/stk/         STK Push: the session lifecycle, from acceptance to callback
+internal/c2b/         C2B: registration and the simulated payment flow
+internal/delivery/    posting callbacks to the developer's server, with retries
+internal/requestlog/  the request log: writing entries and reading them back
+internal/daraja/      the Daraja error shape shared by every endpoint family
 internal/handler/     HTTP handlers and response DTOs
 internal/router/      route wiring
 internal/repository/  sqlc-generated database code
 internal/sql/         goose migrations and sqlc query files
 internal/response/    JSON and Daraja-shaped error responses
-internal/token/       in-memory access-token store
 web/                  Next.js dashboard (static export)
 ```
 
-Requests flow handler → service → repository. Protocol shapes and validation live in the domain packages (`stk`, `c2b`). If two endpoint families need the same mechanic, it belongs in `daraja`, not copied into both.
+Requests flow from a handler into the package that owns the behaviour (`stk`, `c2b`, `project`, `token`), which uses `delivery`, `requestlog` and `repository`. Each of those packages is tested through its own interface; see `GLOSSARY.md` for the vocabulary. If two endpoint families need the same mechanic, it gets its own package, as `delivery` and `requestlog` did, and is not copied into both.
 
 ---
 
@@ -73,7 +75,7 @@ Requests flow handler → service → repository. Protocol shapes and validation
 1. Fork the repo and create a branch from `main`.
 2. Keep changes focused: one feature or fix per PR.
 3. Match existing conventions:
-   - **Go:** handlers return hand-written camelCase DTOs and never marshal repository structs directly. Follow the patterns in `internal/handler/stk*.go` and `internal/service/stk*.go`.
+   - **Go:** handlers return hand-written camelCase DTOs and never marshal repository structs directly. Follow the patterns in `internal/handler/stk*.go` and `internal/stk/lifecycle.go`.
    - **SQL:** after editing anything in `internal/sql/queries/`, run `sqlc generate` and commit the regenerated files in `internal/repository/`. For schema changes, add a new numbered goose migration rather than editing one that has already shipped.
    - **Frontend:** React Query for server state, Zustand for client state, Tailwind v4 canonical classes (`min-h-112`, not `min-h-[28rem]`), and the theme tokens instead of hardcoded colors.
 4. Run `go vet ./...` and `pnpm lint` (in `web/`) before opening a PR.

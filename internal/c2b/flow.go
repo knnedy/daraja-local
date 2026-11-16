@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/knnedy/daraja-local/internal/daraja"
 	"github.com/knnedy/daraja-local/internal/delivery"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/requestlog"
@@ -22,7 +23,7 @@ func NewFlow(db *repository.DB, log *requestlog.Log, deliverer *delivery.Deliver
 	return &Flow{db: db, log: log, deliverer: deliverer}
 }
 
-func (f *Flow) RegisterURL(ctx context.Context, project repository.Project, req RegisterURLRequest) (AcceptResponse, *ValidationError) {
+func (f *Flow) RegisterURL(ctx context.Context, project repository.Project, req RegisterURLRequest) (AcceptResponse, *daraja.ValidationError) {
 	if err := ValidateRegisterURL(req, project); err != nil {
 		f.log.Rejected(ctx, project.ID, requestlog.C2BRegister, req, err)
 		return AcceptResponse{}, err
@@ -63,7 +64,7 @@ func (f *Flow) Registration(ctx context.Context, projectID int64) (Registration,
 	}, settings.CallbackUrl != "", nil
 }
 
-func (f *Flow) Simulate(ctx context.Context, project repository.Project, req SimulateRequest) (AcceptResponse, *ValidationError) {
+func (f *Flow) Simulate(ctx context.Context, project repository.Project, req SimulateRequest) (AcceptResponse, *daraja.ValidationError) {
 	settings, dbErr := f.db.Queries().GetSettingsByProjectID(ctx, project.ID)
 	if dbErr != nil {
 		return AcceptResponse{}, internalError()
@@ -114,8 +115,8 @@ func (f *Flow) validateAndConfirm(ctx context.Context, projectID int64, settings
 	f.log.Delivery(ctx, projectID, requestlog.C2BSimulate, transactionID, "confirmed", payload, result)
 }
 
-func internalError() *ValidationError {
-	return &ValidationError{
+func internalError() *daraja.ValidationError {
+	return &daraja.ValidationError{
 		HTTPStatus:   500,
 		ErrorCode:    "500.001.1001",
 		ErrorMessage: "internal error resolving project settings",

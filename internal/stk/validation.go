@@ -12,16 +12,11 @@ import (
 	"github.com/knnedy/daraja-local/internal/repository"
 )
 
-// ValidationError is shared across all Daraja-mirroring endpoints.
-// Aliased here so every existing stk.ValidationError reference in
-// this codebase keeps compiling unchanged.
-type ValidationError = daraja.ValidationError
-
 var phoneNumberPattern = regexp.MustCompile(`^254[17]\d{8}$`)
 
 // Validate runs all synchronous checks real Daraja performs before ever
 // accepting an STK Push request, returns nil if the request is valid
-func Validate(req Request, project repository.Project) *ValidationError {
+func Validate(req Request, project repository.Project) *daraja.ValidationError {
 	if err := validatePassword(req, project); err != nil {
 		return err
 	}
@@ -38,7 +33,7 @@ func Validate(req Request, project repository.Project) *ValidationError {
 }
 
 // validatePassword replicates real Daraja's Password check
-func validatePassword(req Request, project repository.Project) *ValidationError {
+func validatePassword(req Request, project repository.Project) *daraja.ValidationError {
 	decoded, err := base64.StdEncoding.DecodeString(req.Password)
 	if err != nil {
 		return wrongCredentials()
@@ -60,25 +55,25 @@ func validatePassword(req Request, project repository.Project) *ValidationError 
 	return nil
 }
 
-func wrongCredentials() *ValidationError {
-	return &ValidationError{
+func wrongCredentials() *daraja.ValidationError {
+	return &daraja.ValidationError{
 		HTTPStatus:   http.StatusInternalServerError,
 		ErrorCode:    "500.001.1001",
 		ErrorMessage: "[MerchantValidate] - Wrong credentials",
 	}
 }
 
-func merchantDoesNotExist() *ValidationError {
-	return &ValidationError{
+func merchantDoesNotExist() *daraja.ValidationError {
+	return &daraja.ValidationError{
 		HTTPStatus:   http.StatusInternalServerError,
 		ErrorCode:    "500.001.1001",
 		ErrorMessage: "Merchant does not exist",
 	}
 }
 
-func validatePhoneNumber(phone string) *ValidationError {
+func validatePhoneNumber(phone string) *daraja.ValidationError {
 	if !phoneNumberPattern.MatchString(phone) {
-		return &ValidationError{
+		return &daraja.ValidationError{
 			HTTPStatus:   http.StatusBadRequest,
 			ErrorCode:    "400.002.02",
 			ErrorMessage: "Bad Request - Invalid PhoneNumber",
@@ -87,10 +82,10 @@ func validatePhoneNumber(phone string) *ValidationError {
 	return nil
 }
 
-func validateAmount(amount string) *ValidationError {
+func validateAmount(amount string) *daraja.ValidationError {
 	value, err := strconv.ParseInt(amount, 10, 64)
 	if err != nil || value <= 0 {
-		return &ValidationError{
+		return &daraja.ValidationError{
 			HTTPStatus:   http.StatusBadRequest,
 			ErrorCode:    "400.002.02",
 			ErrorMessage: "Bad Request - Invalid Amount",
@@ -100,9 +95,9 @@ func validateAmount(amount string) *ValidationError {
 }
 
 // validateTransactionDesc enforces the 182-character limit
-func validateTransactionDesc(desc string) *ValidationError {
+func validateTransactionDesc(desc string) *daraja.ValidationError {
 	if len(desc) > 182 {
-		return &ValidationError{
+		return &daraja.ValidationError{
 			HTTPStatus:   http.StatusInternalServerError,
 			ErrorCode:    "1025",
 			ErrorMessage: fmt.Sprintf("Unable to lock subscriber, a transaction is already in process for the current subscriber. TransactionDesc exceeds 182 characters (%d)", len(desc)),

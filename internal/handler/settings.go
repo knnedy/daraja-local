@@ -7,9 +7,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/knnedy/daraja-local/internal/project"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/response"
-	"github.com/knnedy/daraja-local/internal/service"
 )
 
 var phoneNumberPattern = regexp.MustCompile(`^254\d{9}$`)
@@ -71,7 +71,7 @@ func (h *SettingsHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	settings, err := h.service.Update(r.Context(), slug, service.UpdateSettingsInput{
+	settings, err := h.service.Update(r.Context(), slug, project.UpdateSettingsInput{
 		StkTimeoutSeconds:  req.StkTimeoutSeconds,
 		DefaultPhoneNumber: req.DefaultPhoneNumber,
 	})

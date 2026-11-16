@@ -15,10 +15,10 @@ import (
 	"github.com/knnedy/daraja-local/internal/c2b"
 	"github.com/knnedy/daraja-local/internal/config"
 	"github.com/knnedy/daraja-local/internal/delivery"
+	"github.com/knnedy/daraja-local/internal/project"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/requestlog"
 	"github.com/knnedy/daraja-local/internal/router"
-	"github.com/knnedy/daraja-local/internal/service"
 	"github.com/knnedy/daraja-local/internal/stk"
 	"github.com/knnedy/daraja-local/internal/token"
 )
@@ -47,10 +47,9 @@ func run() error {
 		return fmt.Errorf("prepare static assets: %w", err)
 	}
 
-	tokenStore := token.NewStore()
-	projectSvc := service.NewProjectService(db)
-	settingsSvc := service.NewSettingsService(db)
-	tokenSvc := service.NewTokenService(db, tokenStore)
+	projectSvc := project.NewProjects(db)
+	settingsSvc := project.NewSettings(db)
+	tokenSvc := token.NewIssuer(db)
 	deliverer := delivery.New(delivery.NewHTTPPoster(), delivery.LinearBackoff)
 	requestLog := requestlog.New(db)
 	stkSessions := stk.NewLifecycle(db, requestLog, deliverer, stk.SystemClock())

@@ -7,9 +7,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/knnedy/daraja-local/internal/project"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/response"
-	"github.com/knnedy/daraja-local/internal/service"
 )
 
 type ProjectHandler struct {
@@ -80,7 +80,7 @@ func (h *ProjectHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	project, err := h.service.Create(r.Context(), service.CreateProjectInput{
+	project, err := h.service.Create(r.Context(), project.CreateInput{
 		Name:            req.Name,
 		CallbackBaseUrl: req.CallbackBaseUrl,
 	})
@@ -146,7 +146,7 @@ func (h *ProjectHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	project, err := h.service.UpdateName(r.Context(), slug, service.UpdateNameInput{Name: req.Name})
+	project, err := h.service.UpdateName(r.Context(), slug, project.UpdateNameInput{Name: req.Name})
 	if err != nil {
 		writeServiceError(w, err, "failed to update project")
 		return

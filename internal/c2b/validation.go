@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/knnedy/daraja-local/internal/daraja"
 	"github.com/knnedy/daraja-local/internal/repository"
 )
 
@@ -14,16 +15,16 @@ var (
 	msisdnPattern   = regexp.MustCompile(`^254[17]\d{8}$`)
 )
 
-func ValidateRegisterURL(req RegisterURLRequest, project repository.Project) *ValidationError {
+func ValidateRegisterURL(req RegisterURLRequest, project repository.Project) *daraja.ValidationError {
 	if req.ShortCode != project.ShortCode {
-		return &ValidationError{
+		return &daraja.ValidationError{
 			HTTPStatus:   http.StatusInternalServerError,
 			ErrorCode:    "500.001.1001",
 			ErrorMessage: "Merchant does not exist",
 		}
 	}
 	if req.ResponseType != "Completed" && req.ResponseType != "Cancelled" {
-		return &ValidationError{
+		return &daraja.ValidationError{
 			HTTPStatus:   http.StatusBadRequest,
 			ErrorCode:    "400.002.02",
 			ErrorMessage: "Bad Request - Invalid ResponseType",
@@ -41,11 +42,11 @@ func ValidateRegisterURL(req RegisterURLRequest, project repository.Project) *Va
 }
 
 // Daraja rejects callback URLs containing these words, in any case.
-func validateNoMpesaInURL(url, field string) *ValidationError {
+func validateNoMpesaInURL(url, field string) *daraja.ValidationError {
 	lower := strings.ToLower(url)
 	for _, word := range blockedURLWords {
 		if strings.Contains(lower, word) {
-			return &ValidationError{
+			return &daraja.ValidationError{
 				HTTPStatus:   http.StatusBadRequest,
 				ErrorCode:    "400.002.02",
 				ErrorMessage: "Bad Request - Invalid " + field + " - URL has the word " + strings.ToUpper(word),
@@ -57,23 +58,23 @@ func validateNoMpesaInURL(url, field string) *ValidationError {
 
 // ValidateSimulate checks a simulate call. Rejecting it before registerurl
 // is emulator-only; real Daraja would silently have nowhere to deliver.
-func ValidateSimulate(req SimulateRequest, project repository.Project, settings repository.ProjectSetting) *ValidationError {
+func ValidateSimulate(req SimulateRequest, project repository.Project, settings repository.ProjectSetting) *daraja.ValidationError {
 	if req.ShortCode != project.ShortCode {
-		return &ValidationError{
+		return &daraja.ValidationError{
 			HTTPStatus:   http.StatusInternalServerError,
 			ErrorCode:    "500.001.1001",
 			ErrorMessage: "Merchant does not exist",
 		}
 	}
 	if settings.CallbackUrl == "" {
-		return &ValidationError{
+		return &daraja.ValidationError{
 			HTTPStatus:   http.StatusBadRequest,
 			ErrorCode:    "400.002.02",
 			ErrorMessage: "Bad Request - No ConfirmationURL registered for this shortcode. Call registerurl first.",
 		}
 	}
 	if req.CommandID != "CustomerPayBillOnline" && req.CommandID != "CustomerBuyGoodsOnline" {
-		return &ValidationError{
+		return &daraja.ValidationError{
 			HTTPStatus:   http.StatusBadRequest,
 			ErrorCode:    "400.002.02",
 			ErrorMessage: "Bad Request - Invalid CommandID",
@@ -81,14 +82,14 @@ func ValidateSimulate(req SimulateRequest, project repository.Project, settings 
 	}
 	value, err := strconv.ParseInt(req.Amount, 10, 64)
 	if err != nil || value <= 0 {
-		return &ValidationError{
+		return &daraja.ValidationError{
 			HTTPStatus:   http.StatusBadRequest,
 			ErrorCode:    "400.002.02",
 			ErrorMessage: "Bad Request - Invalid Amount",
 		}
 	}
 	if !msisdnPattern.MatchString(req.Msisdn) {
-		return &ValidationError{
+		return &daraja.ValidationError{
 			HTTPStatus:   http.StatusBadRequest,
 			ErrorCode:    "400.002.02",
 			ErrorMessage: "Bad Request - Invalid Msisdn",

@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/knnedy/daraja-local/internal/daraja"
 	"github.com/knnedy/daraja-local/internal/delivery"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/requestlog"
@@ -36,7 +37,7 @@ func NewLifecycle(db *repository.DB, log *requestlog.Log, deliverer *delivery.De
 
 // Accept validates an STK Push against the project's credentials and, if
 // valid, opens a pending Session that times out on its own.
-func (l *Lifecycle) Accept(ctx context.Context, project repository.Project, req Request) (Session, *ValidationError) {
+func (l *Lifecycle) Accept(ctx context.Context, project repository.Project, req Request) (Session, *daraja.ValidationError) {
 	if validationErr := Validate(req, project); validationErr != nil {
 		l.log.Rejected(ctx, project.ID, requestlog.STKPush, req, validationErr)
 		return Session{}, validationErr
@@ -44,7 +45,7 @@ func (l *Lifecycle) Accept(ctx context.Context, project repository.Project, req 
 
 	settings, err := l.db.Queries().GetSettingsByProjectID(ctx, project.ID)
 	if err != nil {
-		return Session{}, &ValidationError{
+		return Session{}, &daraja.ValidationError{
 			HTTPStatus:   500,
 			ErrorCode:    "500.001.1001",
 			ErrorMessage: "internal error resolving project settings",

@@ -11,13 +11,13 @@ import (
 	"github.com/knnedy/daraja-local/internal/auth"
 	"github.com/knnedy/daraja-local/internal/handler"
 	"github.com/knnedy/daraja-local/internal/requestlog"
-	"github.com/knnedy/daraja-local/internal/service"
+	"github.com/knnedy/daraja-local/internal/token"
 )
 
 func New(
 	projectSvc handler.ProjectService,
 	settingsSvc handler.SettingsService,
-	tokenSvc *service.TokenService,
+	tokenSvc *token.Issuer,
 	stkSessions handler.STKSessions,
 	c2bSvc handler.C2BService,
 	requestLog handler.RequestLog,

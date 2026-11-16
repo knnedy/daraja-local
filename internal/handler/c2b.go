@@ -9,13 +9,14 @@ import (
 
 	"github.com/knnedy/daraja-local/internal/auth"
 	"github.com/knnedy/daraja-local/internal/c2b"
+	"github.com/knnedy/daraja-local/internal/daraja"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/response"
 )
 
 type C2BService interface {
-	RegisterURL(ctx context.Context, project repository.Project, req c2b.RegisterURLRequest) (c2b.AcceptResponse, *c2b.ValidationError)
-	Simulate(ctx context.Context, project repository.Project, req c2b.SimulateRequest) (c2b.AcceptResponse, *c2b.ValidationError)
+	RegisterURL(ctx context.Context, project repository.Project, req c2b.RegisterURLRequest) (c2b.AcceptResponse, *daraja.ValidationError)
+	Simulate(ctx context.Context, project repository.Project, req c2b.SimulateRequest) (c2b.AcceptResponse, *daraja.ValidationError)
 	Registration(ctx context.Context, projectID int64) (c2b.Registration, bool, error)
 }
 

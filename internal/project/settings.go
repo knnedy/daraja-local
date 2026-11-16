@@ -1,4 +1,4 @@
-package service
+package project
 
 import (
 	"context"
@@ -8,12 +8,13 @@ import (
 	"github.com/knnedy/daraja-local/internal/response"
 )
 
-type SettingsService struct {
+// Settings reads and updates a Project's simulation defaults.
+type Settings struct {
 	db *repository.DB
 }
 
-func NewSettingsService(db *repository.DB) *SettingsService {
-	return &SettingsService{db: db}
+func NewSettings(db *repository.DB) *Settings {
+	return &Settings{db: db}
 }
 
 // UpdateSettingsInput holds the simulation defaults. C2B registration is
@@ -23,19 +24,19 @@ type UpdateSettingsInput struct {
 	DefaultPhoneNumber string
 }
 
-func (s *SettingsService) Get(ctx context.Context, slug string) (repository.ProjectSetting, error) {
+func (s *Settings) Get(ctx context.Context, slug string) (repository.ProjectSetting, error) {
 	project, err := s.db.Queries().GetProjectBySlug(ctx, slug)
 	if err != nil {
 		return repository.ProjectSetting{}, response.ErrNotFound
 	}
 	settings, err := s.db.Queries().GetSettingsByProjectID(ctx, project.ID)
 	if err != nil {
-		return repository.ProjectSetting{}, fmt.Errorf("service: get settings: %w", err)
+		return repository.ProjectSetting{}, fmt.Errorf("project: get settings: %w", err)
 	}
 	return settings, nil
 }
 
-func (s *SettingsService) Update(ctx context.Context, slug string, input UpdateSettingsInput) (repository.ProjectSetting, error) {
+func (s *Settings) Update(ctx context.Context, slug string, input UpdateSettingsInput) (repository.ProjectSetting, error) {
 	project, err := s.db.Queries().GetProjectBySlug(ctx, slug)
 	if err != nil {
 		return repository.ProjectSetting{}, response.ErrNotFound
