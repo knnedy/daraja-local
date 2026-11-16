@@ -23,6 +23,8 @@ import (
 	"github.com/knnedy/daraja-local/internal/token"
 )
 
+const deliveryGrace = 10 * time.Second
+
 func main() {
 	if err := run(); err != nil {
 		slog.Error("daraja-local: fatal", "error", err)
@@ -88,7 +90,26 @@ func run() error {
 		if err := srv.Shutdown(shutdownCtx); err != nil {
 			return fmt.Errorf("shutdown: %w", err)
 		}
+		finishDeliveries(stkSessions.Wait, c2bFlow.Wait)
 	}
 
 	return nil
+}
+
+// finishDeliveries lets callbacks already being delivered finish, for up to
+// deliveryGrace, so their request log entries are written before exit.
+func finishDeliveries(waits ...func()) {
+	done := make(chan struct{})
+	go func() {
+		for _, wait := range waits {
+			wait()
+		}
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(deliveryGrace):
+		slog.Warn("daraja-local: exiting with callback deliveries still in flight")
+	}
 }
