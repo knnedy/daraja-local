@@ -18,7 +18,6 @@ func NewSettingsService(db *repository.DB) *SettingsService {
 
 type UpdateSettingsInput struct {
 	CallbackUrl               string
-	ValidationUrl             string
 	StkTimeoutSeconds         int64
 	C2bResponseType           string
 	ExternalValidationDefault int64
@@ -42,10 +41,15 @@ func (s *SettingsService) Update(ctx context.Context, slug string, input UpdateS
 	if err != nil {
 		return repository.ProjectSetting{}, response.ErrNotFound
 	}
+	current, err := s.db.Queries().GetSettingsByProjectID(ctx, project.ID)
+	if err != nil {
+		return repository.ProjectSetting{}, fmt.Errorf("service: get settings: %w", err)
+	}
 
+	// ValidationURL is owned by C2B registerurl, so carry it forward.
 	return s.db.Queries().UpdateSettings(ctx, repository.UpdateSettingsParams{
 		CallbackUrl:               input.CallbackUrl,
-		ValidationUrl:             input.ValidationUrl,
+		ValidationUrl:             current.ValidationUrl,
 		StkTimeoutSeconds:         input.StkTimeoutSeconds,
 		C2bResponseType:           input.C2bResponseType,
 		ExternalValidationDefault: input.ExternalValidationDefault,
