@@ -29,6 +29,13 @@
       "skillPath": "skills/misc/git-guardrails-claude-code/SKILL.md",
       "computedHash": "7aa92e9d469c6cd0b24ed8accb2e4be681c44c1524d71604c06b4055b7b56482"
     },
+    "grill-with-docs": {
+      "source": "mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/grill-with-docs/SKILL.md",
+      "computedHash": "02e258f41d210f9b2e7cce9faf62b3c59e8fcebe5d2736369c3cd07d471324f8"
+    },
     "implement-spec": {
       "source": "mattpocock/skills",
       "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
@@ -42,6 +49,13 @@
       "sourceType": "github",
       "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
       "computedHash": "f0820b18426a7d9a6c823a890988ba0ac70bf0fd596d30d7ef07c88558728c23"
+    },
+    "setup-matt-pocock-skills": {
+      "source": "mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/setup-matt-pocock-skills/SKILL.md",
+      "computedHash": "9659e7025d4cf1c0a0b40ddff32ed4b8debb87a4b20d7a52ff89c506a638df69"
     },
     "tdd": {
       "source": "mattpocock/skills",
