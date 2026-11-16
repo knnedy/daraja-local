@@ -58,16 +58,22 @@ function LogLine({ entry }: { entry: RequestLogEntry }) {
   );
 }
 
+/** Live terminal view of a flow's request log entries, newest first. */
 export default function PayloadConsole({
   entries,
+  title,
+  emptyState,
 }: {
   entries: RequestLogEntry[];
+  title: string;
+  /** Two lines shown while no entries exist yet. */
+  emptyState: [string, string];
 }) {
   return (
     <div className="flex h-80 flex-col rounded-lg border border-terminal-border bg-terminal-bg p-4">
       <div className="mb-3 flex shrink-0 items-center justify-between">
         <span className="font-mono text-[10px] uppercase tracking-wide text-terminal-fg-muted">
-          callback log
+          {title}
         </span>
         <div className="flex items-center gap-3">
           {entries.length > 0 && (
@@ -87,10 +93,10 @@ export default function PayloadConsole({
         {entries.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-1 text-center">
             <p className="font-mono text-[11.5px] text-terminal-fg-muted">
-              waiting for a payment…
+              {emptyState[0]}
             </p>
             <p className="font-mono text-[11.5px] text-terminal-fg-muted">
-              register your URLs, then call simulate
+              {emptyState[1]}
             </p>
           </div>
         ) : (

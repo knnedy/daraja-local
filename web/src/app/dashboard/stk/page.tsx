@@ -3,13 +3,15 @@
 import RequestBar from "./components/request-bar";
 import IntegrationPanel from "./components/integration-panel";
 import SimulatorCard from "./components/simulator-card";
-import PayloadConsole from "./components/payload-console";
+import PayloadConsole from "../components/payload-console";
 import SimulationGuide from "./components/simulation-guide";
 import HowItWorks from "./components/how-it-works";
+import { useLiveRequestLog } from "@/hooks/use-request-log";
 import { useActiveProjectStore } from "@/store/active-project";
 
 export default function StkPushPage() {
   const slug = useActiveProjectStore((s) => s.slug);
+  const { data: entries = [] } = useLiveRequestLog(slug ?? "", "stk_push");
 
   if (!slug) return null;
 
@@ -37,7 +39,14 @@ export default function StkPushPage() {
         <SimulatorCard slug={slug} />
       </div>
 
-      <PayloadConsole slug={slug} />
+      <PayloadConsole
+        entries={entries}
+        title="live session"
+        emptyState={[
+          "waiting for a request…",
+          "call the endpoint above to open a session",
+        ]}
+      />
     </div>
   );
 }

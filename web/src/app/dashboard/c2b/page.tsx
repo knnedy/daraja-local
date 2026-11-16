@@ -4,15 +4,16 @@ import RequestBar from "./components/request-bar";
 import IntegrationPanel from "./components/integration-panel";
 import RegistrationCard from "./components/registration-card";
 import PaymentFlow from "./components/payment-flow";
-import PayloadConsole from "./components/payload-console";
+import PayloadConsole from "../components/payload-console";
 import HowItWorks from "./components/how-it-works";
 import { derivePayments } from "./lib/sessions";
-import { useC2BRegistration, useC2BRequestLog } from "@/hooks/use-c2b";
+import { useC2BRegistration } from "@/hooks/use-c2b";
+import { useLiveRequestLog } from "@/hooks/use-request-log";
 import { useActiveProjectStore } from "@/store/active-project";
 
 export default function C2BPage() {
   const slug = useActiveProjectStore((s) => s.slug);
-  const { data: entries = [] } = useC2BRequestLog(slug ?? "");
+  const { data: entries = [] } = useLiveRequestLog(slug ?? "", "c2b");
   const { data: registration } = useC2BRegistration(slug ?? "");
 
   if (!slug) return null;
@@ -48,7 +49,14 @@ export default function C2BPage() {
 
       <PaymentFlow session={payments[0] ?? null} />
 
-      <PayloadConsole entries={entries} />
+      <PayloadConsole
+        entries={entries}
+        title="callback log"
+        emptyState={[
+          "waiting for a payment…",
+          "register your URLs, then call simulate",
+        ]}
+      />
     </div>
   );
 }

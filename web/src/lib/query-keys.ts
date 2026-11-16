@@ -9,15 +9,13 @@ export const queryKeys = {
   },
   stk: {
     pending: (slug: string) => ["stk", "pending", slug] as const,
-    requestLog: (slug: string, limit: number) =>
-      ["stk", "request-log", slug, limit] as const,
   },
   c2b: {
     registration: (slug: string) => ["c2b", "registration", slug] as const,
-    requestLog: (slug: string, limit: number) =>
-      ["c2b", "request-log", slug, limit] as const,
   },
   requestLog: {
+    live: (slug: string, kind: string, limit: number) =>
+      ["request-log", "live", slug, kind, limit] as const,
     page: (slug: string, beforeId: number | null, limit: number) =>
       ["request-log", slug, beforeId, limit] as const,
   },
