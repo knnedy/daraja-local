@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/knnedy/daraja-local/internal/c2b"
 	"github.com/knnedy/daraja-local/internal/config"
 	"github.com/knnedy/daraja-local/internal/delivery"
 	"github.com/knnedy/daraja-local/internal/repository"
@@ -53,8 +54,8 @@ func run() error {
 	deliverer := delivery.New(delivery.NewHTTPPoster(), delivery.LinearBackoff)
 	requestLog := requestlog.New(db)
 	stkSessions := stk.NewLifecycle(db, requestLog, deliverer, stk.SystemClock())
-	c2bSvc := service.NewC2BService(db, requestLog, deliverer)
-	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSessions, c2bSvc, requestLog, staticFS, cfg.IsDev)
+	c2bFlow := c2b.NewFlow(db, requestLog, deliverer)
+	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSessions, c2bFlow, requestLog, staticFS, cfg.IsDev)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf("127.0.0.1:%d", cfg.Port),

@@ -8,6 +8,11 @@ import (
 	"github.com/knnedy/daraja-local/internal/repository"
 )
 
+const (
+	confirmationURL = "http://127.0.0.1:4000/c2b/confirmation"
+	validationURL   = "http://127.0.0.1:4000/c2b/validation"
+)
+
 func TestSettingsUpdateLeavesRegistrationAlone(t *testing.T) {
 	ctx := context.Background()
 	db, err := repository.Open(filepath.Join(t.TempDir(), "test.db"))
