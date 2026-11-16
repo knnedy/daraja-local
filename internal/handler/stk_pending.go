@@ -45,7 +45,7 @@ func (h *STKHandler) ListPending(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions := h.service.ListPending(project.ID)
+	sessions := h.sessions.Pending(project.ID)
 	out := make([]pendingSessionResponse, len(sessions))
 	for i, s := range sessions {
 		out[i] = toPendingSessionResponse(s)
@@ -73,7 +73,7 @@ func (h *STKHandler) Resolve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Resolve(r.Context(), project.ID, checkoutRequestID, stk.Outcome(req.Outcome)); err != nil {
+	if err := h.sessions.Resolve(project.ID, checkoutRequestID, stk.Outcome(req.Outcome)); err != nil {
 		writeServiceError(w, err, "failed to resolve session")
 		return
 	}

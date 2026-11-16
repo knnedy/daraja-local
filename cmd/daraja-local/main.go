@@ -46,15 +46,15 @@ func run() error {
 	}
 
 	tokenStore := token.NewStore()
-	stkStore := stk.NewStore()
 	projectSvc := service.NewProjectService(db)
 	settingsSvc := service.NewSettingsService(db)
 	tokenSvc := service.NewTokenService(db, tokenStore)
 	deliverer := delivery.New(delivery.NewHTTPPoster(), delivery.LinearBackoff)
-	stkSvc := service.NewSTKService(db, stkStore, deliverer)
+	stkSessions := stk.NewLifecycle(db, deliverer, stk.SystemClock())
+	stkSvc := service.NewSTKService(db)
 	c2bSvc := service.NewC2BService(db, deliverer)
 	requestLogSvc := service.NewRequestLogService(db)
-	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSvc, c2bSvc, requestLogSvc, staticFS, cfg.IsDev)
+	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSessions, stkSvc, c2bSvc, requestLogSvc, staticFS, cfg.IsDev)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf("127.0.0.1:%d", cfg.Port),

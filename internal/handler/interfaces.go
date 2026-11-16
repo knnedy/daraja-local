@@ -23,9 +23,12 @@ type SettingsService interface {
 	Update(ctx context.Context, slug string, input service.UpdateSettingsInput) (repository.ProjectSetting, error)
 }
 
+type STKSessions interface {
+	Accept(ctx context.Context, project repository.Project, req stk.Request) (stk.Session, *stk.ValidationError)
+	Pending(projectID int64) []stk.Session
+	Resolve(projectID int64, checkoutRequestID string, outcome stk.Outcome) error
+}
+
 type STKService interface {
-	ProcessRequest(ctx context.Context, project repository.Project, req stk.Request) (stk.Session, *stk.ValidationError)
-	ListPending(projectID int64) []stk.Session
-	Resolve(ctx context.Context, projectID int64, checkoutRequestID string, outcome stk.Outcome) error
 	ListRequestLog(ctx context.Context, projectID int64, limit int64) ([]repository.RequestLog, error)
 }

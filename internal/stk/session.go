@@ -2,17 +2,13 @@
 // lost on restart but request_log captures the durable history
 package stk
 
-import (
-	"strconv"
-	"sync"
-	"time"
-)
+import "time"
 
 // Session tracks one STK Push attempt from acceptance to resolution
 type Session struct {
 	MerchantRequestID string
 	CheckoutRequestID string
-	ProjectID         string
+	ProjectID         int64
 
 	BusinessShortCode string
 	PartyA            string
@@ -31,62 +27,22 @@ type Session struct {
 	ResultDesc string
 }
 
-type Store struct {
-	mu       sync.Mutex
-	sessions map[string]*Session
+// AcceptResponse is Daraja's immediate reply to an accepted STK Push,
+// sent before any outcome exists.
+type AcceptResponse struct {
+	MerchantRequestID   string `json:"MerchantRequestID"`
+	CheckoutRequestID   string `json:"CheckoutRequestID"`
+	ResponseCode        string `json:"ResponseCode"`
+	ResponseDescription string `json:"ResponseDescription"`
+	CustomerMessage     string `json:"CustomerMessage"`
 }
 
-func NewStore() *Store {
-	return &Store{sessions: make(map[string]*Session)}
-}
-
-// Create registers a new pending session, keyed by CheckoutRequestID
-func (s *Store) Create(session Session) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.sessions[session.CheckoutRequestID] = &session
-}
-
-// Get returns a copy of the session, if it exists
-func (s *Store) Get(CheckoutRequestID string) (Session, bool) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	session, ok := s.sessions[CheckoutRequestID]
-	if !ok {
-		return Session{}, false
+func (s Session) AcceptResponse() AcceptResponse {
+	return AcceptResponse{
+		MerchantRequestID:   s.MerchantRequestID,
+		CheckoutRequestID:   s.CheckoutRequestID,
+		ResponseCode:        "0",
+		ResponseDescription: "Success. Request accepted for processing",
+		CustomerMessage:     "Success. Request accepted for processing",
 	}
-	return *session, true
-}
-
-// ListPending returns unresolved sessions for a project, for the virtual
-// Phone UI to poll
-func (s *Store) ListPending(projectID int64) []Session {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	var pending []Session
-	for _, session := range s.sessions {
-		if session.ProjectID == strconv.FormatInt(projectID, 10) && !session.Resolved {
-			pending = append(pending, *session)
-		}
-	}
-	return pending
-}
-
-// Resolve marks a project's session resolved with the given outcome. Returns false
-// if it doesn't exist, belongs to another project, or was already resolved
-func (s *Store) Resolve(projectID int64, CheckoutRequestID string, resultCode int, resultDesc string) (Session, bool) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	session, ok := s.sessions[CheckoutRequestID]
-	if !ok || session.Resolved || session.ProjectID != strconv.FormatInt(projectID, 10) {
-		return Session{}, false
-	}
-
-	session.Resolved = true
-	session.ResultCode = resultCode
-	session.ResultDesc = resultDesc
-	return *session, true
 }

@@ -11,20 +11,12 @@ import (
 
 type STKHandler struct {
 	projectService ProjectService
+	sessions       STKSessions
 	service        STKService
 }
 
-func NewSTKHandler(projectService ProjectService, s STKService) *STKHandler {
-	return &STKHandler{projectService: projectService, service: s}
-}
-
-// Real Daraja's immediate accept response — before an outcome exists.
-type stkPushResponse struct {
-	MerchantRequestID   string `json:"MerchantRequestID"`
-	CheckoutRequestID   string `json:"CheckoutRequestID"`
-	ResponseCode        string `json:"ResponseCode"`
-	ResponseDescription string `json:"ResponseDescription"`
-	CustomerMessage     string `json:"CustomerMessage"`
+func NewSTKHandler(projectService ProjectService, sessions STKSessions, s STKService) *STKHandler {
+	return &STKHandler{projectService: projectService, sessions: sessions, service: s}
 }
 
 func (h *STKHandler) ProcessRequest(w http.ResponseWriter, r *http.Request) {
@@ -40,17 +32,11 @@ func (h *STKHandler) ProcessRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, validationErr := h.service.ProcessRequest(r.Context(), project, req)
+	session, validationErr := h.sessions.Accept(r.Context(), project, req)
 	if validationErr != nil {
 		response.DarajaJSON(w, validationErr.HTTPStatus, validationErr.ErrorCode, validationErr.ErrorMessage)
 		return
 	}
 
-	response.JSON(w, http.StatusOK, stkPushResponse{
-		MerchantRequestID:   session.MerchantRequestID,
-		CheckoutRequestID:   session.CheckoutRequestID,
-		ResponseCode:        "0",
-		ResponseDescription: "Success. Request accepted for processing",
-		CustomerMessage:     "Success. Request accepted for processing",
-	})
+	response.JSON(w, http.StatusOK, session.AcceptResponse())
 }

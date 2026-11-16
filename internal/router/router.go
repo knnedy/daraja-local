@@ -17,6 +17,7 @@ func New(
 	projectSvc handler.ProjectService,
 	settingsSvc handler.SettingsService,
 	tokenSvc *service.TokenService,
+	stkSessions handler.STKSessions,
 	stkSvc handler.STKService,
 	c2bSvc handler.C2BService,
 	requestLogSvc handler.RequestLogService,
@@ -39,7 +40,7 @@ func New(
 	projectHandler := handler.NewProjectHandler(projectSvc)
 	settingsHandler := handler.NewSettingsHandler(settingsSvc)
 	oauthHandler := handler.NewOAuthHandler(tokenSvc)
-	stkHandler := handler.NewSTKHandler(projectSvc, stkSvc)
+	stkHandler := handler.NewSTKHandler(projectSvc, stkSessions, stkSvc)
 	c2bHandler := handler.NewC2BHandler(projectSvc, c2bSvc)
 	requestLogHandler := handler.NewRequestLogHandler(projectSvc, requestLogSvc)
 
