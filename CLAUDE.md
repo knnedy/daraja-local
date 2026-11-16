@@ -23,3 +23,13 @@ Offline single-binary emulator of Safaricom's M-Pesa Daraja API. Go (Chi, SQLite
 - Design tokens in globals.css (--green, --surface-1/2, terminal-\*) are the source of truth.
 - Use emil-design-eng for motion/interaction polish only; never override tokens.
 - Respect prefers-reduced-motion. Tailwind v4 canonical classes.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues for `knnedy/daraja-local` (via the `gh` CLI). See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
