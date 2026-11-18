@@ -6,7 +6,7 @@ import {
   Project,
   ProjectsResponse,
 } from "./types/project";
-import { C2BRegistration } from "./types/c2b";
+import { C2BRegistration, SimulatePaymentInput } from "./types/c2b";
 import { SettingsResponse } from "./types/settings";
 import { PendingSessionsResponse, StkOutcome } from "./types/stk";
 
@@ -139,6 +139,16 @@ export const api = {
       registration(slug: string): Promise<C2BRegistration> {
         return request<C2BRegistration>(
           `/api/projects/${encodeURIComponent(slug)}/c2b/registration`,
+        );
+      },
+
+      simulate(
+        slug: string,
+        body: SimulatePaymentInput,
+      ): Promise<{ conversationId: string }> {
+        return request<{ conversationId: string }>(
+          `/api/projects/${encodeURIComponent(slug)}/c2b/simulate`,
+          { method: "POST", body: JSON.stringify(body) },
         );
       },
 

@@ -99,6 +99,10 @@ The response comes back at once, before validation or confirmation run:
 }
 ```
 
+### From the dashboard
+
+The C2B page has a **Send a test payment** card. Pick PayBill or Buy Goods, enter an amount, phone number and account number, and press Pay. It runs the same checks and sends the same Validation and Confirmation as `simulate`, and the payment is logged the same way, so you can test your handlers without writing a client. The card is disabled until you have called `registerurl`.
+
 ## What your server receives
 
 The same body goes to both the validation and the confirmation URL:
@@ -270,7 +274,7 @@ curl -X POST "$DARAJA_BASE_URL/mpesa/c2b/v2/simulate" \
   }"
 ```
 
-Open the C2B page. The payment flow lights up as validation and confirmation complete. Two experiments are worth trying:
+Open the C2B page. The payment flow lights up as validation and confirmation complete. Two experiments are worth trying, either with `simulate` or from the **Send a test payment** card:
 
-- Simulate again with `"BillRefNumber": ""`. Your validation rejects it, and no confirmation is sent.
-- Stop your server and simulate. With `Completed` the payment is accepted by fallback and the confirmation fails to deliver. With `Cancelled` it's rejected.
+- Pay again with an empty account number (`"BillRefNumber": ""`). Your validation rejects it, and no confirmation is sent.
+- Stop your server and pay again. With `Completed` the payment is accepted by fallback and the confirmation fails to deliver. With `Cancelled` it's rejected.

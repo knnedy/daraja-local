@@ -100,3 +100,43 @@ func (h *C2BHandler) Registration(w http.ResponseWriter, r *http.Request) {
 		ResponseType:    registration.ResponseType,
 	})
 }
+
+type simulatePaymentRequest struct {
+	CommandID     string `json:"commandId"`
+	Amount        string `json:"amount"`
+	Msisdn        string `json:"msisdn"`
+	BillRefNumber string `json:"billRefNumber"`
+}
+
+type simulatePaymentResponse struct {
+	ConversationID string `json:"conversationId"`
+}
+
+// SimulatePayment handles POST /api/projects/{slug}/c2b/simulate: the
+// dashboard's way to make a Simulated Payment without a Daraja token.
+func (h *C2BHandler) SimulatePayment(w http.ResponseWriter, r *http.Request) {
+	project, err := h.projectService.Get(r.Context(), chi.URLParam(r, "slug"))
+	if err != nil {
+		writeServiceError(w, err, "failed to get project")
+		return
+	}
+
+	var body simulatePaymentRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		response.Error(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	accept, validationErr := h.service.Simulate(r.Context(), project, c2b.SimulateRequest{
+		ShortCode:     project.ShortCode,
+		CommandID:     body.CommandID,
+		Amount:        body.Amount,
+		Msisdn:        body.Msisdn,
+		BillRefNumber: body.BillRefNumber,
+	})
+	if validationErr != nil {
+		response.Error(w, http.StatusUnprocessableEntity, validationErr.ErrorMessage)
+		return
+	}
+	response.JSON(w, http.StatusOK, simulatePaymentResponse{ConversationID: accept.ConversationID})
+}

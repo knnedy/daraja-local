@@ -3,6 +3,7 @@
 import RequestBar from "./components/request-bar";
 import IntegrationPanel from "./components/integration-panel";
 import RegistrationCard from "./components/registration-card";
+import PayCard from "./components/pay-card";
 import PaymentFlow from "./components/payment-flow";
 import PayloadConsole from "../components/payload-console";
 import HowItWorks from "./components/how-it-works";
@@ -27,8 +28,8 @@ export default function C2BPage() {
           C2B
         </h1>
         <p className="text-[13px] text-muted-foreground">
-          Register your callback URLs, then call simulate from your app and
-          watch every step land here.
+          Register your callback URLs, then call simulate from your app or send
+          a test payment here, and watch every step land.
         </p>
       </div>
 
@@ -44,7 +45,10 @@ export default function C2BPage() {
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px] lg:items-start">
         <IntegrationPanel />
-        <RegistrationCard registration={registration ?? null} />
+        <div className="flex flex-col gap-5">
+          <RegistrationCard registration={registration ?? null} />
+          <PayCard slug={slug} registered={registration?.registered ?? false} />
+        </div>
       </div>
 
       <PaymentFlow session={payments[0] ?? null} />
@@ -54,7 +58,7 @@ export default function C2BPage() {
         title="callback log"
         emptyState={[
           "waiting for a payment…",
-          "register your URLs, then call simulate",
+          "register your URLs, then send a payment",
         ]}
       />
     </div>
