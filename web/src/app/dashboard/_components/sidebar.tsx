@@ -2,18 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  KeyIcon,
-  ArrowLeftRightIcon,
-  BanknoteIcon,
-  Building2Icon,
-  ReceiptTextIcon,
-  ScrollTextIcon,
-  SettingsIcon,
-  RadioIcon,
-  SmartphoneIcon,
-} from "lucide-react";
-import { RxDashboard } from "react-icons/rx";
+import { SettingsIcon, RadioIcon } from "lucide-react";
+import { pageIcons } from "@/lib/page-icons";
 import {
   Sidebar,
   SidebarContent,
@@ -37,32 +27,32 @@ const navGroups = [
       {
         label: "Overview",
         href: "/dashboard",
-        icon: RxDashboard,
+        icon: pageIcons.overview,
       },
       {
         label: "STK Push",
         href: "/dashboard/stk",
-        icon: SmartphoneIcon,
+        icon: pageIcons.stk,
       },
       {
         label: "C2B",
         href: "/dashboard/c2b",
-        icon: ArrowLeftRightIcon,
+        icon: pageIcons.c2b,
       },
       {
         label: "B2C",
         href: "/dashboard/b2c",
-        icon: BanknoteIcon,
+        icon: pageIcons.b2c,
       },
       {
         label: "B2B",
         href: "/dashboard/b2b",
-        icon: Building2Icon,
+        icon: pageIcons.b2b,
       },
       {
         label: "Transactions",
         href: "/dashboard/transactions",
-        icon: ReceiptTextIcon,
+        icon: pageIcons.transactions,
       },
     ],
   },
@@ -72,12 +62,12 @@ const navGroups = [
       {
         label: "Request log",
         href: "/dashboard/logs",
-        icon: ScrollTextIcon,
+        icon: pageIcons.logs,
       },
       {
         label: "Credentials",
         href: "/dashboard/credentials",
-        icon: KeyIcon,
+        icon: pageIcons.credentials,
       },
     ],
   },
@@ -140,7 +130,8 @@ export function DashboardSidebar() {
                         isActive={isActive}
                         tooltip={item.label}
                         render={<Link href={item.href} />}
-                        className={cn(itemClass, isActive && activeItemClass)}>
+                        className={cn(itemClass, isActive && activeItemClass)}
+                      >
                         <item.icon />
                         <span className="group-data-[collapsible=icon]:hidden">
                           {item.label}
@@ -165,7 +156,8 @@ export function DashboardSidebar() {
               className={cn(
                 itemClass,
                 normalizedPath === "/dashboard/settings" && activeItemClass,
-              )}>
+              )}
+            >
               <SettingsIcon />
               <span className="group-data-[collapsible=icon]:hidden">
                 Settings

@@ -3,21 +3,8 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import {
-  ChevronRightIcon,
-  KeyIcon,
-  MoonIcon,
-  ScrollTextIcon,
-  SearchIcon,
-  SettingsIcon,
-  SunIcon,
-  ArrowLeftRightIcon,
-  BanknoteIcon,
-  Building2Icon,
-  ReceiptTextIcon,
-} from "lucide-react";
-import { RxDashboard } from "react-icons/rx";
-import { HiOutlineDevicePhoneMobile } from "react-icons/hi2";
+import { ChevronRightIcon, MoonIcon, SearchIcon, SunIcon } from "lucide-react";
+import { pageIcons } from "@/lib/page-icons";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useApiPort } from "@/hooks/use-api-port";
@@ -26,21 +13,24 @@ import { stripTrailingSlash } from "@/lib/utils";
 import CommandPalette from "@/components/command-palette";
 
 const pages: Record<string, { label: string; icon: React.ElementType }> = {
-  "/dashboard": { label: "Overview", icon: RxDashboard },
+  "/dashboard": { label: "Overview", icon: pageIcons.overview },
   "/dashboard/stk": {
     label: "STK Push",
-    icon: HiOutlineDevicePhoneMobile,
+    icon: pageIcons.stk,
   },
-  "/dashboard/c2b": { label: "C2B", icon: ArrowLeftRightIcon },
-  "/dashboard/b2c": { label: "B2C", icon: BanknoteIcon },
-  "/dashboard/b2b": { label: "B2B", icon: Building2Icon },
+  "/dashboard/c2b": { label: "C2B", icon: pageIcons.c2b },
+  "/dashboard/b2c": { label: "B2C", icon: pageIcons.b2c },
+  "/dashboard/b2b": { label: "B2B", icon: pageIcons.b2b },
   "/dashboard/transactions": {
     label: "Transactions",
-    icon: ReceiptTextIcon,
+    icon: pageIcons.transactions,
   },
-  "/dashboard/logs": { label: "Request log", icon: ScrollTextIcon },
-  "/dashboard/credentials": { label: "Credentials", icon: KeyIcon },
-  "/dashboard/settings": { label: "Settings", icon: SettingsIcon },
+  "/dashboard/logs": { label: "Request log", icon: pageIcons.logs },
+  "/dashboard/credentials": {
+    label: "Credentials",
+    icon: pageIcons.credentials,
+  },
+  "/dashboard/settings": { label: "Settings", icon: pageIcons.settings },
 };
 
 const commandItems = Object.entries(pages).map(([href, page]) => ({
@@ -109,7 +99,8 @@ export function DashboardTopbar() {
         <button
           type="button"
           onClick={() => setPaletteOpen(true)}
-          className="flex items-center gap-2 rounded-md border border-border-strong bg-surface-1 px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+          className="flex items-center gap-2 rounded-md border border-border-strong bg-surface-1 px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+        >
           <SearchIcon className="size-3.5" />
           <span>Search</span>
           <kbd className="rounded border border-border-strong bg-surface-2 px-1 font-mono text-[10px] leading-none text-muted-foreground">
@@ -136,7 +127,8 @@ export function DashboardTopbar() {
         <button
           type="button"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="relative flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-surface-1 hover:text-foreground">
+          className="relative flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-surface-1 hover:text-foreground"
+        >
           <span className="absolute inset-0 flex items-center justify-center">
             <SunIcon className="size-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
           </span>

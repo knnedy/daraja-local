@@ -1,14 +1,7 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import {
-  ArrowLeftRightIcon,
-  ArrowUpRightIcon,
-  BanknoteIcon,
-  ReceiptTextIcon,
-  KeyRoundIcon,
-  ScrollTextIcon,
-  SmartphoneIcon,
-} from "lucide-react";
+import { pageIcons } from "@/lib/page-icons";
+import { ArrowUpRightIcon } from "lucide-react";
 
 type Action = {
   href: string;
@@ -22,37 +15,37 @@ const actions: Action[] = [
     href: "/dashboard/stk",
     label: "STK Push",
     description: "Trigger and resolve a payment prompt",
-    icon: SmartphoneIcon,
+    icon: pageIcons.stk,
   },
   {
     href: "/dashboard/c2b",
     label: "C2B",
     description: "Register URLs, simulate a payment",
-    icon: ArrowLeftRightIcon,
+    icon: pageIcons.c2b,
   },
   {
     href: "/dashboard/b2c",
     label: "B2C",
     description: "Pay out to a phone, watch the result",
-    icon: BanknoteIcon,
+    icon: pageIcons.b2c,
   },
   {
     href: "/dashboard/transactions",
     label: "Transactions",
     description: "Check a status, reverse a payment",
-    icon: ReceiptTextIcon,
+    icon: pageIcons.transactions,
   },
   {
     href: "/dashboard/logs",
     label: "Request Log",
     description: "Browse and search past requests",
-    icon: ScrollTextIcon,
+    icon: pageIcons.logs,
   },
   {
     href: "/dashboard/credentials",
     label: "Credentials",
     description: "Keys, shortcode, passkey",
-    icon: KeyRoundIcon,
+    icon: pageIcons.credentials,
   },
 ];
 
@@ -63,7 +56,8 @@ export default function QuickActions() {
         <Link
           key={action.href}
           href={action.href}
-          className="group flex items-start gap-3 rounded-lg border border-border-strong bg-surface-1 p-3.5 shadow-sm transition-colors hover:bg-surface-2/60">
+          className="group flex items-start gap-3 rounded-lg border border-border-strong bg-surface-1 p-3.5 shadow-sm transition-colors hover:bg-surface-2/60"
+        >
           <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border bg-surface-2">
             <action.icon className="size-3.75 text-muted-foreground" />
           </div>
