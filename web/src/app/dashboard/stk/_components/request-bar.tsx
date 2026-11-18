@@ -48,7 +48,8 @@ export default function RequestBar() {
       <div className="flex shrink-0 gap-1.5 px-1 sm:px-0">
         <button
           onClick={() => copy(fullUrl, "url")}
-          className="flex items-center gap-1.5 rounded-md px-2.5 py-2 text-xs text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground">
+          className="flex items-center gap-1.5 rounded-md px-2.5 py-2 text-xs text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+        >
           {copied === "url" ? (
             <CheckIcon className="size-3.5 text-green" />
           ) : (
@@ -58,7 +59,8 @@ export default function RequestBar() {
         </button>
         <button
           onClick={() => copy(CURL(fullUrl), "curl")}
-          className="flex items-center gap-1.5 rounded-md bg-green px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-green/90">
+          className="flex items-center gap-1.5 rounded-md bg-green px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-green/90"
+        >
           {copied === "curl" ? (
             <CheckIcon className="size-3.5" />
           ) : (

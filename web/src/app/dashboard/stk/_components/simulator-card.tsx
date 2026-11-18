@@ -65,7 +65,8 @@ export default function SimulatorCard({ slug }: { slug: string }) {
                 s.checkoutRequestId === focused?.checkoutRequestId
                   ? "border-green/40 bg-green/10 text-green"
                   : "border-border text-muted-foreground hover:text-foreground"
-              }`}>
+              }`}
+            >
               KES {s.amount} · {s.phoneNumber.slice(-4)}
             </button>
           ))}

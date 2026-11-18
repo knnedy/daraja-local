@@ -78,7 +78,8 @@ export default function IntegrationPanel() {
               "relative px-4 py-2.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground",
               tab === t &&
                 "text-foreground after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-green",
-            )}>
+            )}
+          >
             {t}
           </button>
         ))}

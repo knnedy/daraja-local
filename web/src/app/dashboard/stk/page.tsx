@@ -6,6 +6,8 @@ import SimulatorCard from "./_components/simulator-card";
 import PayloadConsole from "../_components/payload-console";
 import SimulationGuide from "./_components/simulation-guide";
 import HowItWorks from "./_components/how-it-works";
+import CallbacksCard from "./_components/callbacks-card";
+import { derivePayments } from "./lib/callbacks";
 import { useLiveRequestLog } from "@/hooks/use-request-log";
 import { useActiveProjectStore } from "@/store/active-project";
 
@@ -38,6 +40,8 @@ export default function StkPushPage() {
         </div>
         <SimulatorCard slug={slug} />
       </div>
+
+      <CallbacksCard slug={slug} payments={derivePayments(entries)} />
 
       <PayloadConsole
         entries={entries}
