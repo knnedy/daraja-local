@@ -13,3 +13,9 @@ LIMIT sqlc.arg(row_limit);
 
 -- name: ClearRequestLog :exec
 DELETE FROM "request_log" WHERE "project_id" = ?;
+
+-- name: GetLatestRequestLogEntryByStep :one
+SELECT * FROM "request_log"
+WHERE "project_id" = ? AND "correlation_id" = ? AND "step" = ?
+ORDER BY "id" DESC
+LIMIT 1;

@@ -1,8 +1,16 @@
 "use client";
 
-import { CheckIcon, MinusIcon, XIcon } from "lucide-react";
+import { useState } from "react";
+import {
+  CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MinusIcon,
+  XIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PaymentSession } from "../lib/sessions";
+import DeliveryInspector from "./delivery-inspector";
 
 type StepStatus = "pending" | "success" | "error" | "skipped";
 
@@ -29,7 +37,8 @@ function StepNode({
             "border-destructive bg-destructive/15 text-destructive",
           status === "skipped" &&
             "border-dashed border-border bg-surface-2 text-muted-foreground/50",
-        )}>
+        )}
+      >
         {status === "success" && <CheckIcon className="size-4" />}
         {status === "error" && <XIcon className="size-4" />}
         {status === "skipped" && <MinusIcon className="size-3.5" />}
@@ -63,11 +72,61 @@ function Chip({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default function PaymentFlow({
-  session,
+function Pager({
+  index,
+  total,
+  onMove,
 }: {
-  session: PaymentSession | null;
+  index: number;
+  total: number;
+  onMove: (index: number) => void;
 }) {
+  const button =
+    "flex size-6 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground disabled:pointer-events-none disabled:opacity-40";
+  return (
+    <div className="flex items-center gap-1.5">
+      <button
+        type="button"
+        aria-label="Newer payment"
+        disabled={index === 0}
+        onClick={() => onMove(index - 1)}
+        className={button}
+      >
+        <ChevronLeftIcon className="size-3.5" />
+      </button>
+      <span className="min-w-14 text-center font-mono text-[10.5px] text-muted-foreground">
+        {index + 1} of {total}
+      </span>
+      <button
+        type="button"
+        aria-label="Older payment"
+        disabled={index === total - 1}
+        onClick={() => onMove(index + 1)}
+        className={button}
+      >
+        <ChevronRightIcon className="size-3.5" />
+      </button>
+    </div>
+  );
+}
+
+export default function PaymentFlow({
+  slug,
+  payments,
+  registered,
+}: {
+  slug: string;
+  payments: PaymentSession[];
+  registered: boolean;
+}) {
+  // null follows the newest payment as new ones arrive.
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const index = Math.max(
+    0,
+    payments.findIndex((p) => p.id === selectedId),
+  );
+  const session = payments[index] ?? null;
+
   if (!session) {
     return (
       <div className="rounded-lg border border-border-strong bg-surface-1 p-5 shadow-sm">
@@ -77,8 +136,8 @@ export default function PaymentFlow({
         <div className="rounded-md border border-dashed border-border px-4 py-10 text-center">
           <p className="text-[12px] text-muted-foreground">No payments yet.</p>
           <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground/80">
-            POST to the simulate endpoint above and this traces every step as it
-            happens.
+            Call simulate or send a test payment, and this traces every step as
+            it happens.
           </p>
         </div>
       </div>
@@ -121,9 +180,12 @@ export default function PaymentFlow({
       ? "blocked by validation"
       : !confirmation
         ? "waiting…"
-        : confirmation.delivered
-          ? `delivered · ${confirmation.attempts} attempt${confirmation.attempts === 1 ? "" : "s"}`
-          : `failed · ${confirmation.attempts} attempts`;
+        : (confirmation.delivered
+            ? `delivered · ${confirmation.attempts} attempt${confirmation.attempts === 1 ? "" : "s"}`
+            : `failed · ${confirmation.attempts} attempts`) +
+          (confirmation.deliveries.length > 1
+            ? ` · resent ${confirmation.deliveries.length - 1}×`
+            : "");
 
   return (
     <div className="flex flex-col gap-4 rounded-lg border border-border-strong bg-surface-1 p-5 shadow-sm">
@@ -131,9 +193,19 @@ export default function PaymentFlow({
         <span className="text-[13px] font-medium text-foreground">
           Payment flow
         </span>
-        <span className="font-mono text-[10.5px] text-muted-foreground">
-          latest · {session.createdAt.slice(11, 19)}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-[10.5px] text-muted-foreground">
+            {index === 0 ? "latest" : "earlier"} ·{" "}
+            {session.createdAt.slice(11, 19)}
+          </span>
+          {payments.length > 1 && (
+            <Pager
+              index={index}
+              total={payments.length}
+              onMove={(i) => setSelectedId(i === 0 ? null : payments[i].id)}
+            />
+          )}
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
@@ -183,6 +255,13 @@ export default function PaymentFlow({
           {validation.accepted ? "accepted" : "rejected"} this payment.
         </p>
       )}
+
+      <DeliveryInspector
+        key={session.id}
+        slug={slug}
+        session={session}
+        registered={registered}
+      />
     </div>
   );
 }

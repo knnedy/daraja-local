@@ -115,3 +115,16 @@ func TestHTTPPoster(t *testing.T) {
 		t.Error("want error posting to a closed server")
 	}
 }
+
+func TestReplyExcerptCapsLongReplies(t *testing.T) {
+	if got := ReplyExcerpt([]byte("ok")); got != "ok" {
+		t.Errorf("short reply = %q", got)
+	}
+	long := make([]byte, replyExcerptBytes+10)
+	for i := range long {
+		long[i] = 'a'
+	}
+	if got := ReplyExcerpt(long); len(got) != replyExcerptBytes+len("…") {
+		t.Errorf("long reply kept %d bytes", len(got))
+	}
+}

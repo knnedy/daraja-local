@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -18,6 +19,7 @@ type C2BService interface {
 	RegisterURL(ctx context.Context, project repository.Project, req c2b.RegisterURLRequest) (c2b.AcceptResponse, *daraja.ValidationError)
 	Simulate(ctx context.Context, project repository.Project, req c2b.SimulateRequest) (c2b.AcceptResponse, *daraja.ValidationError)
 	Registration(ctx context.Context, projectID int64) (c2b.Registration, bool, error)
+	ReplayConfirmation(ctx context.Context, projectID int64, transactionID string) error
 }
 
 type C2BHandler struct {
@@ -139,4 +141,25 @@ func (h *C2BHandler) SimulatePayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.JSON(w, http.StatusOK, simulatePaymentResponse{ConversationID: accept.ConversationID})
+}
+
+// ReplayConfirmation handles POST /api/projects/{slug}/c2b/{transactionId}/replay.
+func (h *C2BHandler) ReplayConfirmation(w http.ResponseWriter, r *http.Request) {
+	project, err := h.projectService.Get(r.Context(), chi.URLParam(r, "slug"))
+	if err != nil {
+		writeServiceError(w, err, "failed to get project")
+		return
+	}
+
+	err = h.service.ReplayConfirmation(r.Context(), project.ID, chi.URLParam(r, "transactionId"))
+	switch {
+	case err == nil:
+		w.WriteHeader(http.StatusNoContent)
+	case errors.Is(err, response.ErrNotFound):
+		response.Error(w, http.StatusNotFound, "This payment was never confirmed, so there is nothing to resend.")
+	case errors.Is(err, response.ErrValidation):
+		response.Error(w, http.StatusUnprocessableEntity, "No ConfirmationURL is registered. Call registerurl first.")
+	default:
+		response.Error(w, http.StatusInternalServerError, "failed to replay confirmation")
+	}
 }

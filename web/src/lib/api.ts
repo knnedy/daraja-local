@@ -142,6 +142,13 @@ export const api = {
         );
       },
 
+      replay(slug: string, transactionId: string): Promise<void> {
+        return request<void>(
+          `/api/projects/${encodeURIComponent(slug)}/c2b/${encodeURIComponent(transactionId)}/replay`,
+          { method: "POST" },
+        );
+      },
+
       simulate(
         slug: string,
         body: SimulatePaymentInput,

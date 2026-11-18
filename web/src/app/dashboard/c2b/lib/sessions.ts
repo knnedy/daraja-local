@@ -1,5 +1,14 @@
 import type { RequestLogEntry } from "@/lib/types/request-log";
 
+/** One try at reaching the developer's server, as the backend logged it. */
+export type DeliveryAttempt = {
+  at: string;
+  statusCode: number;
+  err: string;
+  durationMs: number | null;
+  reply: string;
+};
+
 export type ValidationStep = {
   ran: true;
   accepted: boolean;
@@ -8,11 +17,27 @@ export type ValidationStep = {
   resultDesc: string;
   httpStatus: number;
   err: string;
+  url: string;
+  sent: string;
+  attempt: DeliveryAttempt | null;
+};
+
+/** One Delivery of the Confirmation: the original, or a replay. */
+export type ConfirmationDelivery = {
+  at: string;
+  delivered: boolean;
+  replay: boolean;
+  url: string;
+  sent: string;
+  attempts: DeliveryAttempt[];
 };
 
 export type ConfirmationStep = {
+  /** Whether the most recent Delivery got through. */
   delivered: boolean;
   attempts: number;
+  /** Every Delivery, oldest first. */
+  deliveries: ConfirmationDelivery[];
 };
 
 export type PaymentSession = {
@@ -35,6 +60,34 @@ function parse<T>(raw: string): T | null {
   } catch {
     return null;
   }
+}
+
+function pretty(value: unknown): string {
+  return value === undefined ? "" : JSON.stringify(value, null, 2);
+}
+
+type RawAttempt = {
+  At?: string;
+  StatusCode?: number;
+  Err?: string;
+  DurationMs?: number;
+  Reply?: string;
+};
+
+// Attempt times carry the server's offset; the dashboard shows UTC everywhere.
+function utc(at: string | undefined): string {
+  const date = at ? new Date(at) : null;
+  return date && !Number.isNaN(date.getTime()) ? date.toISOString() : "";
+}
+
+function toAttempt(raw: RawAttempt): DeliveryAttempt {
+  return {
+    at: utc(raw.At),
+    statusCode: raw.StatusCode ?? 0,
+    err: raw.Err ?? "",
+    durationMs: raw.DurationMs ?? null,
+    reply: raw.Reply ?? "",
+  };
 }
 
 function groupByCorrelation(entries: RequestLogEntry[]) {
@@ -94,6 +147,10 @@ export function derivePayments(entries: RequestLogEntry[]): PaymentSession[] {
           ResultDesc?: string;
           HTTPStatus?: number;
           Err?: string;
+          URL?: string;
+          DurationMs?: number;
+          Reply?: string;
+          Payload?: unknown;
         }>(row.payload);
         session.validation = {
           ran: true,
@@ -103,17 +160,48 @@ export function derivePayments(entries: RequestLogEntry[]): PaymentSession[] {
           resultDesc: result?.ResultDesc ?? "",
           httpStatus: result?.HTTPStatus ?? 0,
           err: result?.Err ?? "",
+          url: result?.URL ?? "",
+          sent: pretty(result?.Payload),
+          // Older entries predate URL; with no URL there was no record of the call.
+          attempt: result?.URL
+            ? {
+                at: row.createdAt,
+                statusCode: result.HTTPStatus ?? 0,
+                err: result.Err ?? "",
+                durationMs: result.DurationMs ?? null,
+                reply: result.Reply ?? "",
+              }
+            : null,
         };
         continue;
       }
 
       if (row.step === "confirmation") {
-        const delivery = parse<{ payload?: { TransID?: string } }>(row.payload);
-        session.transId = delivery?.payload?.TransID ?? null;
-        session.confirmation = {
+        const delivery = parse<{
+          payload?: { TransID?: string };
+          url?: string;
+          replay?: boolean;
+          attempts?: RawAttempt[];
+        }>(row.payload);
+        session.transId ??= delivery?.payload?.TransID ?? null;
+        const entry: ConfirmationDelivery = {
+          at: row.createdAt,
           delivered: row.status === "delivered",
-          attempts: row.attempts,
+          replay: delivery?.replay ?? false,
+          url: delivery?.url ?? "",
+          sent: pretty(delivery?.payload),
+          attempts: (delivery?.attempts ?? []).map(toAttempt),
         };
+        // Rows arrive newest first, so the first one seen is the latest.
+        if (!session.confirmation) {
+          session.confirmation = {
+            delivered: entry.delivered,
+            attempts: row.attempts,
+            deliveries: [entry],
+          };
+        } else {
+          session.confirmation.deliveries.unshift(entry);
+        }
       }
     }
 

@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 
 	"github.com/knnedy/daraja-local/internal/daraja"
 	"github.com/knnedy/daraja-local/internal/delivery"
@@ -98,6 +99,15 @@ func (l *Log) Validation(ctx context.Context, projectID int64, transactionID str
 
 // Delivery records one Delivery of body, covering every Attempt in a single Entry.
 func (l *Log) Delivery(ctx context.Context, projectID int64, op Operation, transactionID, outcome string, body any, result delivery.Result) {
+	l.delivery(ctx, projectID, op, transactionID, outcome, body, result, false)
+}
+
+// Redelivery records a Delivery the developer asked to repeat from the dashboard.
+func (l *Log) Redelivery(ctx context.Context, projectID int64, op Operation, transactionID, outcome string, body any, result delivery.Result) {
+	l.delivery(ctx, projectID, op, transactionID, outcome, body, result, true)
+}
+
+func (l *Log) delivery(ctx context.Context, projectID int64, op Operation, transactionID, outcome string, body any, result delivery.Result, replay bool) {
 	status := statusFailed
 	if result.Delivered {
 		status = statusDelivered
@@ -107,20 +117,48 @@ func (l *Log) Delivery(ctx context.Context, projectID int64, op Operation, trans
 	step := stepConfirmation
 	var payload any = struct {
 		Payload  any                `json:"payload"`
+		URL      string             `json:"url"`
+		Replay   bool               `json:"replay,omitempty"`
 		Attempts []delivery.Attempt `json:"attempts"`
-	}{body, result.Attempts}
+	}{body, result.URL, replay, result.Attempts}
 	if op == STKPush {
 		step = stepCallback
 		payload = struct {
 			Callback any                `json:"callback"`
+			URL      string             `json:"url"`
+			Replay   bool               `json:"replay,omitempty"`
 			Attempts []delivery.Attempt `json:"attempts"`
-		}{body, result.Attempts}
+		}{body, result.URL, replay, result.Attempts}
 	}
 
 	l.write(ctx, entry{
 		projectID: projectID, op: op, step: step, transactionID: transactionID, direction: directionOutbound,
 		status: status, outcome: outcome, attempts: int64(len(result.Attempts)),
 	}, payload)
+}
+
+// Confirmation returns the body of a C2B payment's most recent Confirmation,
+// exactly as it was sent, or false if none was sent.
+func (l *Log) Confirmation(ctx context.Context, projectID int64, transactionID string) (json.RawMessage, bool, error) {
+	row, err := l.db.Queries().GetLatestRequestLogEntryByStep(ctx, repository.GetLatestRequestLogEntryByStepParams{
+		ProjectID:     projectID,
+		CorrelationID: sql.NullString{String: transactionID, Valid: true},
+		Step:          stepConfirmation,
+	})
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, false, nil
+	}
+	if err != nil {
+		return nil, false, err
+	}
+
+	var stored struct {
+		Payload json.RawMessage `json:"payload"`
+	}
+	if err := json.Unmarshal([]byte(row.Payload), &stored); err != nil || len(stored.Payload) == 0 {
+		return nil, false, nil
+	}
+	return stored.Payload, true, nil
 }
 
 // Filter narrows List. The zero value is every kind, newest first.

@@ -23,3 +23,15 @@ export function useSimulatePayment(slug: string) {
     },
   });
 }
+
+export function useReplayConfirmation(slug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (transactionId: string) =>
+      api.projects.c2b.replay(slug, transactionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["request-log"] });
+    },
+  });
+}

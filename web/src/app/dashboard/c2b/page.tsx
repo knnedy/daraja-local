@@ -51,7 +51,11 @@ export default function C2BPage() {
         </div>
       </div>
 
-      <PaymentFlow session={payments[0] ?? null} />
+      <PaymentFlow
+        slug={slug}
+        payments={payments}
+        registered={registration?.registered ?? false}
+      />
 
       <PayloadConsole
         entries={entries}

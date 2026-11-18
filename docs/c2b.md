@@ -179,6 +179,20 @@ If your `ValidationURL` is unreachable, answers with a non-200 status, times out
 
 Confirmation is sent after validation accepts the payment, or straight away when there's no `ValidationURL`. Your answer doesn't change anything. Daraja Local only records whether it got HTTP 200.
 
+## Inspecting and resending
+
+Under the payment flow on the C2B page, the **Validation** and **Confirmation** tabs show each call Daraja Local made to your server: the URL, the exact body sent, and for every attempt the HTTP status or connection error, how long it took, and the first 2 KB of your reply. The arrows beside the payment switch to earlier payments.
+
+**Resend confirmation** posts the same Confirmation body again, byte for byte, to the `ConfirmationURL` registered now. Use it after fixing a handler that failed, or to check that your handler ignores a `TransID` it has already processed. The resend shows up under the same payment, marked as a replay.
+
+Real Daraja has no resend. This is Daraja Local's own tool, and so is its dashboard API, which may change before 1.0:
+
+```bash
+curl -X POST "http://127.0.0.1:7060/api/projects/<slug>/c2b/<ConversationID>/replay"
+```
+
+It returns 204 and delivers in the background. It returns 404 for a payment that was never confirmed, such as one your validation rejected, and 422 when no `ConfirmationURL` is registered.
+
 If delivery fails, Daraja Local makes up to three attempts, waiting 1 second after the first failure and 2 after the second, each with a 10 second timeout. Real Daraja is reported not to retry C2B notifications at all, though that comes from a single source. Design your handler for one delivery, and reconcile payments some other way too.
 
 ## Handler examples

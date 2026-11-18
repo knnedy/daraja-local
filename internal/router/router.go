@@ -71,6 +71,7 @@ func New(
 				r.Route("/c2b", func(r chi.Router) {
 					r.Get("/registration", c2bHandler.Registration)
 					r.Post("/simulate", c2bHandler.SimulatePayment)
+					r.Post("/{transactionId}/replay", c2bHandler.ReplayConfirmation)
 					r.Get("/request-log", requestLogHandler.List(requestlog.KindC2B))
 				})
 			})
