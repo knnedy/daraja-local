@@ -122,7 +122,7 @@ A successful reversal posts:
       "ResultParameter": [
         {
           "Key": "DebitAccountBalance",
-          "Value": "Working Account|KES|0.00|0.00|0.00|0.00"
+          "Value": "Utility Account|KES|999500.00|999500.00|0.00|0.00"
         },
         { "Key": "Amount", "Value": 500.0 },
         { "Key": "TransCompletedTime", "Value": "20261118140530" },
@@ -153,10 +153,10 @@ Failures arrive at your `ResultURL` without `ResultParameters`. Note the types: 
 | `2001`       | The initiator information is invalid.            | The `SecurityCredential` or initiator name is wrong.                                                                        |
 | `"R000002"`  | The OriginalTransactionID is invalid.            | Reversal: the receipt is unknown, is a B2C payout, or the amount differs. Status: the transaction can't be found (a guess). |
 | `"R000001"`  | The transaction has already been reversed.       | Reversing the same payment twice.                                                                                           |
-| `1`          | The balance is insufficient for the transaction. | Reversal: the working account holds less than the refund.                                                                   |
+| `1`          | The balance is insufficient for the transaction. | Reversal: the utility account holds less than the refund.                                                                   |
 
 ## Where the money goes
 
-STK and C2B payments are credited to the project's simulated working account. A reversal draws the refund from there. B2C payouts come from the separate utility account, shown on the B2C page.
+STK and C2B payments are credited to the project's simulated utility account, as Safaricom documents for customer payments. A reversal draws the refund from there, and so do B2C payouts. B2B payments come from the separate working account. The B2B page shows and sets every balance; see [B2B and Account Balance](b2b.md).
 
 Payments made before this version of Daraja Local are not in the record, so they can't be looked up or reversed.

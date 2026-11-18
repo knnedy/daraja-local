@@ -108,8 +108,10 @@ _Overview: live stats, recent activity and your project's credentials._
 | B2C payment        | `POST /mpesa/b2c/v1/paymentrequest`, `POST /mpesa/b2c/v3/paymentrequest` |
 | Transaction Status | `POST /mpesa/transactionstatus/v1/query`                                 |
 | Reversal           | `POST /mpesa/reversal/v1/request`                                        |
+| B2B                | `POST /mpesa/b2b/v1/paymentrequest`                                      |
+| Account Balance    | `POST /mpesa/accountbalance/v1/query`                                    |
 
-Not implemented: B2B, Account Balance.
+Not implemented: B2C Account Top Up, Business to Pochi, Tax Remittance, Dynamic QR, Bill Manager and Ratiba.
 
 ---
 
@@ -123,6 +125,7 @@ Not implemented: B2B, Account Balance.
 | [C2B](docs/c2b.md)                                      | Registering URLs, simulating payments, validation and confirmation  |
 | [B2C](docs/b2c.md)                                      | Initiator and SecurityCredential, payouts, results and failures     |
 | [Transaction Status and Reversal](docs/transactions.md) | Looking receipts up, reversing payments, result codes               |
+| [B2B and Account Balance](docs/b2b.md)                  | Paying other businesses, your simulated accounts, balance results   |
 | [Request Log](docs/request-log.md)                      | Searching, filtering and reading the log                            |
 | [Fidelity](docs/fidelity.md)                            | What mirrors Daraja exactly, known quirks, what is emulator-only    |
 | [Troubleshooting](docs/troubleshooting.md)              | The errors you'll actually hit and what they mean                   |

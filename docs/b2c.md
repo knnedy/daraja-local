@@ -132,7 +132,7 @@ To test your failure handling, pick a result under **Next payout result** on the
 
 ## The utility account
 
-Each project starts with KES 1,000,000 in a simulated utility account. Completed payouts draw it down, and the remaining balance is reported in `B2CUtilityAccountAvailableFunds`. Use **Set balance** on the B2C page to top it up or drain it. No transaction charges are deducted.
+Each project starts with KES 1,000,000 in a simulated utility account. Customer STK and C2B payments add to it and completed payouts draw it down, and the remaining balance is reported in `B2CUtilityAccountAvailableFunds`. Use **Set balance** on the B2C page to top it up or drain it. No transaction charges are deducted.
 
 ## From the dashboard
 
