@@ -8,6 +8,7 @@ import (
 
 	"github.com/knnedy/daraja-local/internal/daraja"
 	"github.com/knnedy/daraja-local/internal/delivery"
+	"github.com/knnedy/daraja-local/internal/ledger"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/requestlog"
 	"github.com/knnedy/daraja-local/internal/response"
@@ -20,6 +21,7 @@ type Lifecycle struct {
 	log       *requestlog.Log
 	deliverer *delivery.Deliverer
 	clock     Clock
+	ledger    Recorder
 
 	mu         sync.Mutex
 	sessions   map[string]*trackedSession
@@ -31,8 +33,13 @@ type trackedSession struct {
 	stopTimeout func()
 }
 
-func NewLifecycle(db *repository.DB, log *requestlog.Log, deliverer *delivery.Deliverer, clock Clock) *Lifecycle {
-	return &Lifecycle{db: db, log: log, deliverer: deliverer, clock: clock, sessions: make(map[string]*trackedSession)}
+// Recorder keeps a completed transaction for Transaction Status and Reversal.
+type Recorder interface {
+	Record(ctx context.Context, e ledger.Entry) error
+}
+
+func NewLifecycle(db *repository.DB, log *requestlog.Log, deliverer *delivery.Deliverer, clock Clock, recorder Recorder) *Lifecycle {
+	return &Lifecycle{db: db, log: log, deliverer: deliverer, clock: clock, ledger: recorder, sessions: make(map[string]*trackedSession)}
 }
 
 // Accept validates an STK Push against the project's credentials and, if
@@ -192,7 +199,21 @@ func (l *Lifecycle) deliver(session Session, outcome Outcome) {
 	var transactionDate int64
 	if session.ResultCode == ResultCodeSuccess {
 		receipt = GenerateMpesaReceiptNumber()
-		transactionDate, _ = strconv.ParseInt(l.clock.Now().Format("20060102150405"), 10, 64)
+		now := l.clock.Now()
+		transactionDate, _ = strconv.ParseInt(now.Format("20060102150405"), 10, 64)
+		_ = l.ledger.Record(ctx, ledger.Entry{
+			ProjectID:                session.ProjectID,
+			Receipt:                  receipt,
+			Kind:                     ledger.KindSTKPush,
+			OriginatorConversationID: session.MerchantRequestID,
+			ConversationID:           session.CheckoutRequestID,
+			Amount:                   session.Amount,
+			DebitParty:               session.PhoneNumber,
+			CreditParty:              session.BusinessShortCode,
+			ReasonType:               "Pay Bill Online",
+			InitiatedAt:              session.CreatedAt,
+			FinalisedAt:              now,
+		})
 	}
 	callback := BuildCallback(session, receipt, transactionDate)
 

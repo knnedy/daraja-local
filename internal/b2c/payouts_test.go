@@ -13,6 +13,7 @@ import (
 
 	"github.com/knnedy/daraja-local/internal/delivery"
 	"github.com/knnedy/daraja-local/internal/initiator"
+	"github.com/knnedy/daraja-local/internal/ledger"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/requestlog"
 )
@@ -72,7 +73,7 @@ func newFixture(t *testing.T) *fixture {
 	if f.credential, err = initiator.SecurityCredential(found); err != nil {
 		t.Fatalf("credential: %v", err)
 	}
-	f.payouts = NewPayouts(db, f.log, delivery.New(f.app, delivery.NoBackoff), initiators, 0)
+	f.payouts = NewPayouts(db, f.log, delivery.New(f.app, delivery.NoBackoff), initiators, ledger.New(db, f.log, nil, initiators, 0), 0)
 	t.Cleanup(func() {
 		f.payouts.Wait()
 		_ = db.Close()

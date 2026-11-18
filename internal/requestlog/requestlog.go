@@ -17,20 +17,24 @@ import (
 type Kind string
 
 const (
-	KindSTKPush Kind = "stk_push"
-	KindC2B     Kind = "c2b"
-	KindB2C     Kind = "b2c"
+	KindSTKPush           Kind = "stk_push"
+	KindC2B               Kind = "c2b"
+	KindB2C               Kind = "b2c"
+	KindTransactionStatus Kind = "transaction_status"
+	KindReversal          Kind = "reversal"
 )
 
 // Operation is the Daraja endpoint an Entry belongs to.
 type Operation string
 
 const (
-	STKPush     Operation = "stk_push"
-	STKQuery    Operation = "stk_query"
-	C2BRegister Operation = "c2b_register"
-	C2BSimulate Operation = "c2b_simulate"
-	B2CPayment  Operation = "b2c_payment"
+	STKPush           Operation = "stk_push"
+	STKQuery          Operation = "stk_query"
+	C2BRegister       Operation = "c2b_register"
+	C2BSimulate       Operation = "c2b_simulate"
+	B2CPayment        Operation = "b2c_payment"
+	TransactionStatus Operation = "transaction_status"
+	Reversal          Operation = "reversal"
 )
 
 func (o Operation) kind() Kind {
@@ -39,6 +43,10 @@ func (o Operation) kind() Kind {
 		return KindSTKPush
 	case B2CPayment:
 		return KindB2C
+	case TransactionStatus:
+		return KindTransactionStatus
+	case Reversal:
+		return KindReversal
 	}
 	return KindC2B
 }
@@ -126,7 +134,7 @@ func (l *Log) delivery(ctx context.Context, projectID int64, op Operation, trans
 
 	// The body's key and the step differ per kind; the dashboard reads both.
 	step := stepConfirmation
-	if op == B2CPayment {
+	if op == B2CPayment || op == TransactionStatus || op == Reversal {
 		step = stepResult
 		if outcome == QueueTimeout {
 			step = stepTimeout

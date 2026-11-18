@@ -14,6 +14,17 @@ type Initiators interface {
 	Get(ctx context.Context, projectID int64) (initiator.Initiator, error)
 }
 
+// signedCredential returns the project's initiator name and a fresh
+// SecurityCredential, as a developer's app would build them.
+func signedCredential(ctx context.Context, initiators Initiators, projectID int64) (string, string, error) {
+	found, err := initiators.Get(ctx, projectID)
+	if err != nil {
+		return "", "", err
+	}
+	credential, err := initiator.SecurityCredential(found)
+	return found.Name, credential, err
+}
+
 type InitiatorHandler struct {
 	projectService ProjectService
 	initiators     Initiators

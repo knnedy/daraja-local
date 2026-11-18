@@ -3,7 +3,6 @@ package b2c
 import (
 	"encoding/base64"
 	"net/http"
-	"net/url"
 	"regexp"
 	"strconv"
 	"unicode/utf8"
@@ -57,16 +56,11 @@ func validate(req PaymentRequest, version APIVersion, project repository.Project
 	if utf8.RuneCountInString(req.occasion()) > 100 {
 		return invalid("Occassion")
 	}
-	if !isURL(req.QueueTimeOutURL) {
+	if !daraja.IsCallbackURL(req.QueueTimeOutURL) {
 		return invalid("QueueTimeOutURL")
 	}
-	if !isURL(req.ResultURL) {
+	if !daraja.IsCallbackURL(req.ResultURL) {
 		return invalid("ResultURL")
 	}
 	return nil
-}
-
-func isURL(raw string) bool {
-	u, err := url.Parse(raw)
-	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != ""
 }

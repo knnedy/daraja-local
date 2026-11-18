@@ -11,6 +11,7 @@ import (
 
 	"github.com/knnedy/daraja-local/internal/daraja"
 	"github.com/knnedy/daraja-local/internal/delivery"
+	"github.com/knnedy/daraja-local/internal/ledger"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/requestlog"
 	"github.com/knnedy/daraja-local/internal/response"
@@ -38,13 +39,19 @@ type Payouts struct {
 	log       *requestlog.Log
 	deliverer *delivery.Deliverer
 	verifier  Verifier
+	ledger    Recorder
 	// delay stands in for the seconds Safaricom takes before posting a result.
 	delay    time.Duration
 	inFlight sync.WaitGroup
 }
 
-func NewPayouts(db *repository.DB, log *requestlog.Log, deliverer *delivery.Deliverer, verifier Verifier, delay time.Duration) *Payouts {
-	return &Payouts{db: db, log: log, deliverer: deliverer, verifier: verifier, delay: delay}
+// Recorder keeps a completed transaction for Transaction Status and Reversal.
+type Recorder interface {
+	Record(ctx context.Context, e ledger.Entry) error
+}
+
+func NewPayouts(db *repository.DB, log *requestlog.Log, deliverer *delivery.Deliverer, verifier Verifier, recorder Recorder, delay time.Duration) *Payouts {
+	return &Payouts{db: db, log: log, deliverer: deliverer, verifier: verifier, ledger: recorder, delay: delay}
 }
 
 // Request accepts a payment and processes it in the background, posting the
@@ -99,7 +106,7 @@ func (p *Payouts) Request(ctx context.Context, project repository.Project, versi
 	go func() {
 		defer p.inFlight.Done()
 		time.Sleep(p.delay)
-		p.process(context.Background(), payment, forced, req.InitiatorName, req.SecurityCredential)
+		p.process(context.Background(), project.ShortCode, payment, forced, req.InitiatorName, req.SecurityCredential)
 	}()
 	return accept, nil
 }
@@ -109,9 +116,26 @@ func (p *Payouts) Wait() {
 	p.inFlight.Wait()
 }
 
-func (p *Payouts) process(ctx context.Context, payment repository.B2cPayment, forced Outcome, initiatorName, securityCredential string) {
+func (p *Payouts) process(ctx context.Context, shortCode string, payment repository.B2cPayment, forced Outcome, initiatorName, securityCredential string) {
 	outcome, after := p.decide(ctx, payment, forced, initiatorName, securityCredential)
-	body := buildResult(payment, outcome, after, time.Now())
+	completedAt := time.Now()
+	body := buildResult(payment, outcome, after, completedAt)
+	if outcome == OutcomeCompleted {
+		initiated, _ := time.Parse("2006-01-02T15:04:05.999Z", payment.CreatedAt)
+		_ = p.ledger.Record(ctx, ledger.Entry{
+			ProjectID:                payment.ProjectID,
+			Receipt:                  payment.TransactionID,
+			Kind:                     ledger.KindB2C,
+			OriginatorConversationID: payment.OriginatorConversationID,
+			ConversationID:           payment.ConversationID,
+			Amount:                   payment.Amount,
+			DebitParty:               shortCode,
+			CreditParty:              payment.PartyB,
+			ReasonType:               reasonTypes[payment.CommandID],
+			InitiatedAt:              initiated,
+			FinalisedAt:              completedAt,
+		})
+	}
 
 	url, status := payment.ResultUrl, "failed"
 	switch outcome {
@@ -122,7 +146,7 @@ func (p *Payouts) process(ctx context.Context, payment repository.B2cPayment, fo
 	}
 	_ = p.db.Queries().CompleteB2CPayment(ctx, repository.CompleteB2CPaymentParams{
 		Status:     status,
-		ResultCode: sql.NullInt64{Int64: int64(body.Result.ResultCode), Valid: true},
+		ResultCode: sql.NullInt64{Int64: int64(resultCodes[outcome].code), Valid: true},
 		ID:         payment.ID,
 	})
 

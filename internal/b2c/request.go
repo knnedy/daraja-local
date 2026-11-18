@@ -2,11 +2,7 @@
 // the synchronous acceptance to the result posted to the developer's ResultURL.
 package b2c
 
-import (
-	"bytes"
-	"encoding/json"
-	"strings"
-)
+import "github.com/knnedy/daraja-local/internal/daraja"
 
 // APIVersion is the B2C path version a request came through. v3 requires
 // OriginatorConversationID; v1 predates it.
@@ -17,27 +13,8 @@ const (
 	V3 APIVersion = "v3"
 )
 
-// Flexible accepts a JSON number or string: Safaricom documents Amount, PartyA
-// and PartyB as numeric, while many clients send strings.
-type Flexible string
-
-func (f *Flexible) UnmarshalJSON(data []byte) error {
-	if bytes.Equal(data, []byte("null")) {
-		*f = ""
-		return nil
-	}
-	var s string
-	if err := json.Unmarshal(data, &s); err == nil {
-		*f = Flexible(strings.TrimSpace(s))
-		return nil
-	}
-	var n json.Number
-	if err := json.Unmarshal(data, &n); err != nil {
-		return err
-	}
-	*f = Flexible(n.String())
-	return nil
-}
+// Flexible accepts a JSON number or string.
+type Flexible = daraja.Flexible
 
 // PaymentRequest mirrors Daraja's B2C payment request body.
 type PaymentRequest struct {

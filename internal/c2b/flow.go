@@ -2,11 +2,13 @@ package c2b
 
 import (
 	"context"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/knnedy/daraja-local/internal/daraja"
 	"github.com/knnedy/daraja-local/internal/delivery"
+	"github.com/knnedy/daraja-local/internal/ledger"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/requestlog"
 	"github.com/knnedy/daraja-local/internal/response"
@@ -18,11 +20,17 @@ type Flow struct {
 	db        *repository.DB
 	log       *requestlog.Log
 	deliverer *delivery.Deliverer
+	ledger    Recorder
 	inFlight  sync.WaitGroup
 }
 
-func NewFlow(db *repository.DB, log *requestlog.Log, deliverer *delivery.Deliverer) *Flow {
-	return &Flow{db: db, log: log, deliverer: deliverer}
+// Recorder keeps a completed transaction for Transaction Status and Reversal.
+type Recorder interface {
+	Record(ctx context.Context, e ledger.Entry) error
+}
+
+func NewFlow(db *repository.DB, log *requestlog.Log, deliverer *delivery.Deliverer, recorder Recorder) *Flow {
+	return &Flow{db: db, log: log, deliverer: deliverer, ledger: recorder}
 }
 
 // RegisterURL replaces a project's Registration, remembering which path version
@@ -90,7 +98,7 @@ func (f *Flow) Simulate(ctx context.Context, project repository.Project, req Sim
 	f.inFlight.Add(1)
 	go func() {
 		defer f.inFlight.Done()
-		f.validateAndConfirm(context.Background(), project.ID, settings, payload, accept.ConversationID)
+		f.validateAndConfirm(context.Background(), project.ID, settings, payload, req, accept.ConversationID)
 	}()
 
 	return accept, nil
@@ -131,8 +139,9 @@ func (f *Flow) Wait() {
 	f.inFlight.Wait()
 }
 
-func (f *Flow) validateAndConfirm(ctx context.Context, projectID int64, settings repository.ProjectSetting, payload Payload, transactionID string) {
+func (f *Flow) validateAndConfirm(ctx context.Context, projectID int64, settings repository.ProjectSetting, payload Payload, req SimulateRequest, transactionID string) {
 	accepted := true
+	started := time.Now()
 
 	// A registered ValidationURL turns validation on. ResponseType is only
 	// the fallback when that URL can't answer.
@@ -153,6 +162,21 @@ func (f *Flow) validateAndConfirm(ctx context.Context, projectID int64, settings
 	if !accepted {
 		return
 	}
+
+	// Validate already proved Amount is a positive integer.
+	amount, _ := strconv.ParseInt(req.Amount, 10, 64)
+	_ = f.ledger.Record(ctx, ledger.Entry{
+		ProjectID:      projectID,
+		Receipt:        payload.TransID,
+		Kind:           ledger.KindC2B,
+		ConversationID: transactionID,
+		Amount:         amount,
+		DebitParty:     req.Msisdn,
+		CreditParty:    payload.BusinessShortCode,
+		ReasonType:     payload.TransactionType,
+		InitiatedAt:    started,
+		FinalisedAt:    time.Now(),
+	})
 
 	result := f.deliverer.Deliver(ctx, settings.CallbackUrl, payload)
 	f.log.Delivery(ctx, projectID, requestlog.C2BSimulate, transactionID, "confirmed", payload, result)

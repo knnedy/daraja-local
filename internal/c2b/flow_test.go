@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/knnedy/daraja-local/internal/delivery"
+	"github.com/knnedy/daraja-local/internal/ledger"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/requestlog"
 	"github.com/knnedy/daraja-local/internal/response"
@@ -71,7 +72,7 @@ func newFlowFixture(t *testing.T) *flowFixture {
 	}
 
 	f := &flowFixture{app: &developerApp{confirmStatus: 200}, log: requestlog.New(db), project: project}
-	f.flow = NewFlow(db, f.log, delivery.New(f.app, delivery.NoBackoff))
+	f.flow = NewFlow(db, f.log, delivery.New(f.app, delivery.NoBackoff), ledger.New(db, f.log, nil, nil, 0))
 	t.Cleanup(func() {
 		f.flow.Wait()
 		_ = db.Close()

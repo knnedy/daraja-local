@@ -1,9 +1,9 @@
 package b2c
 
 import (
-	"strconv"
 	"time"
 
+	"github.com/knnedy/daraja-local/internal/daraja"
 	"github.com/knnedy/daraja-local/internal/repository"
 )
 
@@ -41,39 +41,16 @@ var resultCodes = map[Outcome]struct {
 	OutcomeQueueTimeout: {1037, "The request timed out while awaiting processing."},
 }
 
+// reasonTypes name each CommandID as Transaction Status reports it. Only
+// BusinessPayment's wording appears in Safaricom's sample.
+var reasonTypes = map[string]string{
+	"BusinessPayment":  "Business Payment to Customer via API",
+	"SalaryPayment":    "Salary Payment via API",
+	"PromotionPayment": "Promotion Payment via API",
+}
+
 // sandboxQueueTimeoutURL is the ReferenceData value in Safaricom's samples.
 const sandboxQueueTimeoutURL = "https://internalsandbox.safaricom.co.ke/mpesa/b2cresults/v1/submit"
-
-// money encodes cents as a JSON number with two decimals, like 10116.00.
-type money int64
-
-func (m money) MarshalJSON() ([]byte, error) {
-	return []byte(strconv.FormatFloat(float64(m)/100, 'f', 2, 64)), nil
-}
-
-type keyValue struct {
-	Key   string `json:"Key"`
-	Value any    `json:"Value"`
-}
-
-type resultBody struct {
-	Result result `json:"Result"`
-}
-
-type result struct {
-	ResultType               int    `json:"ResultType"`
-	ResultCode               int    `json:"ResultCode"`
-	ResultDesc               string `json:"ResultDesc"`
-	OriginatorConversationID string `json:"OriginatorConversationID"`
-	ConversationID           string `json:"ConversationID"`
-	TransactionID            string `json:"TransactionID"`
-	ResultParameters         *struct {
-		ResultParameter []keyValue `json:"ResultParameter"`
-	} `json:"ResultParameters,omitempty"`
-	ReferenceData struct {
-		ReferenceItem keyValue `json:"ReferenceItem"`
-	} `json:"ReferenceData"`
-}
 
 // balances are the accounts after a completed payment.
 type balances struct {
@@ -82,9 +59,9 @@ type balances struct {
 
 // buildResult builds the body posted to ResultURL, or to QueueTimeOutURL for a
 // timeout. Only a completed payment carries ResultParameters.
-func buildResult(payment repository.B2cPayment, outcome Outcome, after balances, completedAt time.Time) resultBody {
+func buildResult(payment repository.B2cPayment, outcome Outcome, after balances, completedAt time.Time) daraja.ResultBody {
 	code := resultCodes[outcome]
-	r := result{
+	r := daraja.Result{
 		ResultCode:               code.code,
 		ResultDesc:               code.desc,
 		OriginatorConversationID: payment.OriginatorConversationID,
@@ -94,21 +71,19 @@ func buildResult(payment repository.B2cPayment, outcome Outcome, after balances,
 	if outcome == OutcomeQueueTimeout {
 		r.ResultType = 1
 	}
-	r.ReferenceData.ReferenceItem = keyValue{Key: "QueueTimeoutURL", Value: sandboxQueueTimeoutURL}
+	r.ReferenceData.ReferenceItem = daraja.Param("QueueTimeoutURL", sandboxQueueTimeoutURL)
 
 	if outcome == OutcomeCompleted {
-		r.ResultParameters = &struct {
-			ResultParameter []keyValue `json:"ResultParameter"`
-		}{[]keyValue{
-			{"TransactionAmount", payment.Amount},
-			{"TransactionReceipt", payment.TransactionID},
-			{"B2CRecipientIsRegisteredCustomer", "Y"},
-			{"B2CChargesPaidAccountAvailableFunds", money(after.chargesPaid)},
-			{"ReceiverPartyPublicName", payment.PartyB + " - John Doe"},
-			{"TransactionCompletedDateTime", completedAt.Format("02.01.2006 15:04:05")},
-			{"B2CUtilityAccountAvailableFunds", money(after.utility)},
-			{"B2CWorkingAccountAvailableFunds", money(after.working)},
+		r.ResultParameters = &daraja.ResultParameters{ResultParameter: []daraja.KeyValue{
+			daraja.Param("TransactionAmount", payment.Amount),
+			daraja.Param("TransactionReceipt", payment.TransactionID),
+			daraja.Param("B2CRecipientIsRegisteredCustomer", "Y"),
+			daraja.Param("B2CChargesPaidAccountAvailableFunds", daraja.Money(after.chargesPaid)),
+			daraja.Param("ReceiverPartyPublicName", payment.PartyB+" - John Doe"),
+			daraja.Param("TransactionCompletedDateTime", completedAt.Format("02.01.2006 15:04:05")),
+			daraja.Param("B2CUtilityAccountAvailableFunds", daraja.Money(after.utility)),
+			daraja.Param("B2CWorkingAccountAvailableFunds", daraja.Money(after.working)),
 		}}
 	}
-	return resultBody{Result: r}
+	return daraja.ResultBody{Result: r}
 }

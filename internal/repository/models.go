@@ -82,3 +82,19 @@ type RequestLog struct {
 	Payload       string
 	CreatedAt     string
 }
+
+type Transaction struct {
+	ID                       int64
+	ProjectID                int64
+	Receipt                  string
+	Kind                     string
+	OriginatorConversationID string
+	ConversationID           string
+	Amount                   int64
+	DebitParty               string
+	CreditParty              string
+	ReasonType               string
+	ReversedBy               string
+	InitiatedAt              string
+	FinalisedAt              string
+}

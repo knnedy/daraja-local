@@ -11,7 +11,6 @@ import (
 	"github.com/knnedy/daraja-local/internal/auth"
 	"github.com/knnedy/daraja-local/internal/b2c"
 	"github.com/knnedy/daraja-local/internal/daraja"
-	"github.com/knnedy/daraja-local/internal/initiator"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/response"
 )
@@ -87,12 +86,7 @@ func (h *B2CHandler) SendPayout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	found, err := h.initiators.Get(r.Context(), project.ID)
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, "failed to get initiator")
-		return
-	}
-	credential, err := initiator.SecurityCredential(found)
+	name, credential, err := signedCredential(r.Context(), h.initiators, project.ID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, "failed to build SecurityCredential")
 		return
@@ -100,7 +94,7 @@ func (h *B2CHandler) SendPayout(w http.ResponseWriter, r *http.Request) {
 
 	accept, validationErr := h.payouts.Request(r.Context(), project, b2c.V3, b2c.PaymentRequest{
 		OriginatorConversationID: daraja.NewOriginatorConversationID(),
-		InitiatorName:            found.Name,
+		InitiatorName:            name,
 		SecurityCredential:       credential,
 		CommandID:                body.CommandID,
 		Amount:                   b2c.Flexible(body.Amount),
