@@ -162,6 +162,14 @@ export const api = {
           },
         );
       },
+
+      /** Sends a payment's callback again, byte for byte, to its CallBackURL. */
+      resend(slug: string, checkoutRequestId: string): Promise<void> {
+        return request<void>(
+          `/api/projects/${encodeURIComponent(slug)}/stk/${encodeURIComponent(checkoutRequestId)}/resend`,
+          { method: "POST" },
+        );
+      },
     },
     c2b: {
       registration(slug: string): Promise<C2BRegistration> {

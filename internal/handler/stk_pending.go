@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -78,4 +79,22 @@ func (h *STKHandler) Resolve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.JSON(w, http.StatusNoContent, nil)
+}
+
+// ResendCallback handles POST /api/projects/{slug}/stk/{checkoutRequestId}/resend.
+func (h *STKHandler) ResendCallback(w http.ResponseWriter, r *http.Request) {
+	project, err := h.projectService.Get(r.Context(), chi.URLParam(r, "slug"))
+	if err != nil {
+		writeServiceError(w, err, "failed to get project")
+		return
+	}
+	err = h.sessions.ResendCallback(r.Context(), project.ID, chi.URLParam(r, "checkoutRequestId"))
+	switch {
+	case err == nil:
+		w.WriteHeader(http.StatusNoContent)
+	case errors.Is(err, response.ErrNotFound):
+		response.Error(w, http.StatusNotFound, "No callback has been sent for this payment yet, so there is nothing to resend.")
+	default:
+		response.Error(w, http.StatusInternalServerError, "failed to resend callback")
+	}
 }

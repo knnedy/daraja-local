@@ -2,23 +2,9 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import CodeSnippets from "../../_components/code-snippets";
 
 const tabs = ["Register", "Simulate", "Payloads"] as const;
-
-const registerBody = `{
-  "ShortCode": "<shortcode>",
-  "ResponseType": "Completed",
-  "ConfirmationURL": "https://your-app.com/api/callbacks/c2b-confirmation",
-  "ValidationURL": "https://your-app.com/api/callbacks/c2b-validation"
-}`;
-
-const simulateBody = `{
-  "ShortCode": "<shortcode>",
-  "CommandID": "CustomerPayBillOnline",
-  "Amount": "500",
-  "Msisdn": "254708374149",
-  "BillRefNumber": "INV1001"
-}`;
 
 const outboundPayload = `{
   "TransactionType": "Pay Bill",
@@ -55,7 +41,8 @@ export default function IntegrationPanel() {
               "relative px-4 py-2.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground",
               tab === t &&
                 "text-foreground after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-green",
-            )}>
+            )}
+          >
             {t}
           </button>
         ))}
@@ -74,9 +61,7 @@ export default function IntegrationPanel() {
               <span className="font-mono text-foreground">Cancelled</span>{" "}
               rejects it.
             </p>
-            <pre className="overflow-x-auto rounded-md border border-terminal-border bg-terminal-bg p-3.5 font-mono text-[12px] leading-relaxed text-terminal-green">
-              {registerBody}
-            </pre>
+            <CodeSnippets request="c2bRegister" />
             <p className="mt-2 text-[11px] text-amber">
               Neither URL may contain mpesa, m-pesa, safaricom, exe, exec, cmd,
               sql or query, in any case — Daraja rejects those outright.
@@ -89,9 +74,7 @@ export default function IntegrationPanel() {
               Sandbox-only — stands in for a customer paying your Paybill from
               their own phone. Msisdn must look like 2547XXXXXXXX.
             </p>
-            <pre className="overflow-x-auto rounded-md border border-terminal-border bg-terminal-bg p-3.5 font-mono text-[12px] leading-relaxed text-terminal-green">
-              {simulateBody}
-            </pre>
+            <CodeSnippets request="c2bSimulate" />
             <p className="mt-2 text-[11px] text-amber">
               Fails immediately if you haven&apos;t registered a ConfirmationURL
               for this shortcode yet.

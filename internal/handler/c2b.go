@@ -42,7 +42,7 @@ func (h *C2BHandler) RegisterURL(version c2b.APIVersion) http.HandlerFunc {
 
 		var req c2b.RegisterURLRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			response.DarajaJSON(w, http.StatusBadRequest, "400.002.02", "Bad Request - Invalid request body")
+			response.DarajaJSON(w, http.StatusBadRequest, "400.002.02", "Bad Request - ")
 			return
 		}
 
@@ -64,7 +64,7 @@ func (h *C2BHandler) Simulate(w http.ResponseWriter, r *http.Request) {
 
 	var req c2b.SimulateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.DarajaJSON(w, http.StatusBadRequest, "400.002.02", "Bad Request - Invalid request body")
+		response.DarajaJSON(w, http.StatusBadRequest, "400.002.02", "Bad Request - ")
 		return
 	}
 
@@ -74,7 +74,12 @@ func (h *C2BHandler) Simulate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.JSON(w, http.StatusOK, accept)
+	// The sandbox's simulate reply has no ConversationID; Daraja Local keeps one internally.
+	response.JSON(w, http.StatusOK, struct {
+		OriginatorConversationID string `json:"OriginatorCoversationID"`
+		ResponseCode             string `json:"ResponseCode"`
+		ResponseDescription      string `json:"ResponseDescription"`
+	}{accept.OriginatorConversationID, accept.ResponseCode, accept.ResponseDescription})
 }
 
 type registrationResponse struct {

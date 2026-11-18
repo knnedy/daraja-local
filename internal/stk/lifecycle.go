@@ -60,13 +60,12 @@ func (l *Lifecycle) Accept(ctx context.Context, project repository.Project, req 
 	}
 	timeout := time.Duration(settings.StkTimeoutSeconds) * time.Second
 
-	// Validate already proved Amount is a positive integer.
-	amount, _ := strconv.ParseInt(req.Amount, 10, 64)
+	amount := WholeAmount(req.Amount)
 	now := l.clock.Now()
 
 	session := Session{
 		MerchantRequestID: GenerateMerchantRequestID(),
-		CheckoutRequestID: GenerateCheckoutRequestID(),
+		CheckoutRequestID: GenerateCheckoutRequestID(req.PhoneNumber),
 		ProjectID:         project.ID,
 		BusinessShortCode: req.BusinessShortCode,
 		PartyA:            req.PartyA,
@@ -112,9 +111,9 @@ func (l *Lifecycle) Query(ctx context.Context, project repository.Project, req Q
 
 	if !ok || session.ProjectID != project.ID {
 		validationErr := &daraja.ValidationError{
-			HTTPStatus:   400,
-			ErrorCode:    "400.002.02",
-			ErrorMessage: "Bad Request - Invalid CheckoutRequestID",
+			HTTPStatus:   500,
+			ErrorCode:    "500.001.1001",
+			ErrorMessage: "The transaction does not Exist",
 		}
 		l.log.Rejected(ctx, project.ID, requestlog.STKQuery, "", req, validationErr)
 		return QueryResponse{}, validationErr
@@ -183,6 +182,28 @@ func (l *Lifecycle) Resolve(projectID int64, checkoutRequestID string, outcome O
 	go func() {
 		defer l.deliveries.Done()
 		l.deliver(session, outcome)
+	}()
+	return nil
+}
+
+// ResendCallback sends a payment's callback again, byte for byte, to the
+// CallBackURL it first went to, in the background. Returns ErrNotFound while
+// the payment is still waiting on the customer or was never sent.
+func (l *Lifecycle) ResendCallback(ctx context.Context, projectID int64, checkoutRequestID string) error {
+	sent, found, err := l.log.Callback(ctx, projectID, checkoutRequestID)
+	if err != nil {
+		return err
+	}
+	if !found || sent.URL == "" {
+		return response.ErrNotFound
+	}
+
+	l.deliveries.Add(1)
+	go func() {
+		defer l.deliveries.Done()
+		ctx := context.Background()
+		result := l.deliverer.Deliver(ctx, sent.URL, sent.Body)
+		l.log.Redelivery(ctx, projectID, requestlog.STKPush, checkoutRequestID, sent.Outcome, sent.Body, result)
 	}()
 	return nil
 }

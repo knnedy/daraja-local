@@ -3,22 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import CodeSnippets from "../../_components/code-snippets";
 
 const tabs = ["Request", "Result", "Failure"] as const;
-
-const requestBody = `{
-  "OriginatorConversationID": "payout-0001",
-  "InitiatorName": "testapi",
-  "SecurityCredential": "<initiator password, RSA-encrypted, base64>",
-  "CommandID": "BusinessPayment",
-  "Amount": 2500,
-  "PartyA": <shortcode>,
-  "PartyB": 254708374149,
-  "Remarks": "Refund for order 1001",
-  "QueueTimeOutURL": "https://your-app.com/api/b2c/timeout",
-  "ResultURL": "https://your-app.com/api/b2c/result",
-  "Occassion": ""
-}`;
 
 const resultBody = `{
   "Result": {
@@ -101,7 +88,7 @@ export default function IntegrationPanel() {
               </Link>{" "}
               page, with code that builds the SecurityCredential.
             </p>
-            <pre className={code}>{requestBody}</pre>
+            <CodeSnippets request="b2c" />
             <p className="mt-2 text-[11px] text-amber">
               CommandID is SalaryPayment, BusinessPayment or PromotionPayment.
               Remarks must be 2 to 100 characters.

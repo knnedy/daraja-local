@@ -6,7 +6,11 @@ When Daraja Local and Safaricom disagree, Safaricom is right. If you find a diff
 
 ## How this was checked
 
-Daraja Local has not been tested against Safaricom directly. Its behavior comes from Daraja documentation as reproduced in community SDKs, and from sandbox responses published in open-source repositories and tutorials. Confidence depends on the area:
+On 2026-11-19 the same 26 requests were sent to the Daraja sandbox and to Daraja Local: successful requests and field errors for every API. After the fixes listed below, 25 matched exactly, apart from generated IDs. The other one was the sandbox answering `System is busy` that time. Those sync responses are now high confidence.
+
+Callbacks and results were checked less. The sandbox sent one STK callback, but no results for B2C, B2B, Account Balance, Transaction Status or Reversal requests made with an invalid credential. C2B URL registration was down (`500.003.1001` `Service is currently unreachable`), so C2B callbacks are still unchecked.
+
+Everything else comes from Daraja documentation as reproduced in community SDKs, and from sandbox responses published in open-source repositories and tutorials. Confidence depends on the area:
 
 - **OAuth and STK Push:** high. Many independent sources agree.
 - **STK Push Query:** medium for a resolved request, lower for a pending or unknown one. Safaricom's documentation covers only the resolved case.
@@ -15,6 +19,25 @@ Daraja Local has not been tested against Safaricom directly. Its behavior comes 
 - **B2C request, acceptance and result shapes:** medium to high. Safaricom's v3 documentation and several SDKs agree. Error texts for individual fields, and the timeout body, are not documented.
 
 Each known difference below says how sure we are.
+
+## Captured from the sandbox
+
+Each of these was seen in a real sandbox response on 2026-11-19, and Daraja Local now does the same. Confidence: high.
+
+- **IDs.** `requestId`, `MerchantRequestID` and a generated `OriginatorConversationID` look like `104b-4235-9328-5de584002ffd785653`. `ConversationID` looks like `AG_20261119_01001003029wy0rrvtpn`. `CheckoutRequestID` is `ws_CO_`, then the date and time in Kenya time, one digit, and the phone without `254`: `ws_CO_191120260104173708374149`.
+- **STK Push.**
+  - A wrong password returns `500.001.1001` `Wrong credentials`.
+  - A missing `CallBackURL` returns `400.002.02` `Bad Request - Invalid CallBackURL`.
+  - A malformed `Timestamp` returns `Bad Request - Invalid Timestamp`, before the password is checked.
+  - A decimal `Amount` such as `"1.5"` is accepted.
+- **STK callback for a timeout.** `ResultCode` `1037`, `ResultDesc` `DS timeout user cannot be reached.`, with no `CallbackMetadata`. It was sent from `196.201.212.69` with `Content-Type: application/json;charset=UTF-8`.
+- **STK Query of an unknown `CheckoutRequestID`.** HTTP 500, `500.001.1001`, `The transaction does not Exist`.
+- **C2B field errors** use `400.003.02`, for both `registerurl` and `simulate`. A bad `ResponseType` says `Bad Request - Invalid ResponseType, Expected value is 'Completed' or 'Cancelled'`. The blocked-word text `Bad Request - Invalid ConfirmationURL - URL has the word MPESA` matched.
+- **C2B `simulate`** replies with `OriginatorCoversationID`, `ResponseCode` and `ResponseDescription`, and no `ConversationID`.
+- **B2C v3 field errors** add the `OriginatorConversationID` you sent, or `""`, to the usual error body.
+- **Transaction Status field errors** use `400.002.02`, although Safaricom's documentation lists `400.003.02`.
+- **Malformed JSON** returns `400.002.02` `Bad Request - `, with nothing after the dash.
+- **OAuth.** `expires_in` is the string `"3599"`.
 
 ## What matches
 
@@ -49,6 +72,8 @@ Each known difference below says how sure we are.
 | Blocked-word error text                    | `Bad Request - Invalid <Field> - URL has the word <WORD>`, for every blocked word.                          | Confirmed for MPESA: an SDK author captured `Bad Request - Invalid ValidationURL - URL has the word MPESA` from the sandbox, matching an earlier observation. The text for the other words is unverified.                    | Medium for MPESA, low otherwise |
 | `Msisdn` error text                        | `Bad Request - Invalid Msisdn`.                                                                             | Unverified.                                                                                                                                                                                                                  | Low                             |
 | `TransAmount` format                       | Echoes your `Amount` string, e.g. `"500"`.                                                                  | Some samples show decimals, e.g. `"1.00"`.                                                                                                                                                                                   | Low                             |
+| STK decimal `Amount`                       | Accepted, and the callback reports whole shillings, with the decimals dropped.                              | The sandbox accepts it. What its callback reports is unverified, because the sandbox timed out instead of completing.                                                                                                        | Low                             |
+| Invalid access token `requestId`           | A generated ID.                                                                                             | The sandbox sends `""`.                                                                                                                                                                                                      | High                            |
 | STK callback metadata                      | No `Balance` item.                                                                                          | Some real callbacks include a `Balance` item with no value.                                                                                                                                                                  | Low                             |
 | B2C `QueueTimeOutURL` body                 | The `Result` shape with `ResultType` `1` and `ResultCode` `1037`.                                           | Undocumented. No captured sample was found.                                                                                                                                                                                  | Low                             |
 | B2C field error texts                      | `400.002.02` `Bad Request - Invalid <Field>` for each field.                                                | Documented for some fields, such as `SecurityCredential`. The rest are unverified.                                                                                                                                           | Low                             |
@@ -71,13 +96,17 @@ Each known difference below says how sure we are.
 | Account Balance value types                | `ResultType` and `ResultCode` are strings.                                                                  | Safaricom's sample uses strings; a community SDK's sample has `ResultCode` as a number.                                                                                                                                      | Medium                          |
 | Transaction Status scope                   | Finds STK, C2B, B2C, B2B and reversal transactions made since this version.                                 | Also finds other M-Pesa transactions.                                                                                                                                                                                        | High                            |
 | `ResultDesc` wording                       | Follows Daraja's wording for the main outcomes, but may differ.                                             | Safaricom's own text.                                                                                                                                                                                                        | Medium                          |
+| STK Query while pending                    | HTTP 500, `errorCode` `500.001.1001`, `The transaction is being processed`.                                 | Several integrators report this. One report shows HTTP 200 with `ResultCode` `1001` instead.                                                                                                                                 | Medium                          |
+| STK Query, unknown ID                      | HTTP 500, `errorCode` `500.001.1001`, `The transaction does not Exist`.                                     | Captured from the sandbox on 2026-11-19.                                                                                                                                                                                     | High                            |
+| STK Query `ResultCode`                     | Always a string.                                                                                            | The documented sample quotes it. The same page's field table calls it numeric.                                                                                                                                               | Medium                          |
+| STK Query after restart                    | Every `CheckoutRequestID` is unknown, because requests are held in memory.                                  | Safaricom keeps them. How long is unverified.                                                                                                                                                                                | Low                             |
 
 ## Validation that is looser than Daraja
 
 Daraja Local does not check these, and real Daraja may:
 
 - STK `Timestamp` freshness. Only the format is checked.
-- STK `TransactionType`, `PartyA`, `PartyB`, `CallBackURL` and `AccountReference`.
+- STK `TransactionType`, `PartyA`, `PartyB` and `AccountReference`.
 - STK and C2B amount upper limits. Any whole number above zero passes.
 - C2B `BillRefNumber`, which is passed through as given.
 
@@ -95,8 +124,4 @@ These exist because Daraja Local is a local tool, not because Daraja works this 
 
 ## Not implemented
 
-STK Push Query, B2C, B2B, Reversal, Account Balance and Transaction Status.
-| STK Query while pending | HTTP 500, `errorCode` `500.001.1001`, `The transaction is being processed`. | Several integrators report this. One report shows HTTP 200 with `ResultCode` `1001` instead. | Medium |
-| STK Query, unknown ID | HTTP 400, `errorCode` `400.002.02`, `Bad Request - Invalid CheckoutRequestID`. | Not documented, and no captured response was found. The code and text are our guess. | Low |
-| STK Query `ResultCode` | Always a string. | The documented sample quotes it. The same page's field table calls it numeric. | Medium |
-| STK Query after restart | Every `CheckoutRequestID` is unknown, because requests are held in memory. | Safaricom keeps them. How long is unverified. | Low |
+B2C Account Top Up, Business to Pochi, Tax Remittance, Dynamic QR, Bill Manager and Ratiba (standing orders).

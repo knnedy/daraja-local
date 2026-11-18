@@ -60,7 +60,7 @@ func decodeDaraja(w http.ResponseWriter, r *http.Request, into any) (repository.
 		return repository.Project{}, false
 	}
 	if err := json.NewDecoder(r.Body).Decode(into); err != nil {
-		response.DarajaJSON(w, http.StatusBadRequest, "400.002.05", "Invalid Request Payload")
+		response.DarajaJSON(w, http.StatusBadRequest, "400.002.02", "Bad Request - ")
 		return repository.Project{}, false
 	}
 	return project, true

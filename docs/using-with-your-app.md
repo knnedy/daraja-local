@@ -26,6 +26,10 @@ Use the credentials of the project you're testing against. A key from one projec
 
 ## 2. A complete example
 
+Every API page also has code for its requests in cURL, Node, Python, PHP and Go, under the integration panel's language switcher. Each snippet gets its own token and builds the `Password` or `SecurityCredential` it needs, reading the variables from the `.env` you export on the Settings page. The language you pick is remembered across pages.
+
+The examples below go further: each one also runs a small server to receive the callback.
+
 Each example does the same three things:
 
 1. Gets an access token.
@@ -387,7 +391,7 @@ Open the Request Log page right after sending a request. You should see a `REQ` 
 
 ## Common mistakes
 
-- **Numbers as JSON numbers.** Every request field is a string, including `Amount`, `PartyA`, `PartyB`, `PhoneNumber`, `BusinessShortCode` and `Timestamp`. Sending `"Amount": 100` fails with `400.002.02 Bad Request - Invalid request body`.
+- **Numbers as JSON numbers.** Every request field is a string, including `Amount`, `PartyA`, `PartyB`, `PhoneNumber`, `BusinessShortCode` and `Timestamp`. Sending `"Amount": 100` fails in Daraja Local with `400.002.02 Bad Request - `. B2C is the exception: the sandbox accepted a numeric `Amount` there, so Daraja Local does too.
 - **Handler returns 204.** It's a failed delivery, so you'll see retries and a `failed` status in the Request Log.
 - **Wrong password.** It must be `base64(shortcode + passkey + timestamp)`, using the same `Timestamp` you send in the body.
 

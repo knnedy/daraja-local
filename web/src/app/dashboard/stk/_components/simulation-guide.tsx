@@ -58,7 +58,8 @@ export default function SimulationGuide() {
           {outcomes.map((o) => (
             <div
               key={o.code}
-              className="flex items-start justify-between gap-2 rounded-md border border-border/60 px-3 py-2">
+              className="flex items-start justify-between gap-2 rounded-md border border-border/60 px-3 py-2"
+            >
               <div>
                 <p className="text-[12.5px] font-medium text-foreground">
                   {o.label}
@@ -74,7 +75,8 @@ export default function SimulationGuide() {
                     "border-green/30 bg-green/10 text-green",
                   o.tone === "error" &&
                     "border-destructive/30 bg-destructive/10 text-destructive",
-                )}>
+                )}
+              >
                 {o.code}
               </span>
             </div>

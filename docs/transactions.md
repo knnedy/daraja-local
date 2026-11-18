@@ -48,7 +48,7 @@ Both need the same Bearer token as STK Push and reply with:
 - Send `TransactionID`, the receipt, or leave it empty and send `OriginalConversationID`.
 - `PartyA` is your shortcode and `IdentifierType` is `1`, `2` or `4`.
 - Safaricom's own sample spells two keys `"Command ID"` and `"Transaction ID"`, with a space. Both spellings are accepted.
-- A field that fails these checks returns HTTP 400 `400.003.02` `Bad Request - Invalid <Field>`.
+- A field that fails these checks returns HTTP 400 `400.002.02` `Bad Request - Invalid <Field>`. Safaricom's documentation says `400.003.02`, but the sandbox answered `400.002.02` on 2026-11-19.
 
 The result for a transaction that exists:
 

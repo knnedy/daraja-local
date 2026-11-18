@@ -16,6 +16,7 @@ var (
 	msisdnPattern   = regexp.MustCompile(`^254[17]\d{8}$`)
 )
 
+// C2B field errors use 400.003.02, as captured from the sandbox on 2026-11-19.
 func ValidateRegisterURL(req RegisterURLRequest, project repository.Project) *daraja.ValidationError {
 	if req.ShortCode != project.ShortCode {
 		return &daraja.ValidationError{
@@ -27,8 +28,8 @@ func ValidateRegisterURL(req RegisterURLRequest, project repository.Project) *da
 	if req.ResponseType != "Completed" && req.ResponseType != "Cancelled" {
 		return &daraja.ValidationError{
 			HTTPStatus:   http.StatusBadRequest,
-			ErrorCode:    "400.002.02",
-			ErrorMessage: "Bad Request - Invalid ResponseType",
+			ErrorCode:    "400.003.02",
+			ErrorMessage: "Bad Request - Invalid ResponseType, Expected value is 'Completed' or 'Cancelled'",
 		}
 	}
 	if err := validateNoMpesaInURL(req.ConfirmationURL, "ConfirmationURL"); err != nil {
@@ -49,7 +50,7 @@ func validateNoMpesaInURL(url, field string) *daraja.ValidationError {
 		if strings.Contains(lower, word) {
 			return &daraja.ValidationError{
 				HTTPStatus:   http.StatusBadRequest,
-				ErrorCode:    "400.002.02",
+				ErrorCode:    "400.003.02",
 				ErrorMessage: "Bad Request - Invalid " + field + " - URL has the word " + strings.ToUpper(word),
 			}
 		}
@@ -70,14 +71,14 @@ func ValidateSimulate(req SimulateRequest, project repository.Project, settings 
 	if settings.CallbackUrl == "" {
 		return &daraja.ValidationError{
 			HTTPStatus:   http.StatusBadRequest,
-			ErrorCode:    "400.002.02",
+			ErrorCode:    "400.003.02",
 			ErrorMessage: "Bad Request - No ConfirmationURL registered for this shortcode. Call registerurl first.",
 		}
 	}
 	if req.CommandID != "CustomerPayBillOnline" && req.CommandID != "CustomerBuyGoodsOnline" {
 		return &daraja.ValidationError{
 			HTTPStatus:   http.StatusBadRequest,
-			ErrorCode:    "400.002.02",
+			ErrorCode:    "400.003.02",
 			ErrorMessage: "Bad Request - Invalid CommandID",
 		}
 	}
@@ -85,14 +86,14 @@ func ValidateSimulate(req SimulateRequest, project repository.Project, settings 
 	if err != nil || value <= 0 {
 		return &daraja.ValidationError{
 			HTTPStatus:   http.StatusBadRequest,
-			ErrorCode:    "400.002.02",
+			ErrorCode:    "400.003.02",
 			ErrorMessage: "Bad Request - Invalid Amount",
 		}
 	}
 	if !msisdnPattern.MatchString(req.Msisdn) {
 		return &daraja.ValidationError{
 			HTTPStatus:   http.StatusBadRequest,
-			ErrorCode:    "400.002.02",
+			ErrorCode:    "400.003.02",
 			ErrorMessage: "Bad Request - Invalid Msisdn",
 		}
 	}

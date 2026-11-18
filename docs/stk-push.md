@@ -99,6 +99,20 @@ curl -X POST "http://127.0.0.1:7060/api/projects/<slug>/stk/<CheckoutRequestID>/
 
 Valid outcomes are `approved`, `wrong_pin`, `insufficient_balance`, `cancelled` and `timeout`. A successful call returns 204 with no body, and the callback is sent in the background. Resolving a request that is unknown or already resolved returns an error.
 
+## Inspecting and resending callbacks
+
+The **Callbacks** card on the STK page lists recent payments. For each one it shows the exact callback body sent to your `CallBackURL` and, for every attempt, the HTTP status or connection error, how long it took, and the first 2 KB of your reply.
+
+**Resend callback** posts the same body again, byte for byte, to the `CallBackURL` it first went to. Use it after fixing a handler that failed, or to check that your handler ignores a `CheckoutRequestID` it has already processed. The resend appears under the same payment, marked as resent.
+
+Real Daraja has no resend. This is Daraja Local's own tool, and so is its dashboard API, which may change before 1.0:
+
+```bash
+curl -X POST "http://127.0.0.1:7060/api/projects/<slug>/stk/<CheckoutRequestID>/resend"
+```
+
+It returns 204 and delivers in the background, or 404 while the customer hasn't answered yet.
+
 ## Querying a request
 
 STK Push Query tells your app how a request ended without waiting for the callback. Use it when a callback never arrives.

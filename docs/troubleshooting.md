@@ -6,9 +6,9 @@ Errors from Daraja Local have the same shape as Daraja's:
 
 ```json
 {
-  "requestId": "63336-37319-1",
+  "requestId": "104b-4235-9328-5de584002ffd785653",
   "errorCode": "400.002.02",
-  "errorMessage": "Bad Request - Invalid request body"
+  "errorMessage": "Bad Request - Invalid PhoneNumber"
 }
 ```
 
@@ -22,14 +22,16 @@ Errors from Daraja Local have the same shape as Daraja's:
 
 ## STK Push
 
-| Symptom                                                     | Cause                                                     | Fix                                                                                                                             |
-| ----------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `400.002.02` Bad Request - Invalid request body (HTTP 400)  | The body isn't valid JSON, or a field has the wrong type. | Send every field as a string. Check shell-built payloads for a stray newline (see below).                                       |
-| `500.001.1001` [MerchantValidate] - Wrong credentials (500) | The password, base64 or timestamp is wrong.               | Password is `base64(shortcode + passkey + Timestamp)` with the same `Timestamp` as the body. Use the project's current passkey. |
-| `500.001.1001` Merchant does not exist (500)                | `BusinessShortCode` isn't the project's shortcode.        | Use the shortcode from the Credentials page.                                                                                    |
-| `400.002.02` Bad Request - Invalid PhoneNumber (400)        | Not `254`, then `7` or `1`, then 8 digits.                | Use the `2547XXXXXXXX` form. `+254…` and `07…` are rejected.                                                                    |
-| `400.002.02` Bad Request - Invalid Amount (400)             | Not a whole number above zero.                            | Use `"100"`, not `"100.75"`, `"0"` or `100`.                                                                                    |
-| `1025` … TransactionDesc exceeds 182 characters (500)       | `TransactionDesc` is too long.                            | Shorten it to 182 characters or fewer.                                                                                          |
+| Symptom                                                       | Cause                                                     | Fix                                                                                                                             |
+| ------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `400.002.02` Bad Request - (HTTP 400), nothing after the dash | The body isn't valid JSON, or a field has the wrong type. | Send every field as a string. Check shell-built payloads for a stray newline (see below).                                       |
+| `500.001.1001` Wrong credentials (500)                        | The password or its base64 is wrong.                      | Password is `base64(shortcode + passkey + Timestamp)` with the same `Timestamp` as the body. Use the project's current passkey. |
+| `400.002.02` Bad Request - Invalid Timestamp (400)            | `Timestamp` isn't `yyyyMMddHHmmss`.                       | Format it in Kenya time (UTC+3), e.g. `20261119143000`.                                                                         |
+| `400.002.02` Bad Request - Invalid CallBackURL (400)          | `CallBackURL` is missing or not an http(s) URL.           | Send a full URL Daraja Local can reach, e.g. `http://localhost:3000/mpesa/callback`.                                            |
+| `500.001.1001` Merchant does not exist (500)                  | `BusinessShortCode` isn't the project's shortcode.        | Use the shortcode from the Credentials page.                                                                                    |
+| `400.002.02` Bad Request - Invalid PhoneNumber (400)          | Not `254`, then `7` or `1`, then 8 digits.                | Use the `2547XXXXXXXX` form. `+254…` and `07…` are rejected.                                                                    |
+| `400.002.02` Bad Request - Invalid Amount (400)               | Not a whole number above zero.                            | Use `"100"`, not `"100.75"`, `"0"` or `100`.                                                                                    |
+| `1025` … TransactionDesc exceeds 182 characters (500)         | `TransactionDesc` is too long.                            | Shorten it to 182 characters or fewer.                                                                                          |
 
 A request that fails validation never reaches the Virtual Phone. It's logged as `rejected`.
 
@@ -74,7 +76,7 @@ A request that fails validation never reaches the Virtual Phone. It's logged as 
 
 ## Shell gotchas
 
-**A newline inside the password.** GNU `base64` on Linux wraps its output every 76 characters. That puts a newline inside the `Password` string, which makes your JSON invalid and fails with `Invalid request body`. Strip it:
+**A newline inside the password.** GNU `base64` on Linux wraps its output every 76 characters. That puts a newline inside the `Password` string, which makes your JSON invalid and fails with `Bad Request - `. Strip it:
 
 ```bash
 PASSWORD=$(printf '%s%s%s' "$SHORTCODE" "$PASSKEY" "$TIMESTAMP" | base64 | tr -d '\n')

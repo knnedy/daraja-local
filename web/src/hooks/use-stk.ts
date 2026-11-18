@@ -28,3 +28,15 @@ export function useResolveSession(slug: string) {
     },
   });
 }
+
+export function useResendCallback(slug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (checkoutRequestId: string) =>
+      api.projects.stk.resend(slug, checkoutRequestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["request-log"] });
+    },
+  });
+}

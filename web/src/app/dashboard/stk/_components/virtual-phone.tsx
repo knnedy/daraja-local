@@ -132,7 +132,8 @@ export default function VirtualPhone({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.18 }}
-                className="flex min-h-112 flex-col items-center justify-center gap-4 px-7 text-center">
+                className="flex min-h-112 flex-col items-center justify-center gap-4 px-7 text-center"
+              >
                 <span className="relative flex size-3.5">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-terminal-green opacity-40" />
                   <span className="relative inline-flex size-3.5 rounded-full bg-terminal-green" />
@@ -152,7 +153,8 @@ export default function VirtualPhone({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.18 }}
-                className="flex min-h-112 flex-col justify-between px-5 pt-2 pb-5">
+                className="flex min-h-112 flex-col justify-between px-5 pt-2 pb-5"
+              >
                 <div className="flex items-start justify-between">
                   <p className="pt-2 font-mono text-[11.5px] text-terminal-green-dim">
                     Confirm payment
@@ -174,7 +176,8 @@ export default function VirtualPhone({
                       type="button"
                       disabled={resolving}
                       onClick={() => onResolve(a.outcome)}
-                      className="rounded-lg bg-white/5 py-3 font-mono text-[11px] uppercase tracking-wide text-white/80 transition-colors hover:bg-white/10 active:scale-95 disabled:opacity-30">
+                      className="rounded-lg bg-white/5 py-3 font-mono text-[11px] uppercase tracking-wide text-white/80 transition-colors hover:bg-white/10 active:scale-95 disabled:opacity-30"
+                    >
                       {a.label}
                     </button>
                   ))}
@@ -189,13 +192,15 @@ export default function VirtualPhone({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.2 }}
-                className="flex min-h-112 flex-col items-center justify-center gap-4 px-7 text-center">
+                className="flex min-h-112 flex-col items-center justify-center gap-4 px-7 text-center"
+              >
                 <div
                   className={`flex size-11 items-center justify-center rounded-full ${
                     OUTCOME_COPY[resolvedOutcome].tone === "success"
                       ? "bg-terminal-green/15 text-terminal-green"
                       : "bg-destructive/15 text-destructive"
-                  }`}>
+                  }`}
+                >
                   {OUTCOME_COPY[resolvedOutcome].tone === "success" ? (
                     <CheckIcon className="size-5" />
                   ) : (

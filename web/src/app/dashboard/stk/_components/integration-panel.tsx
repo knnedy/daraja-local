@@ -2,22 +2,9 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import CodeSnippets from "../../_components/code-snippets";
 
 const tabs = ["Request", "Callback", "Query"] as const;
-
-const requestBody = `{
-  "BusinessShortCode": "<shortcode>",
-  "Password": "<base64(shortcode+passkey+timestamp)>",
-  "Timestamp": "20260903101500",
-  "TransactionType": "CustomerPayBillOnline",
-  "Amount": "1000",
-  "PartyA": "254712345678",
-  "PartyB": "<shortcode>",
-  "PhoneNumber": "254712345678",
-  "CallBackURL": "<your-callback-url>",
-  "AccountReference": "Order #1032",
-  "TransactionDesc": "Payment for goods"
-}`;
 
 const callbackBody = `{
   "Body": {
@@ -38,16 +25,7 @@ const callbackBody = `{
   }
 }`;
 
-const queryBody = `POST /mpesa/stkpushquery/v1/query
-
-{
-  "BusinessShortCode": "<shortcode>",
-  "Password": "<base64(shortcode+passkey+timestamp)>",
-  "Timestamp": "20260903101500",
-  "CheckoutRequestID": "ws_CO_191220191020363925"
-}
-
-200 once resolved
+const queryResponses = `200 once resolved
 {
   "ResponseCode": "0",
   "ResponseDescription": "The service request has been accepted successfully",
@@ -78,7 +56,8 @@ export default function IntegrationPanel() {
               "relative px-4 py-2.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground",
               tab === t &&
                 "text-foreground after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-green",
-            )}>
+            )}
+          >
             {t}
           </button>
         ))}
@@ -91,12 +70,10 @@ export default function IntegrationPanel() {
               base64(shortcode + passkey + timestamp), matching real Daraja
               auth.
             </p>
-            <pre className="overflow-x-auto rounded-md border border-terminal-border bg-terminal-bg p-3.5 font-mono text-[12px] leading-relaxed text-terminal-green">
-              {requestBody}
-            </pre>
+            <CodeSnippets request="stkPush" />
             <p className="mt-2 text-[11px] text-amber">
-              Amount must be a whole integer — Daraja rejects decimals (example:
-              100.75 fails; round to 100 or 101).
+              The sandbox accepts a decimal Amount such as 1.5. Daraja Local
+              keeps whole shillings, so send whole numbers to be safe.
             </p>
           </>
         )}
@@ -118,8 +95,12 @@ export default function IntegrationPanel() {
               Ask how a request ended when the callback never reached you. Use
               the CheckoutRequestID from the acceptance.
             </p>
+            <CodeSnippets request="stkQuery" />
+            <p className="mt-4 mb-2 text-xs text-muted-foreground">
+              What comes back:
+            </p>
             <pre className="overflow-x-auto rounded-md border border-terminal-border bg-terminal-bg p-3.5 font-mono text-[12px] leading-relaxed text-terminal-green">
-              {queryBody}
+              {queryResponses}
             </pre>
             <p className="mt-2 text-[11px] text-amber">
               ResultCode is a string here and a number in the callback. Treat

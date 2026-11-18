@@ -2,35 +2,9 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import CodeSnippets from "../../_components/code-snippets";
 
 const tabs = ["Status", "Reversal", "Failures"] as const;
-
-const statusBody = `{
-  "Initiator": "testapi",
-  "SecurityCredential": "<base64>",
-  "CommandID": "TransactionStatusQuery",
-  "TransactionID": "SKC82PACB8",
-  "OriginalConversationID": "",
-  "PartyA": "<shortcode>",
-  "IdentifierType": "4",
-  "ResultURL": "https://your-app.com/api/status/result",
-  "QueueTimeOutURL": "https://your-app.com/api/status/timeout",
-  "Remarks": "OK",
-  "Occasion": ""
-}`;
-
-const reversalBody = `{
-  "Initiator": "testapi",
-  "SecurityCredential": "<base64>",
-  "CommandID": "TransactionReversal",
-  "TransactionID": "SKC82PACB8",
-  "Amount": "500",
-  "ReceiverParty": "<shortcode>",
-  "RecieverIdentifierType": "11",
-  "ResultURL": "https://your-app.com/api/reversal/result",
-  "QueueTimeOutURL": "https://your-app.com/api/reversal/timeout",
-  "Remarks": "Payment reversal"
-}`;
 
 const failures = [
   ["0", "Success"],
@@ -39,9 +13,6 @@ const failures = [
   ['"R000002"', "The OriginalTransactionID is invalid."],
   ["1", "The balance is insufficient for the transaction."],
 ] as const;
-
-const code =
-  "overflow-x-auto rounded-md border border-terminal-border bg-terminal-bg p-3.5 font-mono text-[12px] leading-relaxed text-terminal-green";
 
 const field = (name: string) => (
   <span className="font-mono text-foreground">{name}</span>
@@ -78,7 +49,7 @@ export default function IntegrationPanel() {
               {field('"Command ID"')} and {field('"Transaction ID"')}; both
               spellings work here.
             </p>
-            <pre className={code}>{statusBody}</pre>
+            <CodeSnippets request="transactionStatus" />
           </>
         )}
         {tab === "Reversal" && (
@@ -89,7 +60,7 @@ export default function IntegrationPanel() {
               spelling {field("RecieverIdentifierType")}, set to {field('"11"')}
               .
             </p>
-            <pre className={code}>{reversalBody}</pre>
+            <CodeSnippets request="reversal" />
             <p className="mt-2 text-[11px] text-amber">
               B2C payouts can&apos;t be reversed through the API; Safaricom
               handles those in the M-Pesa org portal.

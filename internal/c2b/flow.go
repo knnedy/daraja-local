@@ -116,7 +116,7 @@ func (f *Flow) ReplayConfirmation(ctx context.Context, projectID int64, transact
 		return response.ErrValidation
 	}
 
-	body, found, err := f.log.Confirmation(ctx, projectID, transactionID)
+	sent, found, err := f.log.Confirmation(ctx, projectID, transactionID)
 	if err != nil {
 		return err
 	}
@@ -128,8 +128,8 @@ func (f *Flow) ReplayConfirmation(ctx context.Context, projectID int64, transact
 	go func() {
 		defer f.inFlight.Done()
 		ctx := context.Background()
-		result := f.deliverer.Deliver(ctx, settings.CallbackUrl, body)
-		f.log.Redelivery(ctx, projectID, requestlog.C2BSimulate, transactionID, "confirmed", body, result)
+		result := f.deliverer.Deliver(ctx, settings.CallbackUrl, sent.Body)
+		f.log.Redelivery(ctx, projectID, requestlog.C2BSimulate, transactionID, "confirmed", sent.Body, result)
 	}()
 	return nil
 }
