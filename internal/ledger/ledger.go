@@ -21,6 +21,7 @@ const (
 	KindSTKPush  Kind = "stk_push"
 	KindC2B      Kind = "c2b"
 	KindB2C      Kind = "b2c"
+	KindB2B      Kind = "b2b"
 	KindReversal Kind = "reversal"
 )
 

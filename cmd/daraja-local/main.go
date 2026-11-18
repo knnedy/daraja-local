@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/knnedy/daraja-local/internal/b2b"
 	"github.com/knnedy/daraja-local/internal/b2c"
 	"github.com/knnedy/daraja-local/internal/c2b"
 	"github.com/knnedy/daraja-local/internal/config"
@@ -66,7 +67,8 @@ func run() error {
 	stkSessions := stk.NewLifecycle(db, requestLog, deliverer, stk.SystemClock(), transactions)
 	c2bFlow := c2b.NewFlow(db, requestLog, deliverer, transactions)
 	b2cPayouts := b2c.NewPayouts(db, requestLog, deliverer, initiators, transactions, initiatorAPIDelay)
-	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSessions, c2bFlow, requestLog, initiators, b2cPayouts, transactions, transactions, staticFS, cfg.IsDev)
+	b2bPayments := b2b.New(db, requestLog, deliverer, initiators, transactions, initiatorAPIDelay)
+	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSessions, c2bFlow, requestLog, initiators, b2cPayouts, transactions, transactions, b2bPayments, staticFS, cfg.IsDev)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf("127.0.0.1:%d", cfg.Port),
@@ -100,7 +102,7 @@ func run() error {
 		if err := srv.Shutdown(shutdownCtx); err != nil {
 			return fmt.Errorf("shutdown: %w", err)
 		}
-		finishDeliveries(stkSessions.Wait, c2bFlow.Wait, b2cPayouts.Wait, transactions.Wait)
+		finishDeliveries(stkSessions.Wait, c2bFlow.Wait, b2cPayouts.Wait, transactions.Wait, b2bPayments.Wait)
 	}
 
 	return nil

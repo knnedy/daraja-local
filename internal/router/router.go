@@ -27,6 +27,7 @@ func New(
 	b2cPayouts handler.B2CPayouts,
 	transactions handler.Ledger,
 	accounts handler.Accounts,
+	b2bPayments handler.B2BPayments,
 	staticFS fs.FS,
 	isDev bool,
 ) http.Handler {
@@ -52,6 +53,7 @@ func New(
 	b2cHandler := handler.NewB2CHandler(projectSvc, b2cPayouts, initiators)
 	transactionsHandler := handler.NewTransactionsHandler(projectSvc, transactions, initiators)
 	accountsHandler := handler.NewAccountsHandler(projectSvc, accounts, initiators)
+	b2bHandler := handler.NewB2BHandler(projectSvc, b2bPayments, initiators)
 	requestLogHandler := handler.NewRequestLogHandler(projectSvc, requestLog)
 
 	r.Route("/api", func(r chi.Router) {
@@ -100,6 +102,10 @@ func New(
 					r.Post("/query", accountsHandler.SendQuery)
 					r.Get("/request-log", requestLogHandler.List(requestlog.KindAccountBalance))
 				})
+				r.Route("/b2b", func(r chi.Router) {
+					r.Post("/payments", b2bHandler.SendPayment)
+					r.Get("/request-log", requestLogHandler.List(requestlog.KindB2B))
+				})
 				r.Route("/transactions", func(r chi.Router) {
 					r.Get("/", transactionsHandler.List)
 					r.Post("/{receipt}/status", transactionsHandler.SendStatusQuery)
@@ -126,6 +132,7 @@ func New(
 		r.Post("/mpesa/transactionstatus/v1/query", transactionsHandler.QueryStatus)
 		r.Post("/mpesa/reversal/v1/request", transactionsHandler.Reverse)
 		r.Post("/mpesa/accountbalance/v1/query", accountsHandler.QueryBalance)
+		r.Post("/mpesa/b2b/v1/paymentrequest", b2bHandler.PaymentRequest)
 	})
 
 	r.Handle("/*", http.FileServerFS(staticFS))
