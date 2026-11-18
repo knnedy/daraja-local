@@ -66,7 +66,7 @@ func (l *Lifecycle) Accept(ctx context.Context, project repository.Project, req 
 
 	session := Session{
 		MerchantRequestID: GenerateMerchantRequestID(),
-		CheckoutRequestID: GenerateCheckoutRequestID(),
+		CheckoutRequestID: GenerateCheckoutRequestID(req.PhoneNumber),
 		ProjectID:         project.ID,
 		BusinessShortCode: req.BusinessShortCode,
 		PartyA:            req.PartyA,

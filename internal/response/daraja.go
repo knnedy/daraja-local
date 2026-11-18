@@ -1,9 +1,9 @@
 package response
 
 import (
-	"crypto/rand"
-	"fmt"
 	"net/http"
+
+	"github.com/knnedy/daraja-local/internal/daraja"
 )
 
 // DarajaError is real Daraja's confirmed error envelope shape.
@@ -23,13 +23,7 @@ func DarajaJSON(w http.ResponseWriter, status int, errorCode, errorMessage strin
 	})
 }
 
-// GenerateRequestID mimics the shape of real Daraja requestId values
-// like "21604-273291-1", two random digit groups and a trailing
-// counter segment, not a UUID.
+// GenerateRequestID mimics Daraja's requestId, such as "104b-4235-9328-5de584002ffd785653".
 func GenerateRequestID() string {
-	buf := make([]byte, 4)
-	_, _ = rand.Read(buf)
-	a := int(buf[0])<<8 | int(buf[1])
-	b := int(buf[2])<<8 | int(buf[3])
-	return fmt.Sprintf("%d-%d-1", a, b)
+	return daraja.NewRequestID()
 }
