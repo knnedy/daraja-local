@@ -66,7 +66,7 @@ func run() error {
 	stkSessions := stk.NewLifecycle(db, requestLog, deliverer, stk.SystemClock(), transactions)
 	c2bFlow := c2b.NewFlow(db, requestLog, deliverer, transactions)
 	b2cPayouts := b2c.NewPayouts(db, requestLog, deliverer, initiators, transactions, initiatorAPIDelay)
-	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSessions, c2bFlow, requestLog, initiators, b2cPayouts, transactions, staticFS, cfg.IsDev)
+	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSessions, c2bFlow, requestLog, initiators, b2cPayouts, transactions, transactions, staticFS, cfg.IsDev)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf("127.0.0.1:%d", cfg.Port),

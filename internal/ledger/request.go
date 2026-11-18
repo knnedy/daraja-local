@@ -86,7 +86,8 @@ func invalidStatus(field string) *daraja.ValidationError {
 	return &daraja.ValidationError{HTTPStatus: http.StatusBadRequest, ErrorCode: "400.003.02", ErrorMessage: "Bad Request - Invalid " + field}
 }
 
-func invalidReversal(field string) *daraja.ValidationError {
+// invalidField is the documented "Bad Request - Invalid XXXX" 400.002.02 error.
+func invalidField(field string) *daraja.ValidationError {
 	return &daraja.ValidationError{HTTPStatus: http.StatusBadRequest, ErrorCode: "400.002.02", ErrorMessage: "Bad Request - Invalid " + field}
 }
 
@@ -123,25 +124,25 @@ var amountPattern = regexp.MustCompile(`^\d+(\.0{1,2})?$`)
 func validateReversal(req ReversalRequest, project repository.Project) *daraja.ValidationError {
 	switch {
 	case req.Initiator == "":
-		return invalidReversal("Initiator")
+		return invalidField("Initiator")
 	case !isBase64(req.SecurityCredential):
-		return invalidReversal("SecurityCredential")
+		return invalidField("SecurityCredential")
 	case req.CommandID != "TransactionReversal":
-		return invalidReversal("CommandID")
+		return invalidField("CommandID")
 	case req.TransactionID == "":
-		return invalidReversal("TransactionID")
+		return invalidField("TransactionID")
 	case wholeShillings(req.Amount) <= 0:
-		return invalidReversal("Amount")
+		return invalidField("Amount")
 	case string(req.ReceiverParty) != project.ShortCode:
-		return invalidReversal("ReceiverParty")
+		return invalidField("ReceiverParty")
 	case req.identifierType() != "11":
-		return invalidReversal("RecieverIdentifierType")
+		return invalidField("RecieverIdentifierType")
 	case !daraja.IsCallbackURL(req.ResultURL):
-		return invalidReversal("ResultURL")
+		return invalidField("ResultURL")
 	case !daraja.IsCallbackURL(req.QueueTimeOutURL):
-		return invalidReversal("QueueTimeOutURL")
+		return invalidField("QueueTimeOutURL")
 	case utf8.RuneCountInString(req.Remarks) < 2 || utf8.RuneCountInString(req.Remarks) > 100:
-		return invalidReversal("Remarks")
+		return invalidField("Remarks")
 	}
 	return nil
 }

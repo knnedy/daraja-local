@@ -81,6 +81,7 @@ func (l *Ledger) statusResult(ctx context.Context, project repository.Project, r
 // first three characters of a receipt, then zeros, as in "MBN0000000".
 func baseResult(accept AcceptResponse) daraja.Result {
 	return daraja.Result{
+		ResultType:               0,
 		OriginatorConversationID: accept.OriginatorConversationID,
 		ConversationID:           accept.ConversationID,
 		TransactionID:            daraja.NewTransactionID()[:3] + "0000000",
@@ -88,11 +89,15 @@ func baseResult(accept AcceptResponse) daraja.Result {
 }
 
 // partyName formats a party as Daraja does: "600310 - Shop" or "254708374149 - John Doe".
+// Other businesses' shortcodes get a placeholder name.
 func partyName(project repository.Project, party string) string {
-	if party == project.ShortCode {
+	switch {
+	case party == project.ShortCode:
 		return party + " - " + project.Name
+	case len(party) == 12:
+		return party + " - John Doe"
 	}
-	return party + " - John Doe"
+	return party + " - Test Business"
 }
 
 func optional(s string) any {

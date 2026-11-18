@@ -68,6 +68,7 @@ func buildResult(payment repository.B2cPayment, outcome Outcome, after balances,
 		ConversationID:           payment.ConversationID,
 		TransactionID:            payment.TransactionID,
 	}
+	r.ResultType = 0
 	if outcome == OutcomeQueueTimeout {
 		r.ResultType = 1
 	}

@@ -14,24 +14,27 @@ type ResultBody struct {
 	Result Result `json:"Result"`
 }
 
+// Result's types vary by API because Safaricom's samples do: ResultCode is a
+// number, a string ("R000002") or a numeric string, per API.
 type Result struct {
-	ResultType int `json:"ResultType"`
-	// A number, except where Daraja sends a string such as Reversal's "R000002".
-	ResultCode               any               `json:"ResultCode"`
-	ResultDesc               string            `json:"ResultDesc"`
-	OriginatorConversationID string            `json:"OriginatorConversationID"`
-	ConversationID           string            `json:"ConversationID"`
-	TransactionID            string            `json:"TransactionID"`
-	ResultParameters         *ResultParameters `json:"ResultParameters,omitempty"`
-	ReferenceData            ReferenceData     `json:"ReferenceData"`
+	ResultType               any           `json:"ResultType"`
+	ResultCode               any           `json:"ResultCode"`
+	ResultDesc               string        `json:"ResultDesc"`
+	OriginatorConversationID string        `json:"OriginatorConversationID"`
+	ConversationID           string        `json:"ConversationID"`
+	TransactionID            string        `json:"TransactionID"`
+	ResultParameters         any           `json:"ResultParameters,omitempty"`
+	ReferenceData            ReferenceData `json:"ReferenceData"`
 }
 
+// ResultParameter is a list, or a single KeyValue in some failure samples.
 type ResultParameters struct {
-	ResultParameter []KeyValue `json:"ResultParameter"`
+	ResultParameter any `json:"ResultParameter"`
 }
 
+// ReferenceItem is one KeyValue, or a list of them for B2B.
 type ReferenceData struct {
-	ReferenceItem KeyValue `json:"ReferenceItem"`
+	ReferenceItem any `json:"ReferenceItem"`
 }
 
 type KeyValue struct {

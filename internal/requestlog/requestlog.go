@@ -22,6 +22,8 @@ const (
 	KindB2C               Kind = "b2c"
 	KindTransactionStatus Kind = "transaction_status"
 	KindReversal          Kind = "reversal"
+	KindB2B               Kind = "b2b"
+	KindAccountBalance    Kind = "account_balance"
 )
 
 // Operation is the Daraja endpoint an Entry belongs to.
@@ -35,6 +37,8 @@ const (
 	B2CPayment        Operation = "b2c_payment"
 	TransactionStatus Operation = "transaction_status"
 	Reversal          Operation = "reversal"
+	B2BPayment        Operation = "b2b_payment"
+	AccountBalance    Operation = "account_balance"
 )
 
 func (o Operation) kind() Kind {
@@ -47,6 +51,10 @@ func (o Operation) kind() Kind {
 		return KindTransactionStatus
 	case Reversal:
 		return KindReversal
+	case B2BPayment:
+		return KindB2B
+	case AccountBalance:
+		return KindAccountBalance
 	}
 	return KindC2B
 }
@@ -134,7 +142,7 @@ func (l *Log) delivery(ctx context.Context, projectID int64, op Operation, trans
 
 	// The body's key and the step differ per kind; the dashboard reads both.
 	step := stepConfirmation
-	if op == B2CPayment || op == TransactionStatus || op == Reversal {
+	if op != STKPush && op != STKQuery && op != C2BRegister && op != C2BSimulate {
 		step = stepResult
 		if outcome == QueueTimeout {
 			step = stepTimeout
