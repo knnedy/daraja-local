@@ -187,6 +187,28 @@ func (l *Lifecycle) Resolve(projectID int64, checkoutRequestID string, outcome O
 	return nil
 }
 
+// ResendCallback sends a payment's callback again, byte for byte, to the
+// CallBackURL it first went to, in the background. Returns ErrNotFound while
+// the payment is still waiting on the customer or was never sent.
+func (l *Lifecycle) ResendCallback(ctx context.Context, projectID int64, checkoutRequestID string) error {
+	sent, found, err := l.log.Callback(ctx, projectID, checkoutRequestID)
+	if err != nil {
+		return err
+	}
+	if !found || sent.URL == "" {
+		return response.ErrNotFound
+	}
+
+	l.deliveries.Add(1)
+	go func() {
+		defer l.deliveries.Done()
+		ctx := context.Background()
+		result := l.deliverer.Deliver(ctx, sent.URL, sent.Body)
+		l.log.Redelivery(ctx, projectID, requestlog.STKPush, checkoutRequestID, sent.Outcome, sent.Body, result)
+	}()
+	return nil
+}
+
 // Wait blocks until every callback delivery in flight has finished.
 func (l *Lifecycle) Wait() {
 	l.deliveries.Wait()

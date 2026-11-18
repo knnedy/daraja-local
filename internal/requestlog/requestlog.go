@@ -170,28 +170,54 @@ func (l *Log) delivery(ctx context.Context, projectID int64, op Operation, trans
 	}, payload)
 }
 
-// Confirmation returns the body of a C2B payment's most recent Confirmation,
-// exactly as it was sent, or false if none was sent.
-func (l *Log) Confirmation(ctx context.Context, projectID int64, transactionID string) (json.RawMessage, bool, error) {
+// Sent is a Delivery as it was first made: the exact body, where it went,
+// and the outcome it reported.
+type Sent struct {
+	Body    json.RawMessage
+	URL     string
+	Outcome string
+}
+
+// Confirmation returns a C2B payment's most recent Confirmation, or false if none was sent.
+func (l *Log) Confirmation(ctx context.Context, projectID int64, transactionID string) (Sent, bool, error) {
+	return l.lastSent(ctx, projectID, transactionID, stepConfirmation)
+}
+
+// Callback returns an STK payment's most recent callback, or false if none was sent.
+func (l *Log) Callback(ctx context.Context, projectID int64, checkoutRequestID string) (Sent, bool, error) {
+	return l.lastSent(ctx, projectID, checkoutRequestID, stepCallback)
+}
+
+func (l *Log) lastSent(ctx context.Context, projectID int64, transactionID, step string) (Sent, bool, error) {
 	row, err := l.db.Queries().GetLatestRequestLogEntryByStep(ctx, repository.GetLatestRequestLogEntryByStepParams{
 		ProjectID:     projectID,
 		CorrelationID: sql.NullString{String: transactionID, Valid: true},
-		Step:          stepConfirmation,
+		Step:          step,
 	})
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, false, nil
+		return Sent{}, false, nil
 	}
 	if err != nil {
-		return nil, false, err
+		return Sent{}, false, err
 	}
 
+	// STK stores the body under "callback"; every other kind under "payload".
 	var stored struct {
-		Payload json.RawMessage `json:"payload"`
+		Payload  json.RawMessage `json:"payload"`
+		Callback json.RawMessage `json:"callback"`
+		URL      string          `json:"url"`
 	}
-	if err := json.Unmarshal([]byte(row.Payload), &stored); err != nil || len(stored.Payload) == 0 {
-		return nil, false, nil
+	if err := json.Unmarshal([]byte(row.Payload), &stored); err != nil {
+		return Sent{}, false, nil
 	}
-	return stored.Payload, true, nil
+	body := stored.Payload
+	if step == stepCallback {
+		body = stored.Callback
+	}
+	if len(body) == 0 {
+		return Sent{}, false, nil
+	}
+	return Sent{Body: body, URL: stored.URL, Outcome: row.Outcome.String}, true, nil
 }
 
 // Filter narrows List. The zero value is every kind, newest first.

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -474,5 +475,36 @@ func TestQueryRefusals(t *testing.T) {
 		BusinessShortCode: req.BusinessShortCode, Password: "d3Jvbmc=", Timestamp: req.Timestamp, CheckoutRequestID: session.CheckoutRequestID,
 	}); validationErr == nil || validationErr.ErrorMessage != "[MerchantValidate] - Wrong credentials" {
 		t.Errorf("wrong password: %+v", validationErr)
+	}
+}
+
+func TestResendCallbackRepeatsTheSameBodyAsAReplay(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	session := f.accept(t)
+
+	if err := f.lifecycle.ResendCallback(ctx, f.project.ID, session.CheckoutRequestID); !errors.Is(err, response.ErrNotFound) {
+		t.Fatalf("resend before the customer answered: err = %v, want ErrNotFound", err)
+	}
+
+	if err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, OutcomeApproved); err != nil {
+		t.Fatalf("resolve: %v", err)
+	}
+	f.lifecycle.Wait()
+	if err := f.lifecycle.ResendCallback(ctx, f.project.ID, session.CheckoutRequestID); err != nil {
+		t.Fatalf("resend: %v", err)
+	}
+	f.lifecycle.Wait()
+
+	f.app.mu.Lock()
+	bodies := f.app.bodies
+	f.app.mu.Unlock()
+	if len(bodies) != 2 || string(bodies[0]) != string(bodies[1]) {
+		t.Fatalf("bodies = %d, identical %v; want the same callback twice", len(bodies), len(bodies) == 2 && string(bodies[0]) == string(bodies[1]))
+	}
+	entries := f.entries(t)
+	last := entries[len(entries)-1]
+	if last.Step != "callback" || last.Outcome.String != "approved" || !strings.Contains(last.Payload, `"replay":true`) {
+		t.Errorf("replay entry = %+v", last)
 	}
 }
