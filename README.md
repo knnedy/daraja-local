@@ -98,17 +98,16 @@ _Overview: live stats, recent activity and your project's credentials._
 
 ## What's emulated
 
-| API               | Route                                                                    |
-| ----------------- | ------------------------------------------------------------------------ |
-| OAuth token       | `GET /oauth/v1/generate`                                                 |
-| STK Push          | `POST /mpesa/stkpush/v1/processrequest`                                  |
-| STK Push Query    | `POST /mpesa/stkpushquery/v1/query`                                      |
-| C2B register URLs | `POST /mpesa/c2b/v1/registerurl`, `POST /mpesa/c2b/v2/registerurl`       |
-| C2B simulate      | `POST /mpesa/c2b/v1/simulate`, `POST /mpesa/c2b/v2/simulate`             |
-| B2C payment       | `POST /mpesa/b2c/v1/paymentrequest`, `POST /mpesa/b2c/v3/paymentrequest` |
-
-| Transaction Status | `POST /mpesa/transactionstatus/v1/query` |
-| Reversal | `POST /mpesa/reversal/v1/request` |
+| API                | Route                                                                    |
+| ------------------ | ------------------------------------------------------------------------ |
+| OAuth token        | `GET /oauth/v1/generate`                                                 |
+| STK Push           | `POST /mpesa/stkpush/v1/processrequest`                                  |
+| STK Push Query     | `POST /mpesa/stkpushquery/v1/query`                                      |
+| C2B register URLs  | `POST /mpesa/c2b/v1/registerurl`, `POST /mpesa/c2b/v2/registerurl`       |
+| C2B simulate       | `POST /mpesa/c2b/v1/simulate`, `POST /mpesa/c2b/v2/simulate`             |
+| B2C payment        | `POST /mpesa/b2c/v1/paymentrequest`, `POST /mpesa/b2c/v3/paymentrequest` |
+| Transaction Status | `POST /mpesa/transactionstatus/v1/query`                                 |
+| Reversal           | `POST /mpesa/reversal/v1/request`                                        |
 
 Not implemented: B2B, Account Balance.
 
