@@ -195,7 +195,7 @@ func TestStatusReadsSafaricomsSpacedKeys(t *testing.T) {
 	f := newFixture(t)
 	bad := f.statusRequest("")
 	_, vErr := f.ledger.QueryStatus(context.Background(), f.project, bad)
-	if vErr == nil || vErr.ErrorCode != "400.003.02" || vErr.ErrorMessage != "Bad Request - Invalid TransactionID" {
+	if vErr == nil || vErr.ErrorCode != "400.002.02" || vErr.ErrorMessage != "Bad Request - Invalid TransactionID" {
 		t.Errorf("no ID: %+v", vErr)
 	}
 }

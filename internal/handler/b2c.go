@@ -44,11 +44,21 @@ func (h *B2CHandler) PaymentRequest(version b2c.APIVersion) http.HandlerFunc {
 
 		var req b2c.PaymentRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			response.DarajaJSON(w, http.StatusBadRequest, "400.002.02", "Bad Request - Invalid request body")
+			response.DarajaJSON(w, http.StatusBadRequest, "400.002.02", "Bad Request - ")
 			return
 		}
 
 		accept, validationErr := h.payouts.Request(r.Context(), project, version, req)
+		if validationErr != nil && version == b2c.V3 {
+			// The v3 sandbox echoes the caller's OriginatorConversationID, or "".
+			response.JSON(w, validationErr.HTTPStatus, struct {
+				RequestID                string `json:"requestId"`
+				OriginatorConversationID string `json:"OriginatorConversationID"`
+				ErrorCode                string `json:"errorCode"`
+				ErrorMessage             string `json:"errorMessage"`
+			}{response.GenerateRequestID(), req.OriginatorConversationID, validationErr.ErrorCode, validationErr.ErrorMessage})
+			return
+		}
 		if validationErr != nil {
 			response.DarajaJSON(w, validationErr.HTTPStatus, validationErr.ErrorCode, validationErr.ErrorMessage)
 			return

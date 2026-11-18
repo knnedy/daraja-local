@@ -391,7 +391,7 @@ Open the Request Log page right after sending a request. You should see a `REQ` 
 
 ## Common mistakes
 
-- **Numbers as JSON numbers.** Every request field is a string, including `Amount`, `PartyA`, `PartyB`, `PhoneNumber`, `BusinessShortCode` and `Timestamp`. Sending `"Amount": 100` fails with `400.002.02 Bad Request - Invalid request body`.
+- **Numbers as JSON numbers.** Every request field is a string, including `Amount`, `PartyA`, `PartyB`, `PhoneNumber`, `BusinessShortCode` and `Timestamp`. Sending `"Amount": 100` fails in Daraja Local with `400.002.02 Bad Request - `. B2C is the exception: the sandbox accepted a numeric `Amount` there, so Daraja Local does too.
 - **Handler returns 204.** It's a failed delivery, so you'll see retries and a `failed` status in the Request Log.
 - **Wrong password.** It must be `base64(shortcode + passkey + timestamp)`, using the same `Timestamp` you send in the body.
 

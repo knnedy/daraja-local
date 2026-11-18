@@ -13,7 +13,7 @@ var resultDescriptions = map[int]string{
 	ResultCodeInsufficientBalance: "The balance is insufficient for the transaction.",
 	ResultCodeWrongPIN:            "The initiator information is invalid.",
 	ResultCodeCancelledByUser:     "Request cancelled by user",
-	ResultCodeTimeout:             "DS timeout user cannot be reached",
+	ResultCodeTimeout:             "DS timeout user cannot be reached.",
 }
 
 // Outcome is what the Virtual Phone UI sends when a developer resolves

@@ -80,10 +80,10 @@ func firstOf(values ...string) string {
 	return ""
 }
 
-// Safaricom documents 400.003.02 for Transaction Status and 400.002.02
-// "Bad Request - Invalid XXXX" for Reversal; field wording is unverified.
+// Safaricom's docs list 400.003.02 for Transaction Status, but the sandbox
+// answered 400.002.02 when captured on 2026-11-19.
 func invalidStatus(field string) *daraja.ValidationError {
-	return &daraja.ValidationError{HTTPStatus: http.StatusBadRequest, ErrorCode: "400.003.02", ErrorMessage: "Bad Request - Invalid " + field}
+	return &daraja.ValidationError{HTTPStatus: http.StatusBadRequest, ErrorCode: "400.002.02", ErrorMessage: "Bad Request - Invalid " + field}
 }
 
 // invalidField is the documented "Bad Request - Invalid XXXX" 400.002.02 error.

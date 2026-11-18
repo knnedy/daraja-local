@@ -72,8 +72,8 @@ export default function IntegrationPanel() {
             </p>
             <CodeSnippets request="stkPush" />
             <p className="mt-2 text-[11px] text-amber">
-              Amount must be a whole integer — Daraja rejects decimals (example:
-              100.75 fails; round to 100 or 101).
+              The sandbox accepts a decimal Amount such as 1.5. Daraja Local
+              keeps whole shillings, so send whole numbers to be safe.
             </p>
           </>
         )}

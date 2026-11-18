@@ -60,8 +60,7 @@ func (l *Lifecycle) Accept(ctx context.Context, project repository.Project, req 
 	}
 	timeout := time.Duration(settings.StkTimeoutSeconds) * time.Second
 
-	// Validate already proved Amount is a positive integer.
-	amount, _ := strconv.ParseInt(req.Amount, 10, 64)
+	amount := WholeAmount(req.Amount)
 	now := l.clock.Now()
 
 	session := Session{
@@ -112,9 +111,9 @@ func (l *Lifecycle) Query(ctx context.Context, project repository.Project, req Q
 
 	if !ok || session.ProjectID != project.ID {
 		validationErr := &daraja.ValidationError{
-			HTTPStatus:   400,
-			ErrorCode:    "400.002.02",
-			ErrorMessage: "Bad Request - Invalid CheckoutRequestID",
+			HTTPStatus:   500,
+			ErrorCode:    "500.001.1001",
+			ErrorMessage: "The transaction does not Exist",
 		}
 		l.log.Rejected(ctx, project.ID, requestlog.STKQuery, "", req, validationErr)
 		return QueryResponse{}, validationErr

@@ -6,17 +6,25 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/knnedy/daraja-local/internal/daraja"
 	"github.com/knnedy/daraja-local/internal/repository"
 )
 
-var phoneNumberPattern = regexp.MustCompile(`^254[17]\d{8}$`)
+var (
+	phoneNumberPattern = regexp.MustCompile(`^254[17]\d{8}$`)
+	// The sandbox accepts "1.5"; how it rounds in the callback is unverified.
+	amountPattern = regexp.MustCompile(`^\d+(\.\d+)?$`)
+)
 
 // Validate runs all synchronous checks real Daraja performs before ever
 // accepting an STK Push request, returns nil if the request is valid
 func Validate(req Request, project repository.Project) *daraja.ValidationError {
+	if _, err := time.Parse("20060102150405", req.Timestamp); err != nil {
+		return invalid("Timestamp")
+	}
 	if err := validatePassword(req.BusinessShortCode, req.Password, req.Timestamp, project); err != nil {
 		return err
 	}
@@ -26,10 +34,24 @@ func Validate(req Request, project repository.Project) *daraja.ValidationError {
 	if err := validateAmount(req.Amount); err != nil {
 		return err
 	}
+	if !daraja.IsCallbackURL(req.CallbackURL) {
+		return invalid("CallBackURL")
+	}
 	if err := validateTransactionDesc(req.TransactionDesc); err != nil {
 		return err
 	}
 	return nil
+}
+
+func invalid(field string) *daraja.ValidationError {
+	return &daraja.ValidationError{HTTPStatus: http.StatusBadRequest, ErrorCode: "400.002.02", ErrorMessage: "Bad Request - Invalid " + field}
+}
+
+// WholeAmount is a validated Amount in whole shillings; decimals are dropped.
+func WholeAmount(amount string) int64 {
+	whole, _, _ := strings.Cut(amount, ".")
+	n, _ := strconv.ParseInt(whole, 10, 64)
+	return n
 }
 
 // validatePassword replicates real Daraja's Password check
@@ -59,7 +81,7 @@ func wrongCredentials() *daraja.ValidationError {
 	return &daraja.ValidationError{
 		HTTPStatus:   http.StatusInternalServerError,
 		ErrorCode:    "500.001.1001",
-		ErrorMessage: "[MerchantValidate] - Wrong credentials",
+		ErrorMessage: "Wrong credentials",
 	}
 }
 
@@ -83,8 +105,7 @@ func validatePhoneNumber(phone string) *daraja.ValidationError {
 }
 
 func validateAmount(amount string) *daraja.ValidationError {
-	value, err := strconv.ParseInt(amount, 10, 64)
-	if err != nil || value <= 0 {
+	if !amountPattern.MatchString(amount) || WholeAmount(amount) <= 0 {
 		return &daraja.ValidationError{
 			HTTPStatus:   http.StatusBadRequest,
 			ErrorCode:    "400.002.02",

@@ -27,7 +27,7 @@ func (h *STKHandler) ProcessRequest(w http.ResponseWriter, r *http.Request) {
 
 	var req stk.Request
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.DarajaJSON(w, http.StatusBadRequest, "400.002.02", "Bad Request - Invalid request body")
+		response.DarajaJSON(w, http.StatusBadRequest, "400.002.02", "Bad Request - ")
 		return
 	}
 
@@ -50,7 +50,7 @@ func (h *STKHandler) Query(w http.ResponseWriter, r *http.Request) {
 
 	var req stk.QueryRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.DarajaJSON(w, http.StatusBadRequest, "400.002.02", "Bad Request - Invalid request body")
+		response.DarajaJSON(w, http.StatusBadRequest, "400.002.02", "Bad Request - ")
 		return
 	}
 

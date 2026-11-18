@@ -212,10 +212,10 @@ func TestAcceptOpensAPendingSession(t *testing.T) {
 func TestAcceptRejectsAnInvalidRequest(t *testing.T) {
 	f := newFixture(t)
 	req := f.request()
-	req.Amount = "100.75"
+	req.CallbackURL = ""
 
 	_, validationErr := f.lifecycle.Accept(context.Background(), f.project, req)
-	if validationErr == nil || validationErr.ErrorCode != "400.002.02" {
+	if validationErr == nil || validationErr.ErrorMessage != "Bad Request - Invalid CallBackURL" {
 		t.Fatalf("validation error = %+v", validationErr)
 	}
 	if got := f.lifecycle.Pending(f.project.ID); len(got) != 0 {
@@ -458,7 +458,7 @@ func TestQueryRefusals(t *testing.T) {
 	f := newFixture(t)
 	session := f.accept(t)
 
-	if _, validationErr := f.query("ws_CO_unknown"); validationErr == nil || validationErr.HTTPStatus != 400 {
+	if _, validationErr := f.query("ws_CO_unknown"); validationErr == nil || validationErr.ErrorMessage != "The transaction does not Exist" {
 		t.Errorf("unknown session: %+v", validationErr)
 	}
 
@@ -467,13 +467,13 @@ func TestQueryRefusals(t *testing.T) {
 	req := f.request()
 	if _, validationErr := f.lifecycle.Query(context.Background(), other, QueryRequest{
 		BusinessShortCode: req.BusinessShortCode, Password: req.Password, Timestamp: req.Timestamp, CheckoutRequestID: session.CheckoutRequestID,
-	}); validationErr == nil || validationErr.HTTPStatus != 400 {
+	}); validationErr == nil || validationErr.ErrorMessage != "The transaction does not Exist" {
 		t.Errorf("another project's session: %+v", validationErr)
 	}
 
 	if _, validationErr := f.lifecycle.Query(context.Background(), f.project, QueryRequest{
 		BusinessShortCode: req.BusinessShortCode, Password: "d3Jvbmc=", Timestamp: req.Timestamp, CheckoutRequestID: session.CheckoutRequestID,
-	}); validationErr == nil || validationErr.ErrorMessage != "[MerchantValidate] - Wrong credentials" {
+	}); validationErr == nil || validationErr.ErrorMessage != "Wrong credentials" {
 		t.Errorf("wrong password: %+v", validationErr)
 	}
 }
@@ -506,5 +506,34 @@ func TestResendCallbackRepeatsTheSameBodyAsAReplay(t *testing.T) {
 	last := entries[len(entries)-1]
 	if last.Step != "callback" || last.Outcome.String != "approved" || !strings.Contains(last.Payload, `"replay":true`) {
 		t.Errorf("replay entry = %+v", last)
+	}
+}
+
+// The sandbox accepts a decimal Amount (captured 2026-11-19); whole shillings are kept.
+func TestAcceptTakesADecimalAmount(t *testing.T) {
+	f := newFixture(t)
+	req := f.request()
+	req.Amount = "100.75"
+	session, validationErr := f.lifecycle.Accept(context.Background(), f.project, req)
+	if validationErr != nil || session.Amount != 100 {
+		t.Fatalf("session = %+v, err = %+v", session, validationErr)
+	}
+}
+
+// The sandbox checks Timestamp's format before the Password built from it.
+func TestAcceptChecksTheTimestampBeforeThePassword(t *testing.T) {
+	f := newFixture(t)
+	req := f.request()
+	req.Timestamp = "2026"
+	if _, validationErr := f.lifecycle.Accept(context.Background(), f.project, req); validationErr == nil || validationErr.ErrorMessage != "Bad Request - Invalid Timestamp" {
+		t.Fatalf("validation error = %+v", validationErr)
+	}
+}
+
+func TestCheckoutRequestIDEndsWithThePhone(t *testing.T) {
+	f := newFixture(t)
+	id := f.accept(t).CheckoutRequestID
+	if len(id) != len("ws_CO_191120260104173708374149") || !strings.HasSuffix(id, "712345678") {
+		t.Errorf("CheckoutRequestID = %q", id)
 	}
 }
