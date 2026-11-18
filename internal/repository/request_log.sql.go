@@ -22,7 +22,7 @@ func (q *Queries) ClearRequestLog(ctx context.Context, projectID int64) error {
 const createRequestLogEntry = `-- name: CreateRequestLogEntry :one
 INSERT INTO "request_log" ("project_id", "correlation_id", "kind", "operation", "step", "direction", "status", "outcome", "attempts", "payload")
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, project_id, correlation_id, kind, direction, status, outcome, attempts, payload, created_at, operation, step
+RETURNING id, project_id, correlation_id, kind, operation, step, direction, status, outcome, attempts, payload, created_at
 `
 
 type CreateRequestLogEntryParams struct {
@@ -57,20 +57,53 @@ func (q *Queries) CreateRequestLogEntry(ctx context.Context, arg CreateRequestLo
 		&i.ProjectID,
 		&i.CorrelationID,
 		&i.Kind,
+		&i.Operation,
+		&i.Step,
 		&i.Direction,
 		&i.Status,
 		&i.Outcome,
 		&i.Attempts,
 		&i.Payload,
 		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getLatestRequestLogEntryByStep = `-- name: GetLatestRequestLogEntryByStep :one
+SELECT id, project_id, correlation_id, kind, operation, step, direction, status, outcome, attempts, payload, created_at FROM "request_log"
+WHERE "project_id" = ? AND "correlation_id" = ? AND "step" = ?
+ORDER BY "id" DESC
+LIMIT 1
+`
+
+type GetLatestRequestLogEntryByStepParams struct {
+	ProjectID     int64
+	CorrelationID sql.NullString
+	Step          string
+}
+
+func (q *Queries) GetLatestRequestLogEntryByStep(ctx context.Context, arg GetLatestRequestLogEntryByStepParams) (RequestLog, error) {
+	row := q.db.QueryRowContext(ctx, getLatestRequestLogEntryByStep, arg.ProjectID, arg.CorrelationID, arg.Step)
+	var i RequestLog
+	err := row.Scan(
+		&i.ID,
+		&i.ProjectID,
+		&i.CorrelationID,
+		&i.Kind,
 		&i.Operation,
 		&i.Step,
+		&i.Direction,
+		&i.Status,
+		&i.Outcome,
+		&i.Attempts,
+		&i.Payload,
+		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const listRequestLogEntries = `-- name: ListRequestLogEntries :many
-SELECT id, project_id, correlation_id, kind, direction, status, outcome, attempts, payload, created_at, operation, step FROM "request_log"
+SELECT id, project_id, correlation_id, kind, operation, step, direction, status, outcome, attempts, payload, created_at FROM "request_log"
 WHERE "project_id" = ?1
   AND (?2 IS NULL OR "kind" = ?2)
   AND (?3 IS NULL OR "id" < ?3)
@@ -104,14 +137,14 @@ func (q *Queries) ListRequestLogEntries(ctx context.Context, arg ListRequestLogE
 			&i.ProjectID,
 			&i.CorrelationID,
 			&i.Kind,
+			&i.Operation,
+			&i.Step,
 			&i.Direction,
 			&i.Status,
 			&i.Outcome,
 			&i.Attempts,
 			&i.Payload,
 			&i.CreatedAt,
-			&i.Operation,
-			&i.Step,
 		); err != nil {
 			return nil, err
 		}

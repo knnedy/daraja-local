@@ -1,8 +1,11 @@
-import type { RequestLogEntry } from "@/lib/types/request-log";
+import type {
+  RequestLogEntry,
+  RequestLogKind,
+} from "@/lib/types/request-log";
 
 export type LogGroup = {
   id: string;
-  kind: "stk_push" | "c2b" | "mixed";
+  kind: RequestLogKind | "mixed";
   createdAt: string;
   entries: RequestLogEntry[];
   finalStatus: string;
@@ -42,14 +45,24 @@ export function groupEntries(entries: RequestLogEntry[]): LogGroup[] {
     const oldest = rows[rows.length - 1];
     const kinds = new Set(rows.map((r) => r.kind));
 
-    const resolved = rows.find((r) => r.outcome);
-    const rejected = rows.find((r) => r.status === "rejected");
+    // A status query reads a payment; it never decides how the payment ended.
+    const decisive = rows.some((r) => r.operation !== "stk_query")
+      ? rows.filter((r) => r.operation !== "stk_query")
+      : rows;
+    const resolved = decisive.find((r) => r.outcome);
+    const rejected = decisive.find((r) => r.status === "rejected");
 
     const summary =
       peek(oldest.payload, ["Amount", "amount", "TransAmount"]) &&
-      peek(oldest.payload, ["PhoneNumber", "Msisdn"])
-        ? `KES ${peek(oldest.payload, ["Amount", "amount", "TransAmount"])} · ${peek(oldest.payload, ["PhoneNumber", "Msisdn"])}`
-        : (peek(oldest.payload, ["BillRefNumber", "AccountReference"]) ?? "");
+      peek(oldest.payload, ["PhoneNumber", "Msisdn", "PartyB"])
+        ? `KES ${peek(oldest.payload, ["Amount", "amount", "TransAmount"])} · ${peek(oldest.payload, ["PhoneNumber", "Msisdn", "PartyB"])}`
+        : (peek(oldest.payload, [
+          "BillRefNumber",
+          "AccountReference",
+          "TransactionID",
+          "Transaction ID",
+          "OriginalConversationID",
+        ]) ?? "");
 
     return {
       id: key,

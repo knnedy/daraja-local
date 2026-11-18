@@ -1,7 +1,7 @@
-import ProjectIdentityCard from "./components/project-identity-card";
-import SimulationDefaultsCard from "./components/simulation-defaults-card";
-import EnvExportCard from "./components/env-export-card";
-import DangerZoneCard from "./components/danger-zone-card";
+import ProjectIdentityCard from "./_components/project-identity-card";
+import SimulationDefaultsCard from "./_components/simulation-defaults-card";
+import EnvExportCard from "./_components/env-export-card";
+import DangerZoneCard from "./_components/danger-zone-card";
 
 export default function SettingsPage() {
   return (

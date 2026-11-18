@@ -8,6 +8,41 @@ import (
 	"database/sql"
 )
 
+type Account struct {
+	ProjectID        int64
+	UtilityCents     int64
+	WorkingCents     int64
+	ChargesPaidCents int64
+}
+
+type B2cPayment struct {
+	ID                       int64
+	ProjectID                int64
+	OriginatorConversationID string
+	ConversationID           string
+	TransactionID            string
+	CommandID                string
+	Amount                   int64
+	PartyB                   string
+	Remarks                  string
+	Occasion                 string
+	ResultUrl                string
+	QueueTimeoutUrl          string
+	Status                   string
+	ResultCode               sql.NullInt64
+	CreatedAt                string
+	CompletedAt              sql.NullString
+}
+
+type Initiator struct {
+	ProjectID      int64
+	Name           string
+	Password       string
+	PrivateKeyPem  string
+	CertificatePem string
+	CreatedAt      string
+}
+
 type Project struct {
 	ID              int64
 	Slug            string
@@ -27,8 +62,10 @@ type ProjectSetting struct {
 	ValidationUrl             string
 	StkTimeoutSeconds         int64
 	C2bResponseType           string
+	C2bApiVersion             string
 	ExternalValidationDefault int64
 	DefaultPhoneNumber        string
+	B2cNextOutcome            string
 }
 
 type RequestLog struct {
@@ -36,12 +73,28 @@ type RequestLog struct {
 	ProjectID     int64
 	CorrelationID sql.NullString
 	Kind          string
+	Operation     string
+	Step          string
 	Direction     string
 	Status        string
 	Outcome       sql.NullString
 	Attempts      int64
 	Payload       string
 	CreatedAt     string
-	Operation     string
-	Step          string
+}
+
+type Transaction struct {
+	ID                       int64
+	ProjectID                int64
+	Receipt                  string
+	Kind                     string
+	OriginatorConversationID string
+	ConversationID           string
+	Amount                   int64
+	DebitParty               string
+	CreditParty              string
+	ReasonType               string
+	ReversedBy               string
+	InitiatedAt              string
+	FinalisedAt              string
 }

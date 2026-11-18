@@ -9,9 +9,9 @@ import { groupStatus } from "@/lib/request-log/status";
 import FilterBar, {
   type KindFilter,
   type StatusFilter,
-} from "./components/filter-bar";
-import LogTable from "./components/log-table";
-import StatsBar from "./components/stats-bar";
+} from "./_components/filter-bar";
+import LogTable from "./_components/log-table";
+import StatsBar from "./_components/stats-bar";
 
 function TableSkeleton() {
   return (
@@ -101,7 +101,7 @@ export default function LogsPage() {
             Request Log
           </h1>
           <p className="text-[13px] text-muted-foreground">
-            Every STK and C2B request this project has seen, grouped by session.
+            Every Daraja request this project has seen, grouped by session.
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">

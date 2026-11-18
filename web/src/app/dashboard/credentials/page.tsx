@@ -1,7 +1,8 @@
-import CredentialsCard from "./components/credentials-card";
-import TokenGeneratorCard from "./components/token-generator-card";
-import TokenSnippetCard from "./components/token-snippet-card";
-import HowItWorksAccordion from "./components/how-it-works";
+import CredentialsCard from "./_components/credentials-card";
+import TokenGeneratorCard from "./_components/token-generator-card";
+import TokenSnippetCard from "./_components/token-snippet-card";
+import InitiatorCard from "./_components/initiator-card";
+import HowItWorksAccordion from "./_components/how-it-works";
 
 export default function CredentialsPage() {
   return (
@@ -23,6 +24,7 @@ export default function CredentialsPage() {
 
       <HowItWorksAccordion />
       <TokenSnippetCard />
+      <InitiatorCard />
     </div>
   );
 }

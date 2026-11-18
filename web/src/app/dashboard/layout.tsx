@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { RadioIcon } from "lucide-react";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardSidebar } from "./components/sidebar";
-import { DashboardTopbar } from "./components/topbar";
+import { DashboardSidebar } from "./_components/sidebar";
+import { DashboardTopbar } from "./_components/topbar";
 import { useActiveProjectStore } from "@/store/active-project";
 
 function useHasHydrated() {

@@ -1,11 +1,11 @@
 "use client";
 
-import RequestBar from "./components/request-bar";
-import IntegrationPanel from "./components/integration-panel";
-import SimulatorCard from "./components/simulator-card";
-import PayloadConsole from "../components/payload-console";
-import SimulationGuide from "./components/simulation-guide";
-import HowItWorks from "./components/how-it-works";
+import RequestBar from "./_components/request-bar";
+import IntegrationPanel from "./_components/integration-panel";
+import SimulatorCard from "./_components/simulator-card";
+import PayloadConsole from "../_components/payload-console";
+import SimulationGuide from "./_components/simulation-guide";
+import HowItWorks from "./_components/how-it-works";
 import { useLiveRequestLog } from "@/hooks/use-request-log";
 import { useActiveProjectStore } from "@/store/active-project";
 

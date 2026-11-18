@@ -40,7 +40,7 @@ All need the same Bearer token as STK Push.
 | `ConfirmationURL` | Where payment confirmations go. You need one before you can simulate. |
 | `ValidationURL`   | Optional. Where validation requests go.                               |
 
-Neither URL may contain `mpesa`, `m-pesa` or `safaricom`, in any capitalization. Daraja rejects them. Daraja Local also accepts `http://` and `localhost` URLs, which real Daraja refuses. Registering again replaces the previous URLs.
+Neither URL may contain `mpesa`, `m-pesa`, `safaricom`, `exe`, `exec`, `cmd`, `sql` or `query`, in any capitalization. Daraja rejects them. Daraja Local also accepts `http://` and `localhost` URLs, which real Daraja refuses. Registering again replaces the previous URLs.
 
 The response:
 
@@ -99,6 +99,10 @@ The response comes back at once, before validation or confirmation run:
 }
 ```
 
+### From the dashboard
+
+The C2B page has a **Send a test payment** card. Pick PayBill or Buy Goods, enter an amount, phone number and account number, and press Pay. It runs the same checks and sends the same Validation and Confirmation as `simulate`, and the payment is logged the same way, so you can test your handlers without writing a client. The card is disabled until you have called `registerurl`.
+
 ## What your server receives
 
 The same body goes to both the validation and the confirmation URL:
@@ -114,7 +118,7 @@ The same body goes to both the validation and the confirmation URL:
   "InvoiceNumber": "",
   "OrgAccountBalance": "",
   "ThirdPartyTransID": "",
-  "MSISDN": "bbff37cea44ac0b2d964ee0dfb8d2df8513dc7ba1b36129a929fc3fbd6dd4af4",
+  "MSISDN": "2547*****149",
   "FirstName": "",
   "MiddleName": "",
   "LastName": ""
@@ -123,9 +127,18 @@ The same body goes to both the validation and the confirmation URL:
 
 `TransactionType` is `Buy Goods` for `CustomerBuyGoodsOnline`. `TransID` is the same in validation and confirmation, so use it to match them up and to deduplicate. The name, invoice and balance fields arrive blank, because Daraja Local has no subscriber data.
 
-### The `MSISDN` is a hash
+### The `MSISDN` hides the number
 
-As in Daraja v2, you don't receive the customer's phone number. `MSISDN` is the lowercase hex SHA-256 hash of the 12-digit number (`254…`, no `+`). To match a payment to a customer, hash the numbers you have on file and compare:
+You don't receive the customer's phone number. How `MSISDN` hides it depends on the path you called `registerurl` on, and the C2B page shows which one is in effect:
+
+| Registered through          | `MSISDN` for `254708374149`                                                                                          |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `/mpesa/c2b/v2/registerurl` | `2547*****149`: the first four and last three digits are kept                                                        |
+| `/mpesa/c2b/v1/registerurl` | `bbff37cea44ac0b2d964ee0dfb8d2df8513dc7ba1b36129a929fc3fbd6dd4af4`: the lowercase hex SHA-256 of the 12-digit number |
+
+Sources agree on keeping the first four and last three digits but differ on spacing and mask characters, so don't parse it; treat it as a display value. See [Fidelity](fidelity.md).
+
+To match a v1 payment to a customer, hash the numbers you have on file (`254…`, no `+`) and compare:
 
 ```bash
 printf '254708374149' | sha256sum
@@ -145,6 +158,8 @@ const hash = createHash("sha256").update("254708374149").digest("hex");
 import hashlib
 hash = hashlib.sha256(b"254708374149").hexdigest()
 ```
+
+A masked v2 number can't be matched this way. Match v2 payments by `BillRefNumber`, which is the account number your customer typed.
 
 ## Validation
 
@@ -174,6 +189,20 @@ If your `ValidationURL` is unreachable, answers with a non-200 status, times out
 ## Confirmation
 
 Confirmation is sent after validation accepts the payment, or straight away when there's no `ValidationURL`. Your answer doesn't change anything. Daraja Local only records whether it got HTTP 200.
+
+## Inspecting and resending
+
+Under the payment flow on the C2B page, the **Validation** and **Confirmation** tabs show each call Daraja Local made to your server: the URL, the exact body sent, and for every attempt the HTTP status or connection error, how long it took, and the first 2 KB of your reply. The arrows beside the payment switch to earlier payments.
+
+**Resend confirmation** posts the same Confirmation body again, byte for byte, to the `ConfirmationURL` registered now. Use it after fixing a handler that failed, or to check that your handler ignores a `TransID` it has already processed. The resend shows up under the same payment, marked as a replay.
+
+Real Daraja has no resend. This is Daraja Local's own tool, and so is its dashboard API, which may change before 1.0:
+
+```bash
+curl -X POST "http://127.0.0.1:7060/api/projects/<slug>/c2b/<ConversationID>/replay"
+```
+
+It returns 204 and delivers in the background. It returns 404 for a payment that was never confirmed, such as one your validation rejected, and 422 when no `ConfirmationURL` is registered.
 
 If delivery fails, Daraja Local makes up to three attempts, waiting 1 second after the first failure and 2 after the second, each with a 10 second timeout. Real Daraja is reported not to retry C2B notifications at all, though that comes from a single source. Design your handler for one delivery, and reconcile payments some other way too.
 
@@ -270,7 +299,7 @@ curl -X POST "$DARAJA_BASE_URL/mpesa/c2b/v2/simulate" \
   }"
 ```
 
-Open the C2B page. The payment flow lights up as validation and confirmation complete. Two experiments are worth trying:
+Open the C2B page. The payment flow lights up as validation and confirmation complete. Two experiments are worth trying, either with `simulate` or from the **Send a test payment** card:
 
-- Simulate again with `"BillRefNumber": ""`. Your validation rejects it, and no confirmation is sent.
-- Stop your server and simulate. With `Completed` the payment is accepted by fallback and the confirmation fails to deliver. With `Cancelled` it's rejected.
+- Pay again with an empty account number (`"BillRefNumber": ""`). Your validation rejects it, and no confirmation is sent.
+- Stop your server and pay again. With `Completed` the payment is accepted by fallback and the confirmation fails to deliver. With `Cancelled` it's rejected.

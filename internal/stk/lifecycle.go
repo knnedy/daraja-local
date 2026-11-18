@@ -8,6 +8,7 @@ import (
 
 	"github.com/knnedy/daraja-local/internal/daraja"
 	"github.com/knnedy/daraja-local/internal/delivery"
+	"github.com/knnedy/daraja-local/internal/ledger"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/requestlog"
 	"github.com/knnedy/daraja-local/internal/response"
@@ -20,6 +21,7 @@ type Lifecycle struct {
 	log       *requestlog.Log
 	deliverer *delivery.Deliverer
 	clock     Clock
+	ledger    Recorder
 
 	mu         sync.Mutex
 	sessions   map[string]*trackedSession
@@ -31,15 +33,20 @@ type trackedSession struct {
 	stopTimeout func()
 }
 
-func NewLifecycle(db *repository.DB, log *requestlog.Log, deliverer *delivery.Deliverer, clock Clock) *Lifecycle {
-	return &Lifecycle{db: db, log: log, deliverer: deliverer, clock: clock, sessions: make(map[string]*trackedSession)}
+// Recorder keeps a completed transaction for Transaction Status and Reversal.
+type Recorder interface {
+	Record(ctx context.Context, e ledger.Entry) error
+}
+
+func NewLifecycle(db *repository.DB, log *requestlog.Log, deliverer *delivery.Deliverer, clock Clock, recorder Recorder) *Lifecycle {
+	return &Lifecycle{db: db, log: log, deliverer: deliverer, clock: clock, ledger: recorder, sessions: make(map[string]*trackedSession)}
 }
 
 // Accept validates an STK Push against the project's credentials and, if
 // valid, opens a pending Session that times out on its own.
 func (l *Lifecycle) Accept(ctx context.Context, project repository.Project, req Request) (Session, *daraja.ValidationError) {
 	if validationErr := Validate(req, project); validationErr != nil {
-		l.log.Rejected(ctx, project.ID, requestlog.STKPush, req, validationErr)
+		l.log.Rejected(ctx, project.ID, requestlog.STKPush, "", req, validationErr)
 		return Session{}, validationErr
 	}
 
@@ -85,6 +92,54 @@ func (l *Lifecycle) Accept(ctx context.Context, project repository.Project, req 
 	l.mu.Unlock()
 
 	return session, nil
+}
+
+// Query reports the outcome of a project's Session, as Daraja's STK Push Query
+// does. A Session still pending answers with Daraja's "being processed" error.
+func (l *Lifecycle) Query(ctx context.Context, project repository.Project, req QueryRequest) (QueryResponse, *daraja.ValidationError) {
+	if validationErr := validatePassword(req.BusinessShortCode, req.Password, req.Timestamp, project); validationErr != nil {
+		l.log.Rejected(ctx, project.ID, requestlog.STKQuery, "", req, validationErr)
+		return QueryResponse{}, validationErr
+	}
+
+	l.mu.Lock()
+	tracked, ok := l.sessions[req.CheckoutRequestID]
+	var session Session
+	if ok {
+		session = tracked.Session
+	}
+	l.mu.Unlock()
+
+	if !ok || session.ProjectID != project.ID {
+		validationErr := &daraja.ValidationError{
+			HTTPStatus:   400,
+			ErrorCode:    "400.002.02",
+			ErrorMessage: "Bad Request - Invalid CheckoutRequestID",
+		}
+		l.log.Rejected(ctx, project.ID, requestlog.STKQuery, "", req, validationErr)
+		return QueryResponse{}, validationErr
+	}
+
+	if !session.Resolved {
+		validationErr := &daraja.ValidationError{
+			HTTPStatus:   500,
+			ErrorCode:    "500.001.1001",
+			ErrorMessage: "The transaction is being processed",
+		}
+		l.log.Rejected(ctx, project.ID, requestlog.STKQuery, session.CheckoutRequestID, req, validationErr)
+		return QueryResponse{}, validationErr
+	}
+
+	result := QueryResponse{
+		ResponseCode:        "0",
+		ResponseDescription: "The service request has been accepted successfully",
+		MerchantRequestID:   session.MerchantRequestID,
+		CheckoutRequestID:   session.CheckoutRequestID,
+		ResultCode:          strconv.Itoa(session.ResultCode),
+		ResultDesc:          session.ResultDesc,
+	}
+	l.log.Accepted(ctx, project.ID, requestlog.STKQuery, session.CheckoutRequestID, req, result)
+	return result, nil
 }
 
 // Pending returns a project's unresolved Sessions, for the Virtual Phone.
@@ -144,7 +199,21 @@ func (l *Lifecycle) deliver(session Session, outcome Outcome) {
 	var transactionDate int64
 	if session.ResultCode == ResultCodeSuccess {
 		receipt = GenerateMpesaReceiptNumber()
-		transactionDate, _ = strconv.ParseInt(l.clock.Now().Format("20060102150405"), 10, 64)
+		now := l.clock.Now()
+		transactionDate, _ = strconv.ParseInt(now.Format("20060102150405"), 10, 64)
+		_ = l.ledger.Record(ctx, ledger.Entry{
+			ProjectID:                session.ProjectID,
+			Receipt:                  receipt,
+			Kind:                     ledger.KindSTKPush,
+			OriginatorConversationID: session.MerchantRequestID,
+			ConversationID:           session.CheckoutRequestID,
+			Amount:                   session.Amount,
+			DebitParty:               session.PhoneNumber,
+			CreditParty:              session.BusinessShortCode,
+			ReasonType:               "Pay Bill Online",
+			InitiatedAt:              session.CreatedAt,
+			FinalisedAt:              now,
+		})
 	}
 	callback := BuildCallback(session, receipt, transactionDate)
 

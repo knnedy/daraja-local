@@ -1,5 +1,7 @@
 package c2b
 
+import "github.com/knnedy/daraja-local/internal/daraja"
+
 // AcceptResponse is the synchronous reply to registerurl and simulate.
 // The OriginatorConversationID tag is misspelled on purpose: Safaricom's
 // wire field is "OriginatorCoversationID". Do not fix it.
@@ -12,8 +14,8 @@ type AcceptResponse struct {
 
 func NewAcceptResponse(description string) AcceptResponse {
 	return AcceptResponse{
-		OriginatorConversationID: GenerateOriginatorConversationID(),
-		ConversationID:           GenerateConversationID(),
+		OriginatorConversationID: daraja.NewOriginatorConversationID(),
+		ConversationID:           daraja.NewConversationID(),
 		ResponseCode:             "0",
 		ResponseDescription:      description,
 	}

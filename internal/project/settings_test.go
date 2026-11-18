@@ -30,6 +30,7 @@ func TestSettingsUpdateLeavesRegistrationAlone(t *testing.T) {
 		CallbackUrl:     confirmationURL,
 		ValidationUrl:   validationURL,
 		C2bResponseType: "Cancelled",
+		C2bApiVersion:   "v2",
 		ProjectID:       project.ID,
 	}); err != nil {
 		t.Fatalf("register urls: %v", err)

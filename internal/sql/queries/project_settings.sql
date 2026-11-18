@@ -18,6 +18,7 @@ UPDATE "project_settings"
 SET "callback_url" = ?,
     "validation_url" = ?,
     "c2b_response_type" = ?,
-    "external_validation_default" = ?
+    "external_validation_default" = ?,
+    "c2b_api_version" = ?
 WHERE "project_id" = ?
 RETURNING *;

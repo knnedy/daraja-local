@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 
 	"github.com/knnedy/daraja-local/internal/daraja"
 	"github.com/knnedy/daraja-local/internal/delivery"
@@ -16,25 +17,51 @@ import (
 type Kind string
 
 const (
-	KindSTKPush Kind = "stk_push"
-	KindC2B     Kind = "c2b"
+	KindSTKPush           Kind = "stk_push"
+	KindC2B               Kind = "c2b"
+	KindB2C               Kind = "b2c"
+	KindTransactionStatus Kind = "transaction_status"
+	KindReversal          Kind = "reversal"
+	KindB2B               Kind = "b2b"
+	KindAccountBalance    Kind = "account_balance"
 )
 
 // Operation is the Daraja endpoint an Entry belongs to.
 type Operation string
 
 const (
-	STKPush     Operation = "stk_push"
-	C2BRegister Operation = "c2b_register"
-	C2BSimulate Operation = "c2b_simulate"
+	STKPush           Operation = "stk_push"
+	STKQuery          Operation = "stk_query"
+	C2BRegister       Operation = "c2b_register"
+	C2BSimulate       Operation = "c2b_simulate"
+	B2CPayment        Operation = "b2c_payment"
+	TransactionStatus Operation = "transaction_status"
+	Reversal          Operation = "reversal"
+	B2BPayment        Operation = "b2b_payment"
+	AccountBalance    Operation = "account_balance"
 )
 
 func (o Operation) kind() Kind {
-	if o == STKPush {
+	switch o {
+	case STKPush, STKQuery:
 		return KindSTKPush
+	case B2CPayment:
+		return KindB2C
+	case TransactionStatus:
+		return KindTransactionStatus
+	case Reversal:
+		return KindReversal
+	case B2BPayment:
+		return KindB2B
+	case AccountBalance:
+		return KindAccountBalance
 	}
 	return KindC2B
 }
+
+// QueueTimeout is the Delivery outcome for a request that timed out in the
+// queue; its Entry is a timeout, not a result.
+const QueueTimeout = "queue_timeout"
 
 // Step is the part an Entry plays in its transaction. The dashboard reads it.
 const (
@@ -44,6 +71,8 @@ const (
 	stepValidation   = "validation"
 	stepCallback     = "callback"
 	stepConfirmation = "confirmation"
+	stepResult       = "result"
+	stepTimeout      = "timeout"
 )
 
 const (
@@ -71,11 +100,11 @@ func (l *Log) Accepted(ctx context.Context, projectID int64, op Operation, trans
 	l.write(ctx, entry{projectID: projectID, op: op, step: stepAcceptance, transactionID: transactionID, direction: directionOutbound, status: statusAccepted}, acceptance)
 }
 
-// Rejected records a request that failed request validation and the error sent
-// back. Neither Entry has a transaction ID, so they are not grouped.
-func (l *Log) Rejected(ctx context.Context, projectID int64, op Operation, request any, validationErr *daraja.ValidationError) {
-	l.write(ctx, entry{projectID: projectID, op: op, step: stepRequest, direction: directionInbound, status: statusRejected}, request)
-	l.write(ctx, entry{projectID: projectID, op: op, step: stepRejection, direction: directionOutbound, status: statusRejected}, struct {
+// Rejected records a request Daraja Local refused and the error sent back.
+// With no transaction ID yet, pass "" and the two Entries stay ungrouped.
+func (l *Log) Rejected(ctx context.Context, projectID int64, op Operation, transactionID string, request any, validationErr *daraja.ValidationError) {
+	l.write(ctx, entry{projectID: projectID, op: op, step: stepRequest, transactionID: transactionID, direction: directionInbound, status: statusRejected}, request)
+	l.write(ctx, entry{projectID: projectID, op: op, step: stepRejection, transactionID: transactionID, direction: directionOutbound, status: statusRejected}, struct {
 		HTTPStatus   int    `json:"httpStatus"`
 		ErrorCode    string `json:"errorCode"`
 		ErrorMessage string `json:"errorMessage"`
@@ -97,6 +126,15 @@ func (l *Log) Validation(ctx context.Context, projectID int64, transactionID str
 
 // Delivery records one Delivery of body, covering every Attempt in a single Entry.
 func (l *Log) Delivery(ctx context.Context, projectID int64, op Operation, transactionID, outcome string, body any, result delivery.Result) {
+	l.delivery(ctx, projectID, op, transactionID, outcome, body, result, false)
+}
+
+// Redelivery records a Delivery the developer asked to repeat from the dashboard.
+func (l *Log) Redelivery(ctx context.Context, projectID int64, op Operation, transactionID, outcome string, body any, result delivery.Result) {
+	l.delivery(ctx, projectID, op, transactionID, outcome, body, result, true)
+}
+
+func (l *Log) delivery(ctx context.Context, projectID int64, op Operation, transactionID, outcome string, body any, result delivery.Result, replay bool) {
 	status := statusFailed
 	if result.Delivered {
 		status = statusDelivered
@@ -104,22 +142,56 @@ func (l *Log) Delivery(ctx context.Context, projectID int64, op Operation, trans
 
 	// The body's key and the step differ per kind; the dashboard reads both.
 	step := stepConfirmation
+	if op != STKPush && op != STKQuery && op != C2BRegister && op != C2BSimulate {
+		step = stepResult
+		if outcome == QueueTimeout {
+			step = stepTimeout
+		}
+	}
 	var payload any = struct {
 		Payload  any                `json:"payload"`
+		URL      string             `json:"url"`
+		Replay   bool               `json:"replay,omitempty"`
 		Attempts []delivery.Attempt `json:"attempts"`
-	}{body, result.Attempts}
+	}{body, result.URL, replay, result.Attempts}
 	if op == STKPush {
 		step = stepCallback
 		payload = struct {
 			Callback any                `json:"callback"`
+			URL      string             `json:"url"`
+			Replay   bool               `json:"replay,omitempty"`
 			Attempts []delivery.Attempt `json:"attempts"`
-		}{body, result.Attempts}
+		}{body, result.URL, replay, result.Attempts}
 	}
 
 	l.write(ctx, entry{
 		projectID: projectID, op: op, step: step, transactionID: transactionID, direction: directionOutbound,
 		status: status, outcome: outcome, attempts: int64(len(result.Attempts)),
 	}, payload)
+}
+
+// Confirmation returns the body of a C2B payment's most recent Confirmation,
+// exactly as it was sent, or false if none was sent.
+func (l *Log) Confirmation(ctx context.Context, projectID int64, transactionID string) (json.RawMessage, bool, error) {
+	row, err := l.db.Queries().GetLatestRequestLogEntryByStep(ctx, repository.GetLatestRequestLogEntryByStepParams{
+		ProjectID:     projectID,
+		CorrelationID: sql.NullString{String: transactionID, Valid: true},
+		Step:          stepConfirmation,
+	})
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, false, nil
+	}
+	if err != nil {
+		return nil, false, err
+	}
+
+	var stored struct {
+		Payload json.RawMessage `json:"payload"`
+	}
+	if err := json.Unmarshal([]byte(row.Payload), &stored); err != nil || len(stored.Payload) == 0 {
+		return nil, false, nil
+	}
+	return stored.Payload, true, nil
 }
 
 // Filter narrows List. The zero value is every kind, newest first.

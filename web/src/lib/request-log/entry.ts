@@ -9,7 +9,15 @@ const BAD = "text-terminal-red";
 export function entryTag(entry: RequestLogEntry): EntryTag {
   switch (entry.step) {
     case "request":
-      return { label: "REQ", className: "text-terminal-blue" };
+      return {
+        label:
+          entry.operation === "stk_query" ||
+          entry.operation === "transaction_status" ||
+          entry.operation === "account_balance"
+            ? "QRY"
+            : "REQ",
+        className: "text-terminal-blue",
+      };
     case "acceptance":
       return { label: "ACK", className: GOOD };
     case "rejection":
@@ -18,6 +26,17 @@ export function entryTag(entry: RequestLogEntry): EntryTag {
       return {
         label: "VAL",
         className: entry.outcome === "accepted" ? GOOD : BAD,
+      };
+    case "timeout":
+      return { label: "TMO", className: BAD };
+    case "result":
+      return {
+        label: "RES",
+        className:
+          entry.status === "delivered" &&
+          ["completed", "found", "reversed", "reported"].includes(entry.outcome ?? "")
+            ? GOOD
+            : BAD,
       };
     case "callback":
     case "confirmation":

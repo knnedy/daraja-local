@@ -4,6 +4,8 @@ CREATE TABLE "request_log" (
     "project_id"     INTEGER NOT NULL,
     "correlation_id" TEXT,
     "kind"           TEXT NOT NULL,
+    "operation"      TEXT NOT NULL DEFAULT '',
+    "step"           TEXT NOT NULL DEFAULT '',
     "direction"      TEXT NOT NULL,
     "status"         TEXT NOT NULL,
     "outcome"        TEXT,
@@ -11,7 +13,7 @@ CREATE TABLE "request_log" (
     "payload"        TEXT NOT NULL,
     "created_at"     TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
     CONSTRAINT "request_log_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects" ("id") ON DELETE CASCADE,
-    CONSTRAINT "request_log_kind_check" CHECK ("kind" IN ('stk_push', 'c2b')),
+    CONSTRAINT "request_log_kind_check" CHECK ("kind" IN ('stk_push', 'c2b', 'b2c', 'b2b', 'transaction_status', 'reversal', 'account_balance')),
     CONSTRAINT "request_log_direction_check" CHECK ("direction" IN ('inbound', 'outbound')),
     CONSTRAINT "request_log_attempts_check" CHECK ("attempts" >= 1)
 );
@@ -20,6 +22,4 @@ CREATE INDEX "idx_request_log_project_id_created_at" ON "request_log" ("project_
 CREATE INDEX "idx_request_log_correlation_id" ON "request_log" ("correlation_id");
 
 -- +goose Down
-DROP INDEX "idx_request_log_correlation_id";
-DROP INDEX "idx_request_log_project_id_created_at";
 DROP TABLE "request_log";

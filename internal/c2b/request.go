@@ -20,10 +20,20 @@ type SimulateRequest struct {
 	BillRefNumber string `json:"BillRefNumber"`
 }
 
+// APIVersion is the C2B path version a Registration was made through. It
+// decides how the customer's number appears in Validation and Confirmation.
+type APIVersion string
+
+const (
+	V1 APIVersion = "v1"
+	V2 APIVersion = "v2"
+)
+
 // Registration is a project's current ConfirmationURL, optional ValidationURL
 // and ResponseType, as last set through registerurl.
 type Registration struct {
 	ConfirmationURL string
 	ValidationURL   string
 	ResponseType    string
+	Version         APIVersion
 }

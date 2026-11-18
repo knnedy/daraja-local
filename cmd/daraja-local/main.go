@@ -12,9 +12,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/knnedy/daraja-local/internal/b2b"
+	"github.com/knnedy/daraja-local/internal/b2c"
 	"github.com/knnedy/daraja-local/internal/c2b"
 	"github.com/knnedy/daraja-local/internal/config"
 	"github.com/knnedy/daraja-local/internal/delivery"
+	"github.com/knnedy/daraja-local/internal/initiator"
+	"github.com/knnedy/daraja-local/internal/ledger"
 	"github.com/knnedy/daraja-local/internal/project"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/requestlog"
@@ -24,6 +28,10 @@ import (
 )
 
 const deliveryGrace = 10 * time.Second
+
+// initiatorAPIDelay stands in for the seconds Safaricom takes to post the result
+// of a B2C payment, Transaction Status query or Reversal.
+const initiatorAPIDelay = 2 * time.Second
 
 func main() {
 	if err := run(); err != nil {
@@ -54,9 +62,13 @@ func run() error {
 	tokenSvc := token.NewIssuer(db)
 	deliverer := delivery.New(delivery.NewHTTPPoster(), delivery.LinearBackoff)
 	requestLog := requestlog.New(db)
-	stkSessions := stk.NewLifecycle(db, requestLog, deliverer, stk.SystemClock())
-	c2bFlow := c2b.NewFlow(db, requestLog, deliverer)
-	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSessions, c2bFlow, requestLog, staticFS, cfg.IsDev)
+	initiators := initiator.New(db)
+	transactions := ledger.New(db, requestLog, deliverer, initiators, initiatorAPIDelay)
+	stkSessions := stk.NewLifecycle(db, requestLog, deliverer, stk.SystemClock(), transactions)
+	c2bFlow := c2b.NewFlow(db, requestLog, deliverer, transactions)
+	b2cPayouts := b2c.NewPayouts(db, requestLog, deliverer, initiators, transactions, initiatorAPIDelay)
+	b2bPayments := b2b.New(db, requestLog, deliverer, initiators, transactions, initiatorAPIDelay)
+	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSessions, c2bFlow, requestLog, initiators, b2cPayouts, transactions, transactions, b2bPayments, staticFS, cfg.IsDev)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf("127.0.0.1:%d", cfg.Port),
@@ -90,7 +102,7 @@ func run() error {
 		if err := srv.Shutdown(shutdownCtx); err != nil {
 			return fmt.Errorf("shutdown: %w", err)
 		}
-		finishDeliveries(stkSessions.Wait, c2bFlow.Wait)
+		finishDeliveries(stkSessions.Wait, c2bFlow.Wait, b2cPayouts.Wait, transactions.Wait, b2bPayments.Wait)
 	}
 
 	return nil

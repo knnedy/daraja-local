@@ -4,12 +4,15 @@ import (
 	"context"
 	"errors"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 
 	"github.com/knnedy/daraja-local/internal/delivery"
+	"github.com/knnedy/daraja-local/internal/ledger"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/requestlog"
+	"github.com/knnedy/daraja-local/internal/response"
 )
 
 const (
@@ -24,16 +27,18 @@ type developerApp struct {
 	validationErr   error
 	confirmStatus   int
 	posts           []string
+	bodies          [][]byte
 }
 
-func (a *developerApp) Post(_ context.Context, url string, _ []byte) (delivery.Reply, error) {
+func (a *developerApp) Post(_ context.Context, url string, body []byte) (delivery.Reply, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	a.posts = append(a.posts, url)
+	a.bodies = append(a.bodies, body)
 	if url == validationURL {
 		return a.validationReply, a.validationErr
 	}
-	return delivery.Reply{StatusCode: a.confirmStatus}, nil
+	return delivery.Reply{StatusCode: a.confirmStatus, Body: []byte(`{"ok":true}`)}, nil
 }
 
 func (a *developerApp) received() []string {
@@ -67,7 +72,7 @@ func newFlowFixture(t *testing.T) *flowFixture {
 	}
 
 	f := &flowFixture{app: &developerApp{confirmStatus: 200}, log: requestlog.New(db), project: project}
-	f.flow = NewFlow(db, f.log, delivery.New(f.app, delivery.NoBackoff))
+	f.flow = NewFlow(db, f.log, delivery.New(f.app, delivery.NoBackoff), ledger.New(db, f.log, nil, nil, 0))
 	t.Cleanup(func() {
 		f.flow.Wait()
 		_ = db.Close()
@@ -77,7 +82,7 @@ func newFlowFixture(t *testing.T) *flowFixture {
 
 func (f *flowFixture) register(t *testing.T, responseType, validation string) {
 	t.Helper()
-	if _, vErr := f.flow.RegisterURL(context.Background(), f.project, RegisterURLRequest{
+	if _, vErr := f.flow.RegisterURL(context.Background(), f.project, V2, RegisterURLRequest{
 		ShortCode: f.project.ShortCode, ResponseType: responseType, ConfirmationURL: confirmationURL, ValidationURL: validation,
 	}); vErr != nil {
 		t.Fatalf("register: %v", vErr)
@@ -135,7 +140,7 @@ func TestRegistrationReflectsTheLatestRegisterURL(t *testing.T) {
 
 	f.register(t, "Cancelled", validationURL)
 	got, registered, err := f.flow.Registration(ctx, f.project.ID)
-	want := Registration{ConfirmationURL: confirmationURL, ValidationURL: validationURL, ResponseType: "Cancelled"}
+	want := Registration{ConfirmationURL: confirmationURL, ValidationURL: validationURL, ResponseType: "Cancelled", Version: V2}
 	if err != nil || !registered || got != want {
 		t.Fatalf("registration = %+v (registered %v, err %v), want %+v", got, registered, err, want)
 	}
@@ -244,5 +249,136 @@ func TestAnUndeliverableConfirmationIsLoggedAsFailed(t *testing.T) {
 	steps := f.steps(t, accept.ConversationID)
 	if last := steps[len(steps)-1]; last != "confirmation/failed/confirmed" {
 		t.Errorf("last entry = %s", last)
+	}
+}
+
+func TestReplayResendsTheSameConfirmationToTheCurrentURL(t *testing.T) {
+	f := newFlowFixture(t)
+	f.register(t, "Completed", "")
+	f.app.confirmStatus = 500
+	accept := f.pay(t)
+
+	// The developer fixes their server and registers a new URL, then replays.
+	const fixedURL = "http://127.0.0.1:4001/c2b/confirmation"
+	if _, vErr := f.flow.RegisterURL(context.Background(), f.project, V2, RegisterURLRequest{
+		ShortCode: f.project.ShortCode, ResponseType: "Completed", ConfirmationURL: fixedURL,
+	}); vErr != nil {
+		t.Fatalf("register: %v", vErr)
+	}
+	f.app.confirmStatus = 200
+	if err := f.flow.ReplayConfirmation(context.Background(), f.project.ID, accept.ConversationID); err != nil {
+		t.Fatalf("replay: %v", err)
+	}
+	f.flow.Wait()
+
+	posts := f.app.received()
+	if posts[len(posts)-1] != fixedURL {
+		t.Errorf("replayed to %s, want %s", posts[len(posts)-1], fixedURL)
+	}
+	if first, last := f.app.bodies[0], f.app.bodies[len(f.app.bodies)-1]; string(first) != string(last) {
+		t.Errorf("replayed body differs:\n%s\n%s", first, last)
+	}
+
+	want := []string{"request/accepted/", "acceptance/accepted/", "confirmation/failed/confirmed", "confirmation/delivered/confirmed"}
+	if got := f.steps(t, accept.ConversationID); !equal(got, want) {
+		t.Errorf("steps = %v, want %v", got, want)
+	}
+}
+
+func TestReplayRefusals(t *testing.T) {
+	f := newFlowFixture(t)
+	if err := f.flow.ReplayConfirmation(context.Background(), f.project.ID, "AG_none"); !errors.Is(err, response.ErrValidation) {
+		t.Errorf("unregistered: err = %v, want ErrValidation", err)
+	}
+
+	f.register(t, "Completed", validationURL)
+	f.app.validationReply = delivery.Reply{StatusCode: 200, Body: []byte(`{"ResultCode":"C2B00011","ResultDesc":"Rejected"}`)}
+	accept := f.pay(t)
+
+	if err := f.flow.ReplayConfirmation(context.Background(), f.project.ID, accept.ConversationID); !errors.Is(err, response.ErrNotFound) {
+		t.Errorf("never confirmed: err = %v, want ErrNotFound", err)
+	}
+	if err := f.flow.ReplayConfirmation(context.Background(), f.project.ID+1, accept.ConversationID); err == nil {
+		t.Error("another project's payment was replayed")
+	}
+}
+
+func TestTheLogKeepsWhatEachCallSentAndGotBack(t *testing.T) {
+	f := newFlowFixture(t)
+	f.register(t, "Completed", validationURL)
+	f.app.validationReply = delivery.Reply{StatusCode: 200, Body: []byte(`{"ResultCode":"0","ResultDesc":"Accepted"}`)}
+	accept := f.pay(t)
+
+	rows, err := f.log.List(context.Background(), f.project.ID, requestlog.Filter{Kind: requestlog.KindC2B, Limit: 50})
+	if err != nil {
+		t.Fatalf("list: %v", err)
+	}
+	for _, row := range rows {
+		if row.CorrelationID.String != accept.ConversationID {
+			continue
+		}
+		switch row.Step {
+		case "validation":
+			for _, want := range []string{`"URL":"` + validationURL, `"Reply":"{\"ResultCode\":\"0\"`, `"Payload":{"TransactionType"`} {
+				if !strings.Contains(row.Payload, want) {
+					t.Errorf("validation entry lacks %s: %s", want, row.Payload)
+				}
+			}
+		case "confirmation":
+			for _, want := range []string{`"url":"` + confirmationURL, `"Reply":"{\"ok\":true}"`, `"DurationMs":`} {
+				if !strings.Contains(row.Payload, want) {
+					t.Errorf("confirmation entry lacks %s: %s", want, row.Payload)
+				}
+			}
+		}
+	}
+}
+
+func TestTheRegistrationVersionDecidesHowTheNumberIsHidden(t *testing.T) {
+	tests := []struct {
+		version APIVersion
+		want    string
+	}{
+		{V1, `"MSISDN":"bbff37cea44ac0b2d964ee0dfb8d2df8513dc7ba1b36129a929fc3fbd6dd4af4"`},
+		{V2, `"MSISDN":"2547*****149"`},
+	}
+	for _, tt := range tests {
+		t.Run(string(tt.version), func(t *testing.T) {
+			f := newFlowFixture(t)
+			if _, vErr := f.flow.RegisterURL(context.Background(), f.project, tt.version, RegisterURLRequest{
+				ShortCode: f.project.ShortCode, ResponseType: "Completed", ConfirmationURL: confirmationURL,
+			}); vErr != nil {
+				t.Fatalf("register: %v", vErr)
+			}
+			f.pay(t)
+
+			if body := string(f.app.bodies[0]); !strings.Contains(body, tt.want) {
+				t.Errorf("confirmation body = %s, want %s", body, tt.want)
+			}
+			if got, _, _ := f.flow.Registration(context.Background(), f.project.ID); got.Version != tt.version {
+				t.Errorf("registration version = %q", got.Version)
+			}
+		})
+	}
+}
+
+func TestRegisterURLRefusesSafaricomsBlockedWords(t *testing.T) {
+	f := newFlowFixture(t)
+	for _, url := range []string{
+		"https://shop.test/mpesa/confirm", "https://shop.test/M-PESA", "https://safaricom.shop.test/c",
+		"https://shop.test/confirm.exe", "https://shop.test/EXEC/c", "https://shop.test/cmd",
+		"https://shop.test/sql/c", "https://shop.test/c?query=1",
+	} {
+		_, vErr := f.flow.RegisterURL(context.Background(), f.project, V2, RegisterURLRequest{
+			ShortCode: f.project.ShortCode, ResponseType: "Completed", ConfirmationURL: url,
+		})
+		if vErr == nil || vErr.HTTPStatus != 400 {
+			t.Errorf("%s was accepted", url)
+		}
+	}
+	if _, vErr := f.flow.RegisterURL(context.Background(), f.project, V2, RegisterURLRequest{
+		ShortCode: f.project.ShortCode, ResponseType: "Completed", ConfirmationURL: "https://shop.test/c2b/confirmation",
+	}); vErr != nil {
+		t.Errorf("a clean URL was refused: %v", vErr)
 	}
 }

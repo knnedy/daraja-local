@@ -4,12 +4,12 @@ import Link from "next/link";
 import { ArrowRightIcon } from "lucide-react";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useRecentRequestLog } from "@/hooks/use-request-log";
-import RecentActivity from "./components/recent-activity";
-import EndpointsCard from "./components/endpoints-card";
-import EnvCard from "./components/env-card";
-import ProjectDetailsCard from "./components/project-details";
-import StatsCard from "./components/stats-card";
-import QuickActions from "./components/quick-actions";
+import RecentActivity from "./_components/recent-activity";
+import EndpointsCard from "./_components/endpoints-card";
+import EnvCard from "./_components/env-card";
+import ProjectDetailsCard from "./_components/project-details";
+import StatsCard from "./_components/stats-card";
+import QuickActions from "./_components/quick-actions";
 
 export default function OverviewPage() {
   const slug = useActiveProjectStore((s) => s.slug);

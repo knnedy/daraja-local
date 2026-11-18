@@ -1,4 +1,4 @@
-import type { RequestLogEntry } from "./types/request-log";
+import type { RequestLogEntry, RequestLogKind } from "./types/request-log";
 import { CreateProjectInput, UpdateProjectInput } from "./schemas/project";
 import { UpdateSettingsInput } from "./schemas/settings";
 import {
@@ -6,9 +6,33 @@ import {
   Project,
   ProjectsResponse,
 } from "./types/project";
-import { C2BRegistration } from "./types/c2b";
+import { C2BRegistration, SimulatePaymentInput } from "./types/c2b";
+import { Initiator } from "./types/initiator";
+import { InitiatorCallInput, Transaction } from "./types/transactions";
+import {
+  Accounts,
+  ResultTargets,
+  SendB2BInput,
+  UpdateAccountsInput,
+} from "./types/accounts";
+import {
+  B2CState,
+  SendPayoutInput,
+  SendPayoutResponse,
+  UpdateB2CStateInput,
+} from "./types/b2c";
 import { SettingsResponse } from "./types/settings";
 import { PendingSessionsResponse, StkOutcome } from "./types/stk";
+
+const kindRoutes: Record<RequestLogKind, string> = {
+  stk_push: "stk",
+  c2b: "c2b",
+  b2c: "b2c",
+  b2b: "b2b",
+  account_balance: "accounts",
+  transaction_status: "transaction-status",
+  reversal: "reversal",
+};
 
 // Empty in the embedded build (same-origin); only set for `make dev`.
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
@@ -55,6 +79,16 @@ export const api = {
         method: "POST",
         body: JSON.stringify(body),
       });
+    },
+
+    initiator(slug: string): Promise<Initiator> {
+      return request<Initiator>(
+        `/api/projects/${encodeURIComponent(slug)}/initiator`,
+      );
+    },
+
+    initiatorCertificateUrl(slug: string): string {
+      return `${BASE_URL}/api/projects/${encodeURIComponent(slug)}/initiator/certificate`;
     },
 
     get(slug: string): Promise<Project> {
@@ -128,12 +162,6 @@ export const api = {
           },
         );
       },
-
-      listRequestLog(slug: string, limit: number): Promise<RequestLogEntry[]> {
-        return request<RequestLogEntry[]>(
-          `/api/projects/${encodeURIComponent(slug)}/stk/request-log?limit=${limit}`,
-        );
-      },
     },
     c2b: {
       registration(slug: string): Promise<C2BRegistration> {
@@ -142,13 +170,114 @@ export const api = {
         );
       },
 
-      listRequestLog(slug: string, limit: number): Promise<RequestLogEntry[]> {
-        return request<RequestLogEntry[]>(
-          `/api/projects/${encodeURIComponent(slug)}/c2b/request-log?limit=${limit}`,
+      replay(slug: string, transactionId: string): Promise<void> {
+        return request<void>(
+          `/api/projects/${encodeURIComponent(slug)}/c2b/${encodeURIComponent(transactionId)}/replay`,
+          { method: "POST" },
+        );
+      },
+
+      simulate(
+        slug: string,
+        body: SimulatePaymentInput,
+      ): Promise<{ conversationId: string }> {
+        return request<{ conversationId: string }>(
+          `/api/projects/${encodeURIComponent(slug)}/c2b/simulate`,
+          { method: "POST", body: JSON.stringify(body) },
+        );
+      },
+    },
+    b2c: {
+      state(slug: string): Promise<B2CState> {
+        return request<B2CState>(
+          `/api/projects/${encodeURIComponent(slug)}/b2c`,
+        );
+      },
+
+      updateState(slug: string, body: UpdateB2CStateInput): Promise<B2CState> {
+        return request<B2CState>(
+          `/api/projects/${encodeURIComponent(slug)}/b2c`,
+          { method: "PUT", body: JSON.stringify(body) },
+        );
+      },
+
+      sendPayout(
+        slug: string,
+        body: SendPayoutInput,
+      ): Promise<SendPayoutResponse> {
+        return request<SendPayoutResponse>(
+          `/api/projects/${encodeURIComponent(slug)}/b2c/payouts`,
+          { method: "POST", body: JSON.stringify(body) },
+        );
+      },
+    },
+    accounts: {
+      get(slug: string): Promise<Accounts> {
+        return request<Accounts>(
+          `/api/projects/${encodeURIComponent(slug)}/accounts`,
+        );
+      },
+
+      update(slug: string, body: UpdateAccountsInput): Promise<Accounts> {
+        return request<Accounts>(
+          `/api/projects/${encodeURIComponent(slug)}/accounts`,
+          { method: "PUT", body: JSON.stringify(body) },
+        );
+      },
+
+      /** Sends an Account Balance query, signed as your app would. */
+      query(
+        slug: string,
+        body: ResultTargets,
+      ): Promise<{ conversationId: string }> {
+        return request<{ conversationId: string }>(
+          `/api/projects/${encodeURIComponent(slug)}/accounts/query`,
+          { method: "POST", body: JSON.stringify(body) },
+        );
+      },
+    },
+    b2b: {
+      send(
+        slug: string,
+        body: SendB2BInput,
+      ): Promise<{ conversationId: string }> {
+        return request<{ conversationId: string }>(
+          `/api/projects/${encodeURIComponent(slug)}/b2b/payments`,
+          { method: "POST", body: JSON.stringify(body) },
+        );
+      },
+    },
+    transactions: {
+      list(slug: string): Promise<Transaction[]> {
+        return request<Transaction[]>(
+          `/api/projects/${encodeURIComponent(slug)}/transactions`,
+        );
+      },
+
+      /** Sends a Transaction Status query or Reversal, signed as your app would. */
+      send(
+        slug: string,
+        action: "status" | "reverse",
+        { receipt, ...body }: InitiatorCallInput,
+      ): Promise<{ conversationId: string }> {
+        return request<{ conversationId: string }>(
+          `/api/projects/${encodeURIComponent(slug)}/transactions/${encodeURIComponent(receipt)}/${action}`,
+          { method: "POST", body: JSON.stringify(body) },
         );
       },
     },
     requestLog: {
+      /** The newest entries of one Kind, from that flow's own route. */
+      live(
+        slug: string,
+        kind: RequestLogKind,
+        limit: number,
+      ): Promise<RequestLogEntry[]> {
+        return request<RequestLogEntry[]>(
+          `/api/projects/${encodeURIComponent(slug)}/${kindRoutes[kind]}/request-log?limit=${limit}`,
+        );
+      },
+
       list(
         slug: string,
         beforeId: number | null,
