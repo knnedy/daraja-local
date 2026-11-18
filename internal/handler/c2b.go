@@ -16,7 +16,7 @@ import (
 )
 
 type C2BService interface {
-	RegisterURL(ctx context.Context, project repository.Project, req c2b.RegisterURLRequest) (c2b.AcceptResponse, *daraja.ValidationError)
+	RegisterURL(ctx context.Context, project repository.Project, version c2b.APIVersion, req c2b.RegisterURLRequest) (c2b.AcceptResponse, *daraja.ValidationError)
 	Simulate(ctx context.Context, project repository.Project, req c2b.SimulateRequest) (c2b.AcceptResponse, *daraja.ValidationError)
 	Registration(ctx context.Context, projectID int64) (c2b.Registration, bool, error)
 	ReplayConfirmation(ctx context.Context, projectID int64, transactionID string) error
@@ -31,26 +31,28 @@ func NewC2BHandler(projectService ProjectService, s C2BService) *C2BHandler {
 	return &C2BHandler{projectService: projectService, service: s}
 }
 
-func (h *C2BHandler) RegisterURL(w http.ResponseWriter, r *http.Request) {
-	project, ok := auth.ProjectFromContext(r.Context())
-	if !ok {
-		response.DarajaJSON(w, http.StatusNotFound, "404.001.03", "Invalid Access Token")
-		return
-	}
+// RegisterURL handles POST /mpesa/c2b/{version}/registerurl.
+func (h *C2BHandler) RegisterURL(version c2b.APIVersion) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		project, ok := auth.ProjectFromContext(r.Context())
+		if !ok {
+			response.DarajaJSON(w, http.StatusNotFound, "404.001.03", "Invalid Access Token")
+			return
+		}
 
-	var req c2b.RegisterURLRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.DarajaJSON(w, http.StatusBadRequest, "400.002.02", "Bad Request - Invalid request body")
-		return
-	}
+		var req c2b.RegisterURLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			response.DarajaJSON(w, http.StatusBadRequest, "400.002.02", "Bad Request - Invalid request body")
+			return
+		}
 
-	accept, validationErr := h.service.RegisterURL(r.Context(), project, req)
-	if validationErr != nil {
-		response.DarajaJSON(w, validationErr.HTTPStatus, validationErr.ErrorCode, validationErr.ErrorMessage)
-		return
+		accept, validationErr := h.service.RegisterURL(r.Context(), project, version, req)
+		if validationErr != nil {
+			response.DarajaJSON(w, validationErr.HTTPStatus, validationErr.ErrorCode, validationErr.ErrorMessage)
+			return
+		}
+		response.JSON(w, http.StatusOK, accept)
 	}
-
-	response.JSON(w, http.StatusOK, accept)
 }
 
 func (h *C2BHandler) Simulate(w http.ResponseWriter, r *http.Request) {
@@ -80,6 +82,7 @@ type registrationResponse struct {
 	ConfirmationURL string `json:"confirmationUrl"`
 	ValidationURL   string `json:"validationUrl"`
 	ResponseType    string `json:"responseType"`
+	APIVersion      string `json:"apiVersion"`
 }
 
 // Registration handles GET /api/projects/{slug}/c2b/registration.
@@ -100,6 +103,7 @@ func (h *C2BHandler) Registration(w http.ResponseWriter, r *http.Request) {
 		ConfirmationURL: registration.ConfirmationURL,
 		ValidationURL:   registration.ValidationURL,
 		ResponseType:    registration.ResponseType,
+		APIVersion:      string(registration.Version),
 	})
 }
 

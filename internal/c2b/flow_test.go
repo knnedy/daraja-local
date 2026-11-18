@@ -81,7 +81,7 @@ func newFlowFixture(t *testing.T) *flowFixture {
 
 func (f *flowFixture) register(t *testing.T, responseType, validation string) {
 	t.Helper()
-	if _, vErr := f.flow.RegisterURL(context.Background(), f.project, RegisterURLRequest{
+	if _, vErr := f.flow.RegisterURL(context.Background(), f.project, V2, RegisterURLRequest{
 		ShortCode: f.project.ShortCode, ResponseType: responseType, ConfirmationURL: confirmationURL, ValidationURL: validation,
 	}); vErr != nil {
 		t.Fatalf("register: %v", vErr)
@@ -139,7 +139,7 @@ func TestRegistrationReflectsTheLatestRegisterURL(t *testing.T) {
 
 	f.register(t, "Cancelled", validationURL)
 	got, registered, err := f.flow.Registration(ctx, f.project.ID)
-	want := Registration{ConfirmationURL: confirmationURL, ValidationURL: validationURL, ResponseType: "Cancelled"}
+	want := Registration{ConfirmationURL: confirmationURL, ValidationURL: validationURL, ResponseType: "Cancelled", Version: V2}
 	if err != nil || !registered || got != want {
 		t.Fatalf("registration = %+v (registered %v, err %v), want %+v", got, registered, err, want)
 	}
@@ -259,7 +259,7 @@ func TestReplayResendsTheSameConfirmationToTheCurrentURL(t *testing.T) {
 
 	// The developer fixes their server and registers a new URL, then replays.
 	const fixedURL = "http://127.0.0.1:4001/c2b/confirmation"
-	if _, vErr := f.flow.RegisterURL(context.Background(), f.project, RegisterURLRequest{
+	if _, vErr := f.flow.RegisterURL(context.Background(), f.project, V2, RegisterURLRequest{
 		ShortCode: f.project.ShortCode, ResponseType: "Completed", ConfirmationURL: fixedURL,
 	}); vErr != nil {
 		t.Fatalf("register: %v", vErr)
@@ -330,5 +330,54 @@ func TestTheLogKeepsWhatEachCallSentAndGotBack(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+func TestTheRegistrationVersionDecidesHowTheNumberIsHidden(t *testing.T) {
+	tests := []struct {
+		version APIVersion
+		want    string
+	}{
+		{V1, `"MSISDN":"bbff37cea44ac0b2d964ee0dfb8d2df8513dc7ba1b36129a929fc3fbd6dd4af4"`},
+		{V2, `"MSISDN":"2547 ***** 149"`},
+	}
+	for _, tt := range tests {
+		t.Run(string(tt.version), func(t *testing.T) {
+			f := newFlowFixture(t)
+			if _, vErr := f.flow.RegisterURL(context.Background(), f.project, tt.version, RegisterURLRequest{
+				ShortCode: f.project.ShortCode, ResponseType: "Completed", ConfirmationURL: confirmationURL,
+			}); vErr != nil {
+				t.Fatalf("register: %v", vErr)
+			}
+			f.pay(t)
+
+			if body := string(f.app.bodies[0]); !strings.Contains(body, tt.want) {
+				t.Errorf("confirmation body = %s, want %s", body, tt.want)
+			}
+			if got, _, _ := f.flow.Registration(context.Background(), f.project.ID); got.Version != tt.version {
+				t.Errorf("registration version = %q", got.Version)
+			}
+		})
+	}
+}
+
+func TestRegisterURLRefusesSafaricomsBlockedWords(t *testing.T) {
+	f := newFlowFixture(t)
+	for _, url := range []string{
+		"https://shop.test/mpesa/confirm", "https://shop.test/M-PESA", "https://safaricom.shop.test/c",
+		"https://shop.test/confirm.exe", "https://shop.test/EXEC/c", "https://shop.test/cmd",
+		"https://shop.test/sql/c", "https://shop.test/c?query=1",
+	} {
+		_, vErr := f.flow.RegisterURL(context.Background(), f.project, V2, RegisterURLRequest{
+			ShortCode: f.project.ShortCode, ResponseType: "Completed", ConfirmationURL: url,
+		})
+		if vErr == nil || vErr.HTTPStatus != 400 {
+			t.Errorf("%s was accepted", url)
+		}
+	}
+	if _, vErr := f.flow.RegisterURL(context.Background(), f.project, V2, RegisterURLRequest{
+		ShortCode: f.project.ShortCode, ResponseType: "Completed", ConfirmationURL: "https://shop.test/c2b/confirmation",
+	}); vErr != nil {
+		t.Errorf("a clean URL was refused: %v", vErr)
 	}
 }

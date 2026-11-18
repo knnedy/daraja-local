@@ -40,7 +40,7 @@ All need the same Bearer token as STK Push.
 | `ConfirmationURL` | Where payment confirmations go. You need one before you can simulate. |
 | `ValidationURL`   | Optional. Where validation requests go.                               |
 
-Neither URL may contain `mpesa`, `m-pesa` or `safaricom`, in any capitalization. Daraja rejects them. Daraja Local also accepts `http://` and `localhost` URLs, which real Daraja refuses. Registering again replaces the previous URLs.
+Neither URL may contain `mpesa`, `m-pesa`, `safaricom`, `exe`, `exec`, `cmd`, `sql` or `query`, in any capitalization. Daraja rejects them. Daraja Local also accepts `http://` and `localhost` URLs, which real Daraja refuses. Registering again replaces the previous URLs.
 
 The response:
 
@@ -118,7 +118,7 @@ The same body goes to both the validation and the confirmation URL:
   "InvoiceNumber": "",
   "OrgAccountBalance": "",
   "ThirdPartyTransID": "",
-  "MSISDN": "bbff37cea44ac0b2d964ee0dfb8d2df8513dc7ba1b36129a929fc3fbd6dd4af4",
+  "MSISDN": "2547 ***** 149",
   "FirstName": "",
   "MiddleName": "",
   "LastName": ""
@@ -127,9 +127,18 @@ The same body goes to both the validation and the confirmation URL:
 
 `TransactionType` is `Buy Goods` for `CustomerBuyGoodsOnline`. `TransID` is the same in validation and confirmation, so use it to match them up and to deduplicate. The name, invoice and balance fields arrive blank, because Daraja Local has no subscriber data.
 
-### The `MSISDN` is a hash
+### The `MSISDN` hides the number
 
-As in Daraja v2, you don't receive the customer's phone number. `MSISDN` is the lowercase hex SHA-256 hash of the 12-digit number (`254…`, no `+`). To match a payment to a customer, hash the numbers you have on file and compare:
+You don't receive the customer's phone number. How `MSISDN` hides it depends on the path you called `registerurl` on, and the C2B page shows which one is in effect:
+
+| Registered through          | `MSISDN` for `254708374149`                                                                                          |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `/mpesa/c2b/v2/registerurl` | `2547 ***** 149`: the first four and last three digits are kept                                                      |
+| `/mpesa/c2b/v1/registerurl` | `bbff37cea44ac0b2d964ee0dfb8d2df8513dc7ba1b36129a929fc3fbd6dd4af4`: the lowercase hex SHA-256 of the 12-digit number |
+
+The v2 masking follows Safaricom's documented sample. Its exact spacing is unconfirmed, so don't parse it; treat it as a display value. See [Fidelity](fidelity.md).
+
+To match a v1 payment to a customer, hash the numbers you have on file (`254…`, no `+`) and compare:
 
 ```bash
 printf '254708374149' | sha256sum
@@ -149,6 +158,8 @@ const hash = createHash("sha256").update("254708374149").digest("hex");
 import hashlib
 hash = hashlib.sha256(b"254708374149").hexdigest()
 ```
+
+A masked v2 number can't be matched this way. Match v2 payments by `BillRefNumber`, which is the account number your customer typed.
 
 ## Validation
 

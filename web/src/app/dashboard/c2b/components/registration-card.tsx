@@ -79,6 +79,19 @@ export default function RegistrationCard({
             muted={!validationOn}
           />
 
+          <div className="flex items-center justify-between gap-2 text-[11px]">
+            <span className="text-muted-foreground">
+              Registered via{" "}
+              <span className="font-mono text-foreground">
+                {registration.apiVersion}
+              </span>
+            </span>
+            <span className="text-muted-foreground">
+              MSISDN arrives{" "}
+              {registration.apiVersion === "v1" ? "SHA-256 hashed" : "masked"}
+            </span>
+          </div>
+
           <div className="rounded-md border border-border bg-surface-2 px-3 py-2.5">
             <div className="flex items-center justify-between gap-2">
               <p className="text-[12.5px] font-medium text-foreground">

@@ -86,3 +86,40 @@ func TestMigration004BackfillsOperationAndStep(t *testing.T) {
 		}
 	}
 }
+
+// Registrations that predate migration 005 were made through the v2 paths.
+func TestMigration005DefaultsExistingRegistrationsToV2(t *testing.T) {
+	conn, err := sql.Open("sqlite", "file:"+filepath.Join(t.TempDir(), "old.db")+"?_pragma=foreign_keys(ON)")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+	conn.SetMaxOpenConns(1)
+
+	goose.SetBaseFS(migrations.FS)
+	defer goose.SetBaseFS(nil)
+	if err := goose.SetDialect("sqlite3"); err != nil {
+		t.Fatal(err)
+	}
+	if err := goose.UpTo(conn, ".", 4); err != nil {
+		t.Fatalf("migrate to 004: %v", err)
+	}
+	if _, err := conn.Exec(`INSERT INTO projects (id, slug, name, short_code, consumer_key, consumer_secret, passkey, callback_base_url)
+		VALUES (1, 'shop', 'Shop', '174379', 'k', 's', 'p', '')`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := conn.Exec(`INSERT INTO project_settings (project_id, callback_url) VALUES (1, 'http://127.0.0.1:4000/c')`); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := goose.Up(conn, "."); err != nil {
+		t.Fatalf("migrate to head: %v", err)
+	}
+	var version string
+	if err := conn.QueryRow(`SELECT c2b_api_version FROM project_settings WHERE project_id = 1`).Scan(&version); err != nil || version != "v2" {
+		t.Errorf("version = %q, err = %v", version, err)
+	}
+	if _, err := conn.Exec(`UPDATE project_settings SET c2b_api_version = 'v3'`); err == nil {
+		t.Error("an unknown version was accepted")
+	}
+}

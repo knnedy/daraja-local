@@ -30,7 +30,7 @@ const outboundPayload = `{
   "InvoiceNumber": "",
   "OrgAccountBalance": "",
   "ThirdPartyTransID": "",
-  "MSISDN": "bbff37cea44ac0b2d964ee0dfb8d2df8513dc7ba1b36129a929fc3fbd6dd4af4",
+  "MSISDN": "2547 ***** 149",
   "FirstName": "",
   "MiddleName": "",
   "LastName": ""
@@ -78,8 +78,8 @@ export default function IntegrationPanel() {
               {registerBody}
             </pre>
             <p className="mt-2 text-[11px] text-amber">
-              Neither URL may contain &quot;mpesa&quot;, &quot;m-pesa&quot; or
-              &quot;safaricom&quot; — Daraja rejects those outright.
+              Neither URL may contain mpesa, m-pesa, safaricom, exe, exec, cmd,
+              sql or query, in any case — Daraja rejects those outright.
             </p>
           </>
         )}
@@ -103,8 +103,8 @@ export default function IntegrationPanel() {
             <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
               The same body is POSTed to your ValidationURL and your
               ConfirmationURL. Name, invoice and balance fields arrive blank,
-              and MSISDN is the SHA-256 hash of the customer&apos;s number, as
-              in Daraja v2:
+              and MSISDN hides the customer&apos;s number: masked when you
+              registered through v2, as below, and a SHA-256 hash through v1:
             </p>
             <pre className="overflow-x-auto rounded-md border border-terminal-border bg-terminal-bg p-3.5 font-mono text-[12px] leading-relaxed text-terminal-green">
               {outboundPayload}

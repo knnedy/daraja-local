@@ -29,6 +29,7 @@ type ProjectSetting struct {
 	C2bResponseType           string
 	ExternalValidationDefault int64
 	DefaultPhoneNumber        string
+	C2bApiVersion             string
 }
 
 type RequestLog struct {

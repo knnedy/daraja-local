@@ -25,7 +25,9 @@ func NewFlow(db *repository.DB, log *requestlog.Log, deliverer *delivery.Deliver
 	return &Flow{db: db, log: log, deliverer: deliverer}
 }
 
-func (f *Flow) RegisterURL(ctx context.Context, project repository.Project, req RegisterURLRequest) (AcceptResponse, *daraja.ValidationError) {
+// RegisterURL replaces a project's Registration, remembering which path version
+// it came through.
+func (f *Flow) RegisterURL(ctx context.Context, project repository.Project, version APIVersion, req RegisterURLRequest) (AcceptResponse, *daraja.ValidationError) {
 	if err := ValidateRegisterURL(req, project); err != nil {
 		f.log.Rejected(ctx, project.ID, requestlog.C2BRegister, "", req, err)
 		return AcceptResponse{}, err
@@ -42,6 +44,7 @@ func (f *Flow) RegisterURL(ctx context.Context, project repository.Project, req 
 		ValidationUrl:             req.ValidationURL,
 		C2bResponseType:           req.ResponseType,
 		ExternalValidationDefault: externalValidation,
+		C2bApiVersion:             string(version),
 		ProjectID:                 project.ID,
 	}); dbErr != nil {
 		return AcceptResponse{}, internalError()
@@ -63,6 +66,7 @@ func (f *Flow) Registration(ctx context.Context, projectID int64) (Registration,
 		ConfirmationURL: settings.CallbackUrl,
 		ValidationURL:   settings.ValidationUrl,
 		ResponseType:    settings.C2bResponseType,
+		Version:         APIVersion(settings.C2bApiVersion),
 	}, settings.CallbackUrl != "", nil
 }
 
@@ -80,7 +84,7 @@ func (f *Flow) Simulate(ctx context.Context, project repository.Project, req Sim
 	accept := NewAcceptResponse("Accept the service request successfully.")
 	f.log.Accepted(ctx, project.ID, requestlog.C2BSimulate, accept.ConversationID, req, accept)
 
-	payload := BuildPayload(req, project.ShortCode)
+	payload := BuildPayload(req, project.ShortCode, APIVersion(settings.C2bApiVersion))
 
 	// Respond first, then validate and confirm in the background.
 	f.inFlight.Add(1)

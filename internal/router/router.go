@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/cors"
 
 	"github.com/knnedy/daraja-local/internal/auth"
+	"github.com/knnedy/daraja-local/internal/c2b"
 	"github.com/knnedy/daraja-local/internal/handler"
 	"github.com/knnedy/daraja-local/internal/requestlog"
 	"github.com/knnedy/daraja-local/internal/token"
@@ -84,9 +85,9 @@ func New(
 		r.Use(auth.RequireBearer(tokenSvc))
 		r.Post("/mpesa/stkpush/v1/processrequest", stkHandler.ProcessRequest)
 		r.Post("/mpesa/stkpushquery/v1/query", stkHandler.Query)
-		r.Post("/mpesa/c2b/v1/registerurl", c2bHandler.RegisterURL)
+		r.Post("/mpesa/c2b/v1/registerurl", c2bHandler.RegisterURL(c2b.V1))
 		r.Post("/mpesa/c2b/v1/simulate", c2bHandler.Simulate)
-		r.Post("/mpesa/c2b/v2/registerurl", c2bHandler.RegisterURL)
+		r.Post("/mpesa/c2b/v2/registerurl", c2bHandler.RegisterURL(c2b.V2))
 		r.Post("/mpesa/c2b/v2/simulate", c2bHandler.Simulate)
 	})
 

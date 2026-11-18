@@ -191,7 +191,7 @@ make build
 ## Limits worth knowing
 
 - Daraja Local is for developing and testing your integration. Run it against Safaricom's own sandbox before going live. Its behavior follows Daraja's documented and observed behavior, and a few details, such as callback retry timing and refusing `simulate` before `registerurl`, are emulator choices. [Fidelity](docs/fidelity.md) lists which is which.
-- C2B payloads carry no customer details. Name, invoice and balance fields arrive blank, and `MSISDN` is a SHA-256 hash of the number, as in Daraja v2.
+- C2B payloads carry no customer details. Name, invoice and balance fields arrive blank, and `MSISDN` hides the number: masked after a v2 registration, SHA-256 hashed after v1.
 
 ---
 

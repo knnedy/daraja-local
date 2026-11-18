@@ -14,4 +14,6 @@ export interface C2BRegistration {
   confirmationUrl: string;
   validationUrl: string;
   responseType: "Completed" | "Cancelled";
+  /** The path version registerurl was called on; it decides how MSISDN looks. */
+  apiVersion: "v1" | "v2";
 }

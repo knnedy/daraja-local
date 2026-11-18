@@ -3,6 +3,7 @@ package c2b
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"strings"
 	"time"
 )
 
@@ -24,7 +25,7 @@ type Payload struct {
 
 // BuildPayload builds the body POSTed to both ValidationURL and ConfirmationURL.
 // Name, invoice and balance fields stay empty: there is no subscriber data.
-func BuildPayload(req SimulateRequest, shortCode string) Payload {
+func BuildPayload(req SimulateRequest, shortCode string, version APIVersion) Payload {
 	transactionType := "Pay Bill"
 	if req.CommandID == "CustomerBuyGoodsOnline" {
 		transactionType = "Buy Goods"
@@ -36,11 +37,28 @@ func BuildPayload(req SimulateRequest, shortCode string) Payload {
 		TransAmount:       req.Amount,
 		BusinessShortCode: shortCode,
 		BillRefNumber:     req.BillRefNumber,
-		MSISDN:            hashMSISDN(req.Msisdn),
+		MSISDN:            customerNumber(req.Msisdn, version),
 	}
 }
 
-// Daraja v2 sends the customer's number as a lowercase hex SHA-256 hash.
+// customerNumber hides the customer's number as Daraja does: hashed for v1
+// registrations, masked for v2, per Safaricom's C2B documentation.
+func customerNumber(msisdn string, version APIVersion) string {
+	if version == V1 {
+		return hashMSISDN(msisdn)
+	}
+	return maskMSISDN(msisdn)
+}
+
+// maskMSISDN keeps the first four and last three digits, as in Safaricom's
+// documented sample "2547 ***** 126". The exact spacing is unconfirmed.
+func maskMSISDN(msisdn string) string {
+	if len(msisdn) < 8 {
+		return msisdn
+	}
+	return msisdn[:4] + " " + strings.Repeat("*", len(msisdn)-7) + " " + msisdn[len(msisdn)-3:]
+}
+
 func hashMSISDN(msisdn string) string {
 	sum := sha256.Sum256([]byte(msisdn))
 	return hex.EncodeToString(sum[:])

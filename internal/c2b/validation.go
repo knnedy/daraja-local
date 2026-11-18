@@ -11,7 +11,8 @@ import (
 )
 
 var (
-	blockedURLWords = []string{"mpesa", "m-pesa", "safaricom"}
+	// Safaricom's C2B docs list these; "exec" is covered by "exe".
+	blockedURLWords = []string{"mpesa", "m-pesa", "safaricom", "exe", "cmd", "sql", "query"}
 	msisdnPattern   = regexp.MustCompile(`^254[17]\d{8}$`)
 )
 
