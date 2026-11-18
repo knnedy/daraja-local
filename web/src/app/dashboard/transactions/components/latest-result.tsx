@@ -17,7 +17,7 @@ export default function LatestResult({
         <span className="text-[13px] font-medium text-foreground">
           Latest result
         </span>
-        {result && (
+        {result && !waiting && (
           <span className="font-mono text-[10.5px] text-muted-foreground">
             {result.operation === "reversal"
               ? "Reversal"

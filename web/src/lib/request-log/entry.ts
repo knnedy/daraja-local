@@ -12,7 +12,8 @@ export function entryTag(entry: RequestLogEntry): EntryTag {
       return {
         label:
           entry.operation === "stk_query" ||
-          entry.operation === "transaction_status"
+          entry.operation === "transaction_status" ||
+          entry.operation === "account_balance"
             ? "QRY"
             : "REQ",
         className: "text-terminal-blue",
@@ -33,7 +34,7 @@ export function entryTag(entry: RequestLogEntry): EntryTag {
         label: "RES",
         className:
           entry.status === "delivered" &&
-          ["completed", "found", "reversed"].includes(entry.outcome ?? "")
+          ["completed", "found", "reversed", "reported"].includes(entry.outcome ?? "")
             ? GOOD
             : BAD,
       };

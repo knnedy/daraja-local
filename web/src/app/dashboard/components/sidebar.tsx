@@ -6,6 +6,7 @@ import {
   KeyIcon,
   ArrowLeftRightIcon,
   BanknoteIcon,
+  Building2Icon,
   ReceiptTextIcon,
   ScrollTextIcon,
   SettingsIcon,
@@ -52,6 +53,11 @@ const navGroups = [
         label: "B2C",
         href: "/dashboard/b2c",
         icon: BanknoteIcon,
+      },
+      {
+        label: "B2B",
+        href: "/dashboard/b2b",
+        icon: Building2Icon,
       },
       {
         label: "Transactions",

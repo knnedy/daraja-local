@@ -11,6 +11,8 @@ const KIND_LABEL: Record<LogGroup["kind"], string> = {
   stk_push: "STK",
   c2b: "C2B",
   b2c: "B2C",
+  b2b: "B2B",
+  account_balance: "BAL",
   transaction_status: "STS",
   reversal: "REV",
   mixed: "—",

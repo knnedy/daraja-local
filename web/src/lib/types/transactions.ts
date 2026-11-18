@@ -1,4 +1,4 @@
-export type TransactionKind = "stk_push" | "c2b" | "b2c" | "reversal";
+export type TransactionKind = "stk_push" | "c2b" | "b2c" | "b2b" | "reversal";
 
 /** A completed M-Pesa transaction, as Transaction Status and Reversal see it. */
 export interface Transaction {

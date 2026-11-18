@@ -10,6 +10,12 @@ import { C2BRegistration, SimulatePaymentInput } from "./types/c2b";
 import { Initiator } from "./types/initiator";
 import { InitiatorCallInput, Transaction } from "./types/transactions";
 import {
+  Accounts,
+  ResultTargets,
+  SendB2BInput,
+  UpdateAccountsInput,
+} from "./types/accounts";
+import {
   B2CState,
   SendPayoutInput,
   SendPayoutResponse,
@@ -22,6 +28,8 @@ const kindRoutes: Record<RequestLogKind, string> = {
   stk_push: "stk",
   c2b: "c2b",
   b2c: "b2c",
+  b2b: "b2b",
+  account_balance: "accounts",
   transaction_status: "transaction-status",
   reversal: "reversal",
 };
@@ -199,6 +207,42 @@ export const api = {
       ): Promise<SendPayoutResponse> {
         return request<SendPayoutResponse>(
           `/api/projects/${encodeURIComponent(slug)}/b2c/payouts`,
+          { method: "POST", body: JSON.stringify(body) },
+        );
+      },
+    },
+    accounts: {
+      get(slug: string): Promise<Accounts> {
+        return request<Accounts>(
+          `/api/projects/${encodeURIComponent(slug)}/accounts`,
+        );
+      },
+
+      update(slug: string, body: UpdateAccountsInput): Promise<Accounts> {
+        return request<Accounts>(
+          `/api/projects/${encodeURIComponent(slug)}/accounts`,
+          { method: "PUT", body: JSON.stringify(body) },
+        );
+      },
+
+      /** Sends an Account Balance query, signed as your app would. */
+      query(
+        slug: string,
+        body: ResultTargets,
+      ): Promise<{ conversationId: string }> {
+        return request<{ conversationId: string }>(
+          `/api/projects/${encodeURIComponent(slug)}/accounts/query`,
+          { method: "POST", body: JSON.stringify(body) },
+        );
+      },
+    },
+    b2b: {
+      send(
+        slug: string,
+        body: SendB2BInput,
+      ): Promise<{ conversationId: string }> {
+        return request<{ conversationId: string }>(
+          `/api/projects/${encodeURIComponent(slug)}/b2b/payments`,
           { method: "POST", body: JSON.stringify(body) },
         );
       },

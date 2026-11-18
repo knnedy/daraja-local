@@ -18,6 +18,9 @@ export const queryKeys = {
   b2c: {
     state: (slug: string) => ["b2c", "state", slug] as const,
   },
+  accounts: {
+    get: (slug: string) => ["accounts", slug] as const,
+  },
   transactions: {
     list: (slug: string) => ["transactions", slug] as const,
   },

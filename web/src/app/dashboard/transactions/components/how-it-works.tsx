@@ -20,7 +20,7 @@ const steps: FlowStep[] = [
     to: "M-Pesa",
     title: "M-Pesa looks the transaction up",
     detail:
-      "In Daraja Local, every completed STK, C2B and B2C payment is kept, so any receipt you've seen in a callback can be looked up. A reversal refunds the customer from your working account.",
+      "In Daraja Local, every completed STK, C2B and B2C payment is kept, so any receipt you've seen in a callback can be looked up. A reversal refunds the customer from your utility account, where their payment landed.",
   },
   {
     from: "Safaricom",

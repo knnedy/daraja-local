@@ -5,14 +5,18 @@ export type RequestLogOperation =
   | "c2b_simulate"
   | "b2c_payment"
   | "transaction_status"
-  | "reversal";
+  | "reversal"
+  | "b2b_payment"
+  | "account_balance";
 
 export type RequestLogKind =
   | "stk_push"
   | "c2b"
   | "b2c"
+  | "b2b"
   | "transaction_status"
-  | "reversal";
+  | "reversal"
+  | "account_balance";
 
 export type RequestLogStep =
   | "request"
