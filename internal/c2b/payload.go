@@ -50,13 +50,13 @@ func customerNumber(msisdn string, version APIVersion) string {
 	return maskMSISDN(msisdn)
 }
 
-// maskMSISDN keeps the first four and last three digits, as in Safaricom's
-// documented sample "2547 ***** 126". The exact spacing is unconfirmed.
+// maskMSISDN keeps the first four and last three digits. Most sources show
+// "2547*****126"; Safaricom's own sample adds spaces. Unconfirmed either way.
 func maskMSISDN(msisdn string) string {
 	if len(msisdn) < 8 {
 		return msisdn
 	}
-	return msisdn[:4] + " " + strings.Repeat("*", len(msisdn)-7) + " " + msisdn[len(msisdn)-3:]
+	return msisdn[:4] + strings.Repeat("*", len(msisdn)-7) + msisdn[len(msisdn)-3:]
 }
 
 func hashMSISDN(msisdn string) string {

@@ -118,7 +118,7 @@ The same body goes to both the validation and the confirmation URL:
   "InvoiceNumber": "",
   "OrgAccountBalance": "",
   "ThirdPartyTransID": "",
-  "MSISDN": "2547 ***** 149",
+  "MSISDN": "2547*****149",
   "FirstName": "",
   "MiddleName": "",
   "LastName": ""
@@ -133,10 +133,10 @@ You don't receive the customer's phone number. How `MSISDN` hides it depends on 
 
 | Registered through          | `MSISDN` for `254708374149`                                                                                          |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `/mpesa/c2b/v2/registerurl` | `2547 ***** 149`: the first four and last three digits are kept                                                      |
+| `/mpesa/c2b/v2/registerurl` | `2547*****149`: the first four and last three digits are kept                                                        |
 | `/mpesa/c2b/v1/registerurl` | `bbff37cea44ac0b2d964ee0dfb8d2df8513dc7ba1b36129a929fc3fbd6dd4af4`: the lowercase hex SHA-256 of the 12-digit number |
 
-The v2 masking follows Safaricom's documented sample. Its exact spacing is unconfirmed, so don't parse it; treat it as a display value. See [Fidelity](fidelity.md).
+Sources agree on keeping the first four and last three digits but differ on spacing and mask characters, so don't parse it; treat it as a display value. See [Fidelity](fidelity.md).
 
 To match a v1 payment to a customer, hash the numbers you have on file (`254…`, no `+`) and compare:
 

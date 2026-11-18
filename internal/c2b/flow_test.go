@@ -339,7 +339,7 @@ func TestTheRegistrationVersionDecidesHowTheNumberIsHidden(t *testing.T) {
 		want    string
 	}{
 		{V1, `"MSISDN":"bbff37cea44ac0b2d964ee0dfb8d2df8513dc7ba1b36129a929fc3fbd6dd4af4"`},
-		{V2, `"MSISDN":"2547 ***** 149"`},
+		{V2, `"MSISDN":"2547*****149"`},
 	}
 	for _, tt := range tests {
 		t.Run(string(tt.version), func(t *testing.T) {

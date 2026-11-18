@@ -30,7 +30,7 @@ const outboundPayload = `{
   "InvoiceNumber": "",
   "OrgAccountBalance": "",
   "ThirdPartyTransID": "",
-  "MSISDN": "2547 ***** 149",
+  "MSISDN": "2547*****149",
   "FirstName": "",
   "MiddleName": "",
   "LastName": ""
