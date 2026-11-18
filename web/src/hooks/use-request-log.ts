@@ -19,7 +19,9 @@ export function useLiveRequestLog(
     queryFn: () =>
       kind === "stk_push"
         ? api.projects.stk.listRequestLog(slug, limit)
-        : api.projects.c2b.listRequestLog(slug, limit),
+        : kind === "c2b"
+          ? api.projects.c2b.listRequestLog(slug, limit)
+          : api.projects.b2c.listRequestLog(slug, limit),
     enabled: Boolean(slug),
     refetchInterval: 2000,
   });

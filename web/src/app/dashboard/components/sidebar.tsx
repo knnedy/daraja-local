@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   KeyIcon,
   ArrowLeftRightIcon,
+  BanknoteIcon,
   ScrollTextIcon,
   SettingsIcon,
   RadioIcon,
@@ -45,6 +46,11 @@ const navGroups = [
         label: "C2B",
         href: "/dashboard/c2b",
         icon: ArrowLeftRightIcon,
+      },
+      {
+        label: "B2C",
+        href: "/dashboard/b2c",
+        icon: BanknoteIcon,
       },
     ],
   },

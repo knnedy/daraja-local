@@ -47,7 +47,7 @@ func New(
 	stkHandler := handler.NewSTKHandler(projectSvc, stkSessions)
 	c2bHandler := handler.NewC2BHandler(projectSvc, c2bSvc)
 	initiatorHandler := handler.NewInitiatorHandler(projectSvc, initiators)
-	b2cHandler := handler.NewB2CHandler(projectSvc, b2cPayouts)
+	b2cHandler := handler.NewB2CHandler(projectSvc, b2cPayouts, initiators)
 	requestLogHandler := handler.NewRequestLogHandler(projectSvc, requestLog)
 
 	r.Route("/api", func(r chi.Router) {
@@ -86,6 +86,7 @@ func New(
 				r.Route("/b2c", func(r chi.Router) {
 					r.Get("/", b2cHandler.State)
 					r.Put("/", b2cHandler.UpdateState)
+					r.Post("/payouts", b2cHandler.SendPayout)
 					r.Get("/request-log", requestLogHandler.List(requestlog.KindB2C))
 				})
 			})

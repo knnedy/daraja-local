@@ -1,6 +1,6 @@
 "use client";
 
-import RequestBar from "./components/request-bar";
+import RequestBar from "../components/request-bar";
 import IntegrationPanel from "./components/integration-panel";
 import RegistrationCard from "./components/registration-card";
 import PayCard from "./components/pay-card";

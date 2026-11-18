@@ -145,3 +145,25 @@ func randomPassword(length int) (string, error) {
 	}
 	return string(out), nil
 }
+
+// SecurityCredential encrypts the password with the certificate, exactly as a
+// developer's app must before calling an initiator API.
+func SecurityCredential(found Initiator) (string, error) {
+	block, _ := pem.Decode([]byte(found.CertificatePEM))
+	if block == nil {
+		return "", errors.New("initiator: certificate is not PEM")
+	}
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return "", err
+	}
+	key, ok := cert.PublicKey.(*rsa.PublicKey)
+	if !ok {
+		return "", errors.New("initiator: certificate key is not RSA")
+	}
+	ciphertext, err := rsa.EncryptPKCS1v15(rand.Reader, key, []byte(found.Password))
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(ciphertext), nil
+}

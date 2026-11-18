@@ -101,7 +101,7 @@ export default function LogsPage() {
             Request Log
           </h1>
           <p className="text-[13px] text-muted-foreground">
-            Every STK and C2B request this project has seen, grouped by session.
+            Every Daraja request this project has seen, grouped by session.
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">

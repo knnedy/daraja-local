@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   ArrowLeftRightIcon,
   ArrowUpRightIcon,
+  BanknoteIcon,
   KeyRoundIcon,
   ScrollTextIcon,
   SmartphoneIcon,
@@ -29,6 +30,12 @@ const actions: Action[] = [
     icon: ArrowLeftRightIcon,
   },
   {
+    href: "/dashboard/b2c",
+    label: "B2C",
+    description: "Pay out to a phone, watch the result",
+    icon: BanknoteIcon,
+  },
+  {
     href: "/dashboard/logs",
     label: "Request Log",
     description: "Browse and search past requests",
@@ -44,7 +51,7 @@ const actions: Action[] = [
 
 export default function QuickActions() {
   return (
-    <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-5">
       {actions.map((action) => (
         <Link
           key={action.href}

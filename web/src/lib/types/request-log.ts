@@ -2,7 +2,10 @@ export type RequestLogOperation =
   | "stk_push"
   | "stk_query"
   | "c2b_register"
-  | "c2b_simulate";
+  | "c2b_simulate"
+  | "b2c_payment";
+
+export type RequestLogKind = "stk_push" | "c2b" | "b2c";
 
 export type RequestLogStep =
   | "request"
@@ -10,12 +13,14 @@ export type RequestLogStep =
   | "rejection"
   | "validation"
   | "callback"
-  | "confirmation";
+  | "confirmation"
+  | "result"
+  | "timeout";
 
 export interface RequestLogEntry {
   id: number;
   correlationId: string | null;
-  kind: "stk_push" | "c2b";
+  kind: RequestLogKind;
   /** The Daraja endpoint this entry belongs to. */
   operation: RequestLogOperation | "";
   /** The part this entry plays in its transaction. */

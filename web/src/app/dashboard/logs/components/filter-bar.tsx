@@ -8,6 +8,7 @@ const KIND_OPTIONS = [
   { value: "all", label: "All" },
   { value: "stk_push", label: "STK" },
   { value: "c2b", label: "C2B" },
+  { value: "b2c", label: "B2C" },
 ] as const;
 
 const STATUS_OPTIONS = [

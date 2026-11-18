@@ -8,6 +8,11 @@ const ERROR_OUTCOMES = new Set([
   "insufficient_balance",
   "timeout",
   "rejected",
+  "over_transaction_limit",
+  "daily_limit",
+  "invalid_initiator",
+  "unregistered_customer",
+  "queue_timeout",
 ]);
 
 export function groupStatus(group: LogGroup): {

@@ -1,8 +1,11 @@
-import type { RequestLogEntry } from "@/lib/types/request-log";
+import type {
+  RequestLogEntry,
+  RequestLogKind,
+} from "@/lib/types/request-log";
 
 export type LogGroup = {
   id: string;
-  kind: "stk_push" | "c2b" | "mixed";
+  kind: RequestLogKind | "mixed";
   createdAt: string;
   entries: RequestLogEntry[];
   finalStatus: string;
@@ -51,8 +54,8 @@ export function groupEntries(entries: RequestLogEntry[]): LogGroup[] {
 
     const summary =
       peek(oldest.payload, ["Amount", "amount", "TransAmount"]) &&
-      peek(oldest.payload, ["PhoneNumber", "Msisdn"])
-        ? `KES ${peek(oldest.payload, ["Amount", "amount", "TransAmount"])} · ${peek(oldest.payload, ["PhoneNumber", "Msisdn"])}`
+      peek(oldest.payload, ["PhoneNumber", "Msisdn", "PartyB"])
+        ? `KES ${peek(oldest.payload, ["Amount", "amount", "TransAmount"])} · ${peek(oldest.payload, ["PhoneNumber", "Msisdn", "PartyB"])}`
         : (peek(oldest.payload, ["BillRefNumber", "AccountReference"]) ?? "");
 
     return {

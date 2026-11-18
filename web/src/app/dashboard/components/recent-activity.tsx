@@ -6,7 +6,12 @@ import { groupStatus } from "@/lib/request-log/status";
 import { relativeTime } from "@/lib/request-log/time";
 import type { RequestLogEntry } from "@/lib/types/request-log";
 
-const KIND_LABEL = { stk_push: "STK", c2b: "C2B", mixed: "—" } as const;
+const KIND_LABEL = {
+  stk_push: "STK",
+  c2b: "C2B",
+  b2c: "B2C",
+  mixed: "—",
+} as const;
 
 export default function RecentActivity({
   entries,

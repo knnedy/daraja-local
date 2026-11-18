@@ -2,12 +2,8 @@ package b2c
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
-	"encoding/pem"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -72,27 +68,16 @@ func newFixture(t *testing.T) *fixture {
 		t.Fatalf("initiator: %v", err)
 	}
 
-	f := &fixture{app: &developerApp{}, log: requestlog.New(db), project: project, credential: encrypt(t, found.CertificatePEM, found.Password)}
+	f := &fixture{app: &developerApp{}, log: requestlog.New(db), project: project}
+	if f.credential, err = initiator.SecurityCredential(found); err != nil {
+		t.Fatalf("credential: %v", err)
+	}
 	f.payouts = NewPayouts(db, f.log, delivery.New(f.app, delivery.NoBackoff), initiators, 0)
 	t.Cleanup(func() {
 		f.payouts.Wait()
 		_ = db.Close()
 	})
 	return f
-}
-
-func encrypt(t *testing.T, certificatePEM, password string) string {
-	t.Helper()
-	block, _ := pem.Decode([]byte(certificatePEM))
-	cert, err := x509.ParseCertificate(block.Bytes)
-	if err != nil {
-		t.Fatalf("parse certificate: %v", err)
-	}
-	ciphertext, err := rsa.EncryptPKCS1v15(rand.Reader, cert.PublicKey.(*rsa.PublicKey), []byte(password))
-	if err != nil {
-		t.Fatalf("encrypt: %v", err)
-	}
-	return base64.StdEncoding.EncodeToString(ciphertext)
 }
 
 func (f *fixture) request(amount string) PaymentRequest {

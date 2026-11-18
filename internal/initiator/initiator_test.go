@@ -101,3 +101,18 @@ func TestVerify(t *testing.T) {
 		})
 	}
 }
+
+func TestSecurityCredentialVerifies(t *testing.T) {
+	store, projectID, _ := newStore(t)
+	found, err := store.Get(context.Background(), projectID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	credential, err := SecurityCredential(found)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ok, err := store.Verify(context.Background(), projectID, found.Name, credential); err != nil || !ok {
+		t.Errorf("own credential did not verify: %v %v", ok, err)
+	}
+}

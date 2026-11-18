@@ -15,6 +15,9 @@ export const queryKeys = {
   c2b: {
     registration: (slug: string) => ["c2b", "registration", slug] as const,
   },
+  b2c: {
+    state: (slug: string) => ["b2c", "state", slug] as const,
+  },
   requestLog: {
     live: (slug: string, kind: string, limit: number) =>
       ["request-log", "live", slug, kind, limit] as const,

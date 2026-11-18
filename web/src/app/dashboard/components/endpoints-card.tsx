@@ -16,6 +16,7 @@ function countHits(entries: RequestLogEntry[]) {
   let query = 0;
   let register = 0;
   let simulate = 0;
+  let payout = 0;
 
   for (const e of entries) {
     if (e.step !== "request") continue;
@@ -23,9 +24,10 @@ function countHits(entries: RequestLogEntry[]) {
     else if (e.operation === "stk_query") query++;
     else if (e.operation === "c2b_register") register++;
     else if (e.operation === "c2b_simulate") simulate++;
+    else if (e.operation === "b2c_payment") payout++;
   }
 
-  return { stk, query, register, simulate };
+  return { stk, query, register, simulate, payout };
 }
 
 function MethodBadge({ method }: { method: Endpoint["method"] }) {
@@ -82,6 +84,13 @@ export default function EndpointsCard({
       description: "C2B payment simulation",
       href: "/dashboard/c2b",
       count: hits.simulate,
+    },
+    {
+      method: "POST",
+      path: "/mpesa/b2c/v3/paymentrequest",
+      description: "B2C payment request",
+      href: "/dashboard/b2c",
+      count: hits.payout,
     },
   ];
 

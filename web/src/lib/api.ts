@@ -8,6 +8,12 @@ import {
 } from "./types/project";
 import { C2BRegistration, SimulatePaymentInput } from "./types/c2b";
 import { Initiator } from "./types/initiator";
+import {
+  B2CState,
+  SendPayoutInput,
+  SendPayoutResponse,
+  UpdateB2CStateInput,
+} from "./types/b2c";
 import { SettingsResponse } from "./types/settings";
 import { PendingSessionsResponse, StkOutcome } from "./types/stk";
 
@@ -173,6 +179,36 @@ export const api = {
       listRequestLog(slug: string, limit: number): Promise<RequestLogEntry[]> {
         return request<RequestLogEntry[]>(
           `/api/projects/${encodeURIComponent(slug)}/c2b/request-log?limit=${limit}`,
+        );
+      },
+    },
+    b2c: {
+      state(slug: string): Promise<B2CState> {
+        return request<B2CState>(
+          `/api/projects/${encodeURIComponent(slug)}/b2c`,
+        );
+      },
+
+      updateState(slug: string, body: UpdateB2CStateInput): Promise<B2CState> {
+        return request<B2CState>(
+          `/api/projects/${encodeURIComponent(slug)}/b2c`,
+          { method: "PUT", body: JSON.stringify(body) },
+        );
+      },
+
+      sendPayout(
+        slug: string,
+        body: SendPayoutInput,
+      ): Promise<SendPayoutResponse> {
+        return request<SendPayoutResponse>(
+          `/api/projects/${encodeURIComponent(slug)}/b2c/payouts`,
+          { method: "POST", body: JSON.stringify(body) },
+        );
+      },
+
+      listRequestLog(slug: string, limit: number): Promise<RequestLogEntry[]> {
+        return request<RequestLogEntry[]>(
+          `/api/projects/${encodeURIComponent(slug)}/b2c/request-log?limit=${limit}`,
         );
       },
     },

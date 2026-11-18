@@ -22,6 +22,16 @@ export function entryTag(entry: RequestLogEntry): EntryTag {
         label: "VAL",
         className: entry.outcome === "accepted" ? GOOD : BAD,
       };
+    case "timeout":
+      return { label: "TMO", className: BAD };
+    case "result":
+      return {
+        label: "RES",
+        className:
+          entry.status === "delivered" && entry.outcome === "completed"
+            ? GOOD
+            : BAD,
+      };
     case "callback":
     case "confirmation":
       return {

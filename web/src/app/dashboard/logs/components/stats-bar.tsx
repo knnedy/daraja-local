@@ -6,6 +6,7 @@ export default function StatsBar({ groups }: { groups: LogGroup[] }) {
     { label: "Loaded", value: groups.length },
     { label: "STK", value: groups.filter((g) => g.kind === "stk_push").length },
     { label: "C2B", value: groups.filter((g) => g.kind === "c2b").length },
+    { label: "B2C", value: groups.filter((g) => g.kind === "b2c").length },
     {
       label: "Errors",
       value: groups.filter((g) => groupStatus(g).tone === "error").length,
@@ -14,7 +15,7 @@ export default function StatsBar({ groups }: { groups: LogGroup[] }) {
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-2.5">
+    <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-5">
       {stats.map((s) => (
         <div
           key={s.label}

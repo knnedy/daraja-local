@@ -11,6 +11,7 @@ import (
 	"github.com/knnedy/daraja-local/internal/auth"
 	"github.com/knnedy/daraja-local/internal/b2c"
 	"github.com/knnedy/daraja-local/internal/daraja"
+	"github.com/knnedy/daraja-local/internal/initiator"
 	"github.com/knnedy/daraja-local/internal/repository"
 	"github.com/knnedy/daraja-local/internal/response"
 )
@@ -26,10 +27,11 @@ type B2CPayouts interface {
 type B2CHandler struct {
 	projectService ProjectService
 	payouts        B2CPayouts
+	initiators     Initiators
 }
 
-func NewB2CHandler(projectService ProjectService, payouts B2CPayouts) *B2CHandler {
-	return &B2CHandler{projectService: projectService, payouts: payouts}
+func NewB2CHandler(projectService ProjectService, payouts B2CPayouts, initiators Initiators) *B2CHandler {
+	return &B2CHandler{projectService: projectService, payouts: payouts, initiators: initiators}
 }
 
 // PaymentRequest handles POST /mpesa/b2c/{version}/paymentrequest.
@@ -54,6 +56,68 @@ func (h *B2CHandler) PaymentRequest(version b2c.APIVersion) http.HandlerFunc {
 		}
 		response.JSON(w, http.StatusOK, accept)
 	}
+}
+
+type sendPayoutRequest struct {
+	CommandID       string `json:"commandId"`
+	Amount          string `json:"amount"`
+	PartyB          string `json:"partyB"`
+	Remarks         string `json:"remarks"`
+	ResultURL       string `json:"resultUrl"`
+	QueueTimeOutURL string `json:"queueTimeOutUrl"`
+}
+
+type sendPayoutResponse struct {
+	ConversationID           string `json:"conversationId"`
+	OriginatorConversationID string `json:"originatorConversationId"`
+}
+
+// SendPayout handles POST /api/projects/{slug}/b2c/payouts: a payout made as
+// the developer's app would, with the project's own initiator credential.
+func (h *B2CHandler) SendPayout(w http.ResponseWriter, r *http.Request) {
+	project, err := h.projectService.Get(r.Context(), chi.URLParam(r, "slug"))
+	if err != nil {
+		writeServiceError(w, err, "failed to get project")
+		return
+	}
+
+	var body sendPayoutRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		response.Error(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	found, err := h.initiators.Get(r.Context(), project.ID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "failed to get initiator")
+		return
+	}
+	credential, err := initiator.SecurityCredential(found)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "failed to build SecurityCredential")
+		return
+	}
+
+	accept, validationErr := h.payouts.Request(r.Context(), project, b2c.V3, b2c.PaymentRequest{
+		OriginatorConversationID: daraja.NewOriginatorConversationID(),
+		InitiatorName:            found.Name,
+		SecurityCredential:       credential,
+		CommandID:                body.CommandID,
+		Amount:                   b2c.Flexible(body.Amount),
+		PartyA:                   b2c.Flexible(project.ShortCode),
+		PartyB:                   b2c.Flexible(body.PartyB),
+		Remarks:                  body.Remarks,
+		QueueTimeOutURL:          body.QueueTimeOutURL,
+		ResultURL:                body.ResultURL,
+	})
+	if validationErr != nil {
+		response.Error(w, http.StatusUnprocessableEntity, validationErr.ErrorMessage)
+		return
+	}
+	response.JSON(w, http.StatusOK, sendPayoutResponse{
+		ConversationID:           accept.ConversationID,
+		OriginatorConversationID: accept.OriginatorConversationID,
+	})
 }
 
 type b2cStateResponse struct {
