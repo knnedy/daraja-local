@@ -15,7 +15,7 @@ import { useProjects } from "@/hooks/use-projects";
 import { useSetActiveProject } from "@/hooks/use-projects";
 import type { Project } from "@/lib/types/project";
 import { cn } from "@/lib/utils";
-import EmptyState from "./components/empty-state";
+import EmptyState from "./_components/empty-state";
 
 function formatRelativeTime(iso: string | null): string {
   if (!iso) return "Never used";

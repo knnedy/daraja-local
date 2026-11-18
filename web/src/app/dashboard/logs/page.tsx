@@ -9,9 +9,9 @@ import { groupStatus } from "@/lib/request-log/status";
 import FilterBar, {
   type KindFilter,
   type StatusFilter,
-} from "./components/filter-bar";
-import LogTable from "./components/log-table";
-import StatsBar from "./components/stats-bar";
+} from "./_components/filter-bar";
+import LogTable from "./_components/log-table";
+import StatsBar from "./_components/stats-bar";
 
 function TableSkeleton() {
   return (

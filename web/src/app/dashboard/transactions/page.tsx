@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import RequestBar from "../components/request-bar";
-import PayloadConsole from "../components/payload-console";
-import HowItWorks from "./components/how-it-works";
-import IntegrationPanel from "./components/integration-panel";
-import TransactionsTable from "./components/transactions-table";
-import LatestResult from "./components/latest-result";
+import RequestBar from "../_components/request-bar";
+import PayloadConsole from "../_components/payload-console";
+import HowItWorks from "./_components/how-it-works";
+import IntegrationPanel from "./_components/integration-panel";
+import TransactionsTable from "./_components/transactions-table";
+import LatestResult from "./_components/latest-result";
 import { deriveResults } from "./lib/results";
 import { useLiveRequestLog } from "@/hooks/use-request-log";
 import { useInitiatorCall, useTransactions } from "@/hooks/use-transactions";

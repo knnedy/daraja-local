@@ -1,12 +1,12 @@
 "use client";
 
-import RequestBar from "../components/request-bar";
-import IntegrationPanel from "./components/integration-panel";
-import RegistrationCard from "./components/registration-card";
-import PayCard from "./components/pay-card";
-import PaymentFlow from "./components/payment-flow";
-import PayloadConsole from "../components/payload-console";
-import HowItWorks from "./components/how-it-works";
+import RequestBar from "../_components/request-bar";
+import IntegrationPanel from "./_components/integration-panel";
+import RegistrationCard from "./_components/registration-card";
+import PayCard from "./_components/pay-card";
+import PaymentFlow from "./_components/payment-flow";
+import PayloadConsole from "../_components/payload-console";
+import HowItWorks from "./_components/how-it-works";
 import { derivePayments } from "./lib/sessions";
 import { useC2BRegistration } from "@/hooks/use-c2b";
 import { useLiveRequestLog } from "@/hooks/use-request-log";

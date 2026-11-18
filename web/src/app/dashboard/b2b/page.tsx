@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import RequestBar from "../components/request-bar";
-import PayloadConsole from "../components/payload-console";
-import HowItWorks from "./components/how-it-works";
-import IntegrationPanel from "./components/integration-panel";
-import AccountsCard from "./components/accounts-card";
-import PaymentCard, { type B2BPaymentDraft } from "./components/payment-card";
-import LatestResult from "./components/latest-result";
+import RequestBar from "../_components/request-bar";
+import PayloadConsole from "../_components/payload-console";
+import HowItWorks from "./_components/how-it-works";
+import IntegrationPanel from "./_components/integration-panel";
+import AccountsCard from "./_components/accounts-card";
+import PaymentCard, { type B2BPaymentDraft } from "./_components/payment-card";
+import LatestResult from "./_components/latest-result";
 import { deriveResults } from "./lib/results";
 import { useLiveRequestLog } from "@/hooks/use-request-log";
 import { useBalanceQuery, useSendB2B } from "@/hooks/use-accounts";

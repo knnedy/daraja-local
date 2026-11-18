@@ -5,7 +5,7 @@ import { RotateCwIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useReplayConfirmation } from "@/hooks/use-c2b";
 import type { PaymentSession } from "../lib/sessions";
-import { Call, Empty } from "../../components/delivery-call";
+import { Call, Empty } from "../../_components/delivery-call";
 
 const panels = ["Validation", "Confirmation"] as const;
 type Panel = (typeof panels)[number];

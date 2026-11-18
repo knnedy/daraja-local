@@ -7,8 +7,8 @@ import {
   Pager,
   StepNode,
   type StepStatus,
-} from "../../components/flow-parts";
-import { Call, Empty } from "../../components/delivery-call";
+} from "../../_components/flow-parts";
+import { Call, Empty } from "../../_components/delivery-call";
 import type { PayoutSession } from "../lib/payouts";
 import { outcomeInfo } from "../lib/outcomes";
 

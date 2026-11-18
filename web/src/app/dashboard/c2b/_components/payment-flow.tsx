@@ -7,7 +7,7 @@ import {
   Pager,
   StepNode,
   type StepStatus,
-} from "../../components/flow-parts";
+} from "../../_components/flow-parts";
 import type { PaymentSession } from "../lib/sessions";
 import DeliveryInspector from "./delivery-inspector";
 

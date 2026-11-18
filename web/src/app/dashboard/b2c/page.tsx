@@ -1,12 +1,12 @@
 "use client";
 
-import RequestBar from "../components/request-bar";
-import PayloadConsole from "../components/payload-console";
-import HowItWorks from "./components/how-it-works";
-import IntegrationPanel from "./components/integration-panel";
-import AccountCard from "./components/account-card";
-import PayoutCard from "./components/payout-card";
-import PayoutFlow from "./components/payout-flow";
+import RequestBar from "../_components/request-bar";
+import PayloadConsole from "../_components/payload-console";
+import HowItWorks from "./_components/how-it-works";
+import IntegrationPanel from "./_components/integration-panel";
+import AccountCard from "./_components/account-card";
+import PayoutCard from "./_components/payout-card";
+import PayoutFlow from "./_components/payout-flow";
 import { derivePayouts } from "./lib/payouts";
 import { useLiveRequestLog } from "@/hooks/use-request-log";
 import { useActiveProjectStore } from "@/store/active-project";

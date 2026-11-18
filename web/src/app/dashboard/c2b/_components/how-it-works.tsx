@@ -1,4 +1,4 @@
-import FlowSteps, { type FlowStep } from "../../components/flow-steps";
+import FlowSteps, { type FlowStep } from "../../_components/flow-steps";
 
 const steps: FlowStep[] = [
   {
