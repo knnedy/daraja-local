@@ -3,9 +3,16 @@ export type RequestLogOperation =
   | "stk_query"
   | "c2b_register"
   | "c2b_simulate"
-  | "b2c_payment";
+  | "b2c_payment"
+  | "transaction_status"
+  | "reversal";
 
-export type RequestLogKind = "stk_push" | "c2b" | "b2c";
+export type RequestLogKind =
+  | "stk_push"
+  | "c2b"
+  | "b2c"
+  | "transaction_status"
+  | "reversal";
 
 export type RequestLogStep =
   | "request"

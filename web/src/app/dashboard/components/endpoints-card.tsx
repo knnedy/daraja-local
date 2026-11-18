@@ -17,6 +17,8 @@ function countHits(entries: RequestLogEntry[]) {
   let register = 0;
   let simulate = 0;
   let payout = 0;
+  let status = 0;
+  let reversal = 0;
 
   for (const e of entries) {
     if (e.step !== "request") continue;
@@ -25,9 +27,11 @@ function countHits(entries: RequestLogEntry[]) {
     else if (e.operation === "c2b_register") register++;
     else if (e.operation === "c2b_simulate") simulate++;
     else if (e.operation === "b2c_payment") payout++;
+    else if (e.operation === "transaction_status") status++;
+    else if (e.operation === "reversal") reversal++;
   }
 
-  return { stk, query, register, simulate, payout };
+  return { stk, query, register, simulate, payout, status, reversal };
 }
 
 function MethodBadge({ method }: { method: Endpoint["method"] }) {
@@ -91,6 +95,20 @@ export default function EndpointsCard({
       description: "B2C payment request",
       href: "/dashboard/b2c",
       count: hits.payout,
+    },
+    {
+      method: "POST",
+      path: "/mpesa/transactionstatus/v1/query",
+      description: "Transaction Status",
+      href: "/dashboard/transactions",
+      count: hits.status,
+    },
+    {
+      method: "POST",
+      path: "/mpesa/reversal/v1/request",
+      description: "Reversal",
+      href: "/dashboard/transactions",
+      count: hits.reversal,
     },
   ];
 

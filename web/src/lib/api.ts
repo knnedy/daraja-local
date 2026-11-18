@@ -1,4 +1,4 @@
-import type { RequestLogEntry } from "./types/request-log";
+import type { RequestLogEntry, RequestLogKind } from "./types/request-log";
 import { CreateProjectInput, UpdateProjectInput } from "./schemas/project";
 import { UpdateSettingsInput } from "./schemas/settings";
 import {
@@ -8,6 +8,7 @@ import {
 } from "./types/project";
 import { C2BRegistration, SimulatePaymentInput } from "./types/c2b";
 import { Initiator } from "./types/initiator";
+import { InitiatorCallInput, Transaction } from "./types/transactions";
 import {
   B2CState,
   SendPayoutInput,
@@ -16,6 +17,14 @@ import {
 } from "./types/b2c";
 import { SettingsResponse } from "./types/settings";
 import { PendingSessionsResponse, StkOutcome } from "./types/stk";
+
+const kindRoutes: Record<RequestLogKind, string> = {
+  stk_push: "stk",
+  c2b: "c2b",
+  b2c: "b2c",
+  transaction_status: "transaction-status",
+  reversal: "reversal",
+};
 
 // Empty in the embedded build (same-origin); only set for `make dev`.
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
@@ -145,12 +154,6 @@ export const api = {
           },
         );
       },
-
-      listRequestLog(slug: string, limit: number): Promise<RequestLogEntry[]> {
-        return request<RequestLogEntry[]>(
-          `/api/projects/${encodeURIComponent(slug)}/stk/request-log?limit=${limit}`,
-        );
-      },
     },
     c2b: {
       registration(slug: string): Promise<C2BRegistration> {
@@ -173,12 +176,6 @@ export const api = {
         return request<{ conversationId: string }>(
           `/api/projects/${encodeURIComponent(slug)}/c2b/simulate`,
           { method: "POST", body: JSON.stringify(body) },
-        );
-      },
-
-      listRequestLog(slug: string, limit: number): Promise<RequestLogEntry[]> {
-        return request<RequestLogEntry[]>(
-          `/api/projects/${encodeURIComponent(slug)}/c2b/request-log?limit=${limit}`,
         );
       },
     },
@@ -205,14 +202,38 @@ export const api = {
           { method: "POST", body: JSON.stringify(body) },
         );
       },
+    },
+    transactions: {
+      list(slug: string): Promise<Transaction[]> {
+        return request<Transaction[]>(
+          `/api/projects/${encodeURIComponent(slug)}/transactions`,
+        );
+      },
 
-      listRequestLog(slug: string, limit: number): Promise<RequestLogEntry[]> {
-        return request<RequestLogEntry[]>(
-          `/api/projects/${encodeURIComponent(slug)}/b2c/request-log?limit=${limit}`,
+      /** Sends a Transaction Status query or Reversal, signed as your app would. */
+      send(
+        slug: string,
+        action: "status" | "reverse",
+        { receipt, ...body }: InitiatorCallInput,
+      ): Promise<{ conversationId: string }> {
+        return request<{ conversationId: string }>(
+          `/api/projects/${encodeURIComponent(slug)}/transactions/${encodeURIComponent(receipt)}/${action}`,
+          { method: "POST", body: JSON.stringify(body) },
         );
       },
     },
     requestLog: {
+      /** The newest entries of one Kind, from that flow's own route. */
+      live(
+        slug: string,
+        kind: RequestLogKind,
+        limit: number,
+      ): Promise<RequestLogEntry[]> {
+        return request<RequestLogEntry[]>(
+          `/api/projects/${encodeURIComponent(slug)}/${kindRoutes[kind]}/request-log?limit=${limit}`,
+        );
+      },
+
       list(
         slug: string,
         beforeId: number | null,

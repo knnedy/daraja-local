@@ -8,7 +8,7 @@ export type { RequestLogEntry };
 
 const PAGE_SIZE = 50;
 
-/** Live feed of one flow's entries, for the STK Push and C2B pages. */
+/** Live feed of one flow's entries, for each API's page. */
 export function useLiveRequestLog(
   slug: string,
   kind: RequestLogEntry["kind"],
@@ -16,12 +16,7 @@ export function useLiveRequestLog(
 ) {
   return useQuery({
     queryKey: queryKeys.requestLog.live(slug, kind, limit),
-    queryFn: () =>
-      kind === "stk_push"
-        ? api.projects.stk.listRequestLog(slug, limit)
-        : kind === "c2b"
-          ? api.projects.c2b.listRequestLog(slug, limit)
-          : api.projects.b2c.listRequestLog(slug, limit),
+    queryFn: () => api.projects.requestLog.live(slug, kind, limit),
     enabled: Boolean(slug),
     refetchInterval: 2000,
   });

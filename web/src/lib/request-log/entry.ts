@@ -10,7 +10,11 @@ export function entryTag(entry: RequestLogEntry): EntryTag {
   switch (entry.step) {
     case "request":
       return {
-        label: entry.operation === "stk_query" ? "QRY" : "REQ",
+        label:
+          entry.operation === "stk_query" ||
+          entry.operation === "transaction_status"
+            ? "QRY"
+            : "REQ",
         className: "text-terminal-blue",
       };
     case "acceptance":
@@ -28,7 +32,8 @@ export function entryTag(entry: RequestLogEntry): EntryTag {
       return {
         label: "RES",
         className:
-          entry.status === "delivered" && entry.outcome === "completed"
+          entry.status === "delivered" &&
+          ["completed", "found", "reversed"].includes(entry.outcome ?? "")
             ? GOOD
             : BAD,
       };

@@ -10,6 +10,8 @@ const KIND_LABEL = {
   stk_push: "STK",
   c2b: "C2B",
   b2c: "B2C",
+  transaction_status: "STS",
+  reversal: "REV",
   mixed: "—",
 } as const;
 

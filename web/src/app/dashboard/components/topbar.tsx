@@ -13,6 +13,7 @@ import {
   SunIcon,
   ArrowLeftRightIcon,
   BanknoteIcon,
+  ReceiptTextIcon,
 } from "lucide-react";
 import { RxDashboard } from "react-icons/rx";
 import { HiOutlineDevicePhoneMobile } from "react-icons/hi2";
@@ -31,6 +32,10 @@ const pages: Record<string, { label: string; icon: React.ElementType }> = {
   },
   "/dashboard/c2b": { label: "C2B", icon: ArrowLeftRightIcon },
   "/dashboard/b2c": { label: "B2C", icon: BanknoteIcon },
+  "/dashboard/transactions": {
+    label: "Transactions",
+    icon: ReceiptTextIcon,
+  },
   "/dashboard/logs": { label: "Request log", icon: ScrollTextIcon },
   "/dashboard/credentials": { label: "Credentials", icon: KeyIcon },
   "/dashboard/settings": { label: "Settings", icon: SettingsIcon },

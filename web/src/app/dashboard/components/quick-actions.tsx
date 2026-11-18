@@ -4,6 +4,7 @@ import {
   ArrowLeftRightIcon,
   ArrowUpRightIcon,
   BanknoteIcon,
+  ReceiptTextIcon,
   KeyRoundIcon,
   ScrollTextIcon,
   SmartphoneIcon,
@@ -36,6 +37,12 @@ const actions: Action[] = [
     icon: BanknoteIcon,
   },
   {
+    href: "/dashboard/transactions",
+    label: "Transactions",
+    description: "Check a status, reverse a payment",
+    icon: ReceiptTextIcon,
+  },
+  {
     href: "/dashboard/logs",
     label: "Request Log",
     description: "Browse and search past requests",
@@ -51,7 +58,7 @@ const actions: Action[] = [
 
 export default function QuickActions() {
   return (
-    <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3">
       {actions.map((action) => (
         <Link
           key={action.href}

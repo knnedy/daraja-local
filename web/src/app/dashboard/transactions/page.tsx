@@ -1,0 +1,158 @@
+"use client";
+
+import { useState } from "react";
+import RequestBar from "../components/request-bar";
+import PayloadConsole from "../components/payload-console";
+import HowItWorks from "./components/how-it-works";
+import IntegrationPanel from "./components/integration-panel";
+import TransactionsTable from "./components/transactions-table";
+import LatestResult from "./components/latest-result";
+import { deriveResults } from "./lib/results";
+import { useLiveRequestLog } from "@/hooks/use-request-log";
+import { useInitiatorCall, useTransactions } from "@/hooks/use-transactions";
+import { useProject } from "@/hooks/use-projects";
+import { useActiveProjectStore } from "@/store/active-project";
+import type { Transaction } from "@/lib/types/transactions";
+
+const fieldClass =
+  "w-full rounded-md border border-border bg-surface-2 px-2.5 py-1.5 font-mono text-[12.5px] text-foreground outline-none focus:border-ring";
+
+function errorText(error: Error): string {
+  try {
+    return (
+      (JSON.parse(error.message) as { error?: string }).error ?? error.message
+    );
+  } catch {
+    return error.message;
+  }
+}
+
+export default function TransactionsPage() {
+  const slug = useActiveProjectStore((s) => s.slug) ?? "";
+  const { data: project } = useProject(slug);
+  const { data: transactions = [] } = useTransactions(slug);
+  const { data: statusLog = [] } = useLiveRequestLog(
+    slug,
+    "transaction_status",
+  );
+  const { data: reversalLog = [] } = useLiveRequestLog(slug, "reversal");
+  const status = useInitiatorCall(slug, "status");
+  const reverse = useInitiatorCall(slug, "reverse");
+
+  const base = project?.callbackBaseUrl.replace(/\/+$/, "") ?? "";
+  const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [timeoutUrl, setTimeoutUrl] = useState<string | null>(null);
+  // The newest log id when a request was sent here; newer results answer it.
+  const [sentAt, setSentAt] = useState<number | null>(null);
+
+  if (!slug) return null;
+
+  const result = resultUrl ?? (base ? `${base}/transactions/result` : "");
+  const timeout = timeoutUrl ?? (base ? `${base}/transactions/timeout` : "");
+  const urlsValid = [result, timeout].every((u) => /^https?:\/\/\S+$/.test(u));
+
+  const entries = [...statusLog, ...reversalLog].sort((a, b) => b.id - a.id);
+  const results = deriveResults(entries);
+  const latest = results[0] ?? null;
+  const waiting = sentAt !== null && (latest?.id ?? 0) <= sentAt;
+
+  function send(action: typeof status, t: Transaction) {
+    setSentAt(entries[0]?.id ?? 0);
+    action.mutate(
+      {
+        receipt: t.receipt,
+        amount: t.amount,
+        resultUrl: result,
+        queueTimeOutUrl: timeout,
+      },
+      { onError: () => setSentAt(null) },
+    );
+  }
+
+  const failed = status.error ?? reverse.error;
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div>
+        <h1 className="mb-0.5 font-heading text-[21px] font-medium text-foreground">
+          Transactions
+        </h1>
+        <p className="text-[13px] text-muted-foreground">
+          Every completed payment, ready to check with Transaction Status or
+          undo with Reversal.
+        </p>
+      </div>
+
+      <HowItWorks />
+
+      <div className="flex flex-col gap-2.5">
+        <RequestBar
+          path="/mpesa/transactionstatus/v1/query"
+          label="transaction status"
+        />
+        <RequestBar path="/mpesa/reversal/v1/request" label="reversal" />
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px] lg:items-start">
+        <div className="flex min-w-0 flex-col gap-5">
+          <TransactionsTable
+            transactions={transactions}
+            busy={status.isPending || reverse.isPending}
+            disabledReason={
+              urlsValid ? null : "Set a ResultURL and QueueTimeOutURL first"
+            }
+            onStatus={(t) => send(status, t)}
+            onReverse={(t) => send(reverse, t)}
+          />
+          {failed && (
+            <p className="text-[11px] text-destructive">{errorText(failed)}</p>
+          )}
+          <LatestResult result={latest} waiting={waiting} />
+          <IntegrationPanel />
+        </div>
+
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-3 rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm">
+            <div>
+              <p className="text-[13px] font-medium text-foreground">
+                Send results to
+              </p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                Used by the Status and Reverse buttons
+              </p>
+            </div>
+            <label className="flex flex-col gap-1">
+              <span className="text-[11px] font-medium text-muted-foreground">
+                ResultURL
+              </span>
+              <input
+                value={result}
+                onChange={(e) => setResultUrl(e.target.value.trim())}
+                className={fieldClass}
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-[11px] font-medium text-muted-foreground">
+                QueueTimeOutURL
+              </span>
+              <input
+                value={timeout}
+                onChange={(e) => setTimeoutUrl(e.target.value.trim())}
+                className={fieldClass}
+              />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <PayloadConsole
+        entries={entries}
+        title="result log"
+        emptyState={[
+          "waiting for a status query or reversal…",
+          "use the buttons above, or call the API from your app",
+        ]}
+      />
+    </div>
+  );
+}

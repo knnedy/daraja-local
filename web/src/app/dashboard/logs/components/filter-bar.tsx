@@ -9,6 +9,8 @@ const KIND_OPTIONS = [
   { value: "stk_push", label: "STK" },
   { value: "c2b", label: "C2B" },
   { value: "b2c", label: "B2C" },
+  { value: "transaction_status", label: "Status" },
+  { value: "reversal", label: "Reversal" },
 ] as const;
 
 const STATUS_OPTIONS = [

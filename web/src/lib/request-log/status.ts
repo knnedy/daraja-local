@@ -13,6 +13,9 @@ const ERROR_OUTCOMES = new Set([
   "invalid_initiator",
   "unregistered_customer",
   "queue_timeout",
+  "not_found",
+  "already_reversed",
+  "invalid_transaction",
 ]);
 
 export function groupStatus(group: LogGroup): {

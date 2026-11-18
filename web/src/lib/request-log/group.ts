@@ -56,7 +56,13 @@ export function groupEntries(entries: RequestLogEntry[]): LogGroup[] {
       peek(oldest.payload, ["Amount", "amount", "TransAmount"]) &&
       peek(oldest.payload, ["PhoneNumber", "Msisdn", "PartyB"])
         ? `KES ${peek(oldest.payload, ["Amount", "amount", "TransAmount"])} · ${peek(oldest.payload, ["PhoneNumber", "Msisdn", "PartyB"])}`
-        : (peek(oldest.payload, ["BillRefNumber", "AccountReference"]) ?? "");
+        : (peek(oldest.payload, [
+          "BillRefNumber",
+          "AccountReference",
+          "TransactionID",
+          "Transaction ID",
+          "OriginalConversationID",
+        ]) ?? "");
 
     return {
       id: key,
