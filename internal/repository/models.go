@@ -8,6 +8,15 @@ import (
 	"database/sql"
 )
 
+type Initiator struct {
+	ProjectID      int64
+	Name           string
+	Password       string
+	PrivateKeyPem  string
+	CertificatePem string
+	CreatedAt      string
+}
+
 type Project struct {
 	ID              int64
 	Slug            string

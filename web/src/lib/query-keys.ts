@@ -6,6 +6,8 @@ export const queryKeys = {
       [...queryKeys.projects.all, "detail", slug] as const,
     settings: (slug: string) =>
       [...queryKeys.projects.all, "settings", slug] as const,
+    initiator: (slug: string) =>
+      [...queryKeys.projects.all, "initiator", slug] as const,
   },
   stk: {
     pending: (slug: string) => ["stk", "pending", slug] as const,

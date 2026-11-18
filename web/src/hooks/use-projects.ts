@@ -87,3 +87,12 @@ export function useRegenerateCredentials(slug: string) {
     },
   });
 }
+
+export function useInitiator(slug: string) {
+  return useQuery({
+    queryKey: queryKeys.projects.initiator(slug),
+    queryFn: () => api.projects.initiator(slug),
+    enabled: Boolean(slug),
+    staleTime: Infinity,
+  });
+}

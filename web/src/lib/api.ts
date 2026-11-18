@@ -7,6 +7,7 @@ import {
   ProjectsResponse,
 } from "./types/project";
 import { C2BRegistration, SimulatePaymentInput } from "./types/c2b";
+import { Initiator } from "./types/initiator";
 import { SettingsResponse } from "./types/settings";
 import { PendingSessionsResponse, StkOutcome } from "./types/stk";
 
@@ -55,6 +56,16 @@ export const api = {
         method: "POST",
         body: JSON.stringify(body),
       });
+    },
+
+    initiator(slug: string): Promise<Initiator> {
+      return request<Initiator>(
+        `/api/projects/${encodeURIComponent(slug)}/initiator`,
+      );
+    },
+
+    initiatorCertificateUrl(slug: string): string {
+      return `${BASE_URL}/api/projects/${encodeURIComponent(slug)}/initiator/certificate`;
     },
 
     get(slug: string): Promise<Project> {

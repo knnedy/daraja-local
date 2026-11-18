@@ -22,6 +22,7 @@ func New(
 	stkSessions handler.STKSessions,
 	c2bSvc handler.C2BService,
 	requestLog handler.RequestLog,
+	initiators handler.Initiators,
 	staticFS fs.FS,
 	isDev bool,
 ) http.Handler {
@@ -43,6 +44,7 @@ func New(
 	oauthHandler := handler.NewOAuthHandler(tokenSvc)
 	stkHandler := handler.NewSTKHandler(projectSvc, stkSessions)
 	c2bHandler := handler.NewC2BHandler(projectSvc, c2bSvc)
+	initiatorHandler := handler.NewInitiatorHandler(projectSvc, initiators)
 	requestLogHandler := handler.NewRequestLogHandler(projectSvc, requestLog)
 
 	r.Route("/api", func(r chi.Router) {
@@ -56,6 +58,8 @@ func New(
 				r.Delete("/", projectHandler.Delete)
 				r.Post("/touch", projectHandler.Touch)
 				r.Post("/credentials/regenerate", projectHandler.RegenerateCredentials)
+				r.Get("/initiator", initiatorHandler.Get)
+				r.Get("/initiator/certificate", initiatorHandler.Certificate)
 
 				r.Get("/settings", settingsHandler.Get)
 				r.Put("/settings", settingsHandler.Update)
