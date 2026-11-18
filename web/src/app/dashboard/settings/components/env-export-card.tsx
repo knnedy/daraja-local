@@ -4,27 +4,37 @@ import { useState } from "react";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useApiPort } from "@/hooks/use-api-port";
-import { useProject } from "@/hooks/use-projects";
+import { useInitiator, useProject } from "@/hooks/use-projects";
+import type { Initiator } from "@/lib/types/initiator";
 import type { Project } from "@/lib/types/project";
 
-function buildEnvTemplate(baseUrl: string, project: Project) {
+function buildEnvTemplate(
+  baseUrl: string,
+  project: Project,
+  initiator: Initiator,
+) {
   return `DARAJA_BASE_URL=${baseUrl}
 DARAJA_SHORTCODE=${project.shortCode}
 DARAJA_CONSUMER_KEY=${project.consumerKey}
 DARAJA_CONSUMER_SECRET=${project.consumerSecret}
 DARAJA_PASSKEY=${project.passkey}
-DARAJA_CALLBACK_URL=${project.callbackBaseUrl}`;
+DARAJA_CALLBACK_URL=${project.callbackBaseUrl}
+DARAJA_INITIATOR_NAME=${initiator.name}
+DARAJA_INITIATOR_PASSWORD=${initiator.password}
+# The certificate from the Credentials page, saved next to your app
+DARAJA_CERT_PATH=./daraja-local-${project.slug}.cer`;
 }
 
 export default function EnvExportCard() {
   const slug = useActiveProjectStore((s) => s.slug) ?? "";
   const { data: project } = useProject(slug);
+  const { data: initiator } = useInitiator(slug);
   const port = useApiPort();
   const [copied, setCopied] = useState(false);
 
-  const ready = project;
+  const ready = project && initiator;
   const envTemplate = ready
-    ? buildEnvTemplate(`http://127.0.0.1:${port}`, project)
+    ? buildEnvTemplate(`http://127.0.0.1:${port}`, project, initiator)
     : "";
 
   function copy() {
