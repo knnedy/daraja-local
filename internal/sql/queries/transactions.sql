@@ -17,9 +17,14 @@ LIMIT 1;
 UPDATE "transactions" SET "reversed_by" = sqlc.arg(reversed_by)
 WHERE "project_id" = sqlc.arg(project_id) AND "receipt" = sqlc.arg(receipt) AND "reversed_by" = '';
 
--- name: CreditWorkingAccount :exec
-UPDATE "accounts" SET "working_cents" = "working_cents" + sqlc.arg(cents)
+-- name: CreditUtilityAccount :exec
+UPDATE "accounts" SET "utility_cents" = "utility_cents" + sqlc.arg(cents)
 WHERE "project_id" = sqlc.arg(project_id);
+
+-- name: SetWorkingBalance :one
+UPDATE "accounts" SET "working_cents" = ?
+WHERE "project_id" = ?
+RETURNING *;
 
 -- name: DebitWorkingAccount :one
 UPDATE "accounts"

@@ -60,7 +60,7 @@ func New(db *repository.DB, log *requestlog.Log, deliverer *delivery.Deliverer, 
 }
 
 // Record keeps a completed transaction. Money paid in by a customer (STK and
-// C2B) is credited to the project's working account, which Reversal draws on.
+// C2B) is credited to the project's utility account, as Safaricom documents.
 func (l *Ledger) Record(ctx context.Context, e Entry) error {
 	return l.db.WithTransaction(ctx, func(q *repository.Queries) error {
 		if err := q.CreateTransaction(ctx, createParams(e)); err != nil {
@@ -72,7 +72,7 @@ func (l *Ledger) Record(ctx context.Context, e Entry) error {
 		if err := q.EnsureAccount(ctx, e.ProjectID); err != nil {
 			return err
 		}
-		return q.CreditWorkingAccount(ctx, repository.CreditWorkingAccountParams{Cents: e.Amount * 100, ProjectID: e.ProjectID})
+		return q.CreditUtilityAccount(ctx, repository.CreditUtilityAccountParams{Cents: e.Amount * 100, ProjectID: e.ProjectID})
 	})
 }
 

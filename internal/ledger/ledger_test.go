@@ -200,7 +200,7 @@ func TestStatusReadsSafaricomsSpacedKeys(t *testing.T) {
 	}
 }
 
-func TestReversalRefundsOnceAndDrawsTheWorkingAccount(t *testing.T) {
+func TestReversalRefundsOnceFromTheUtilityAccount(t *testing.T) {
 	f := newFixture(t)
 	ctx := context.Background()
 	f.paid(t, "SKC82PACB8", 100)
@@ -210,7 +210,7 @@ func TestReversalRefundsOnceAndDrawsTheWorkingAccount(t *testing.T) {
 	if r.ResultCode != float64(0) || r.param("OriginalTransactionID") != "SKC82PACB8" || r.TransactionID == "SKC82PACB8" {
 		t.Fatalf("reversal: %+v", r)
 	}
-	if got := r.param("DebitAccountBalance"); got != "Working Account|KES|0.00|0.00|0.00|0.00" {
+	if got := r.param("DebitAccountBalance"); got != "Utility Account|KES|1000000.00|1000000.00|0.00|0.00" {
 		t.Errorf("DebitAccountBalance = %v", got)
 	}
 
@@ -247,9 +247,9 @@ func TestReversalRefusals(t *testing.T) {
 			req.Initiator = "someone"
 			return req
 		}, float64(2001)},
-		{"working account short", func(f *fixture) ReversalRequest {
+		{"utility account short", func(f *fixture) ReversalRequest {
 			f.paid(t, "SKC82PACB8", 100)
-			_, _ = f.db.Queries().DebitWorkingAccount(context.Background(), repository.DebitWorkingAccountParams{Cents: 5000, ProjectID: f.project.ID})
+			_, _ = f.db.Queries().SetUtilityBalance(context.Background(), repository.SetUtilityBalanceParams{UtilityCents: 5000, ProjectID: f.project.ID})
 			return f.reversalRequest("SKC82PACB8", "")
 		}, float64(1)},
 	}

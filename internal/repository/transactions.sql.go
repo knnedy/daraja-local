@@ -47,18 +47,18 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 	return err
 }
 
-const creditWorkingAccount = `-- name: CreditWorkingAccount :exec
-UPDATE "accounts" SET "working_cents" = "working_cents" + ?1
+const creditUtilityAccount = `-- name: CreditUtilityAccount :exec
+UPDATE "accounts" SET "utility_cents" = "utility_cents" + ?1
 WHERE "project_id" = ?2
 `
 
-type CreditWorkingAccountParams struct {
+type CreditUtilityAccountParams struct {
 	Cents     int64
 	ProjectID int64
 }
 
-func (q *Queries) CreditWorkingAccount(ctx context.Context, arg CreditWorkingAccountParams) error {
-	_, err := q.db.ExecContext(ctx, creditWorkingAccount, arg.Cents, arg.ProjectID)
+func (q *Queries) CreditUtilityAccount(ctx context.Context, arg CreditUtilityAccountParams) error {
+	_, err := q.db.ExecContext(ctx, creditUtilityAccount, arg.Cents, arg.ProjectID)
 	return err
 }
 
@@ -215,4 +215,27 @@ func (q *Queries) MarkTransactionReversed(ctx context.Context, arg MarkTransacti
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+const setWorkingBalance = `-- name: SetWorkingBalance :one
+UPDATE "accounts" SET "working_cents" = ?
+WHERE "project_id" = ?
+RETURNING project_id, utility_cents, working_cents, charges_paid_cents
+`
+
+type SetWorkingBalanceParams struct {
+	WorkingCents int64
+	ProjectID    int64
+}
+
+func (q *Queries) SetWorkingBalance(ctx context.Context, arg SetWorkingBalanceParams) (Account, error) {
+	row := q.db.QueryRowContext(ctx, setWorkingBalance, arg.WorkingCents, arg.ProjectID)
+	var i Account
+	err := row.Scan(
+		&i.ProjectID,
+		&i.UtilityCents,
+		&i.WorkingCents,
+		&i.ChargesPaidCents,
+	)
+	return i, err
 }

@@ -22,13 +22,13 @@ const (
 
 var (
 	errAlreadyReversed = errors.New("ledger: already reversed")
-	errBalance         = errors.New("ledger: insufficient working balance")
+	errBalance         = errors.New("ledger: insufficient utility balance")
 )
 
 const reversalQueueTimeoutURL = "https://internalsandbox.safaricom.co.ke/mpesa/reversalresults/v1/submit"
 
 // Reverse accepts a Reversal request and, once processed, refunds the
-// customer of an STK or C2B payment and posts the result to the ResultURL.
+// customer of an STK or C2B payment from the utility account and posts the result to the ResultURL.
 func (l *Ledger) Reverse(ctx context.Context, project repository.Project, req ReversalRequest) (AcceptResponse, *daraja.ValidationError) {
 	if vErr := validateReversal(req, project); vErr != nil {
 		l.log.Rejected(ctx, project.ID, requestlog.Reversal, "", req, vErr)
@@ -93,7 +93,7 @@ func (l *Ledger) reverse(ctx context.Context, project repository.Project, req Re
 		if err := q.EnsureAccount(ctx, project.ID); err != nil {
 			return err
 		}
-		if account, err = q.DebitWorkingAccount(ctx, repository.DebitWorkingAccountParams{Cents: original.Amount * 100, ProjectID: project.ID}); err != nil {
+		if account, err = q.DebitUtilityAccount(ctx, repository.DebitUtilityAccountParams{Cents: original.Amount * 100, ProjectID: project.ID}); err != nil {
 			return errBalance
 		}
 		return q.CreateTransaction(ctx, createParams(reversal))
@@ -108,11 +108,11 @@ func (l *Ledger) reverse(ctx context.Context, project repository.Project, req Re
 		return fail(ReversalInvalidTransaction, "R000002", "The OriginalTransactionID is invalid.")
 	}
 
-	balance := strconv.FormatFloat(float64(account.WorkingCents)/100, 'f', 2, 64)
+	balance := strconv.FormatFloat(float64(account.UtilityCents)/100, 'f', 2, 64)
 	r.TransactionID = reversal.Receipt
 	r.ResultCode, r.ResultDesc = 0, "The service request is processed successfully."
 	r.ResultParameters = &daraja.ResultParameters{ResultParameter: []daraja.KeyValue{
-		daraja.Param("DebitAccountBalance", "Working Account|KES|"+balance+"|"+balance+"|0.00|0.00"),
+		daraja.Param("DebitAccountBalance", "Utility Account|KES|"+balance+"|"+balance+"|0.00|0.00"),
 		daraja.Param("Amount", daraja.Money(original.Amount*100)),
 		daraja.Param("TransCompletedTime", now.Format("20060102150405")),
 		daraja.Param("OriginalTransactionID", original.Receipt),
