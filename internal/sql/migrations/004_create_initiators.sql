@@ -1,6 +1,5 @@
 -- +goose Up
--- An Initiator signs B2C-style requests. The key pair stands in for Safaricom's
--- certificate, so apps encrypt SecurityCredential exactly as they will for real.
+-- Each project's initiator: the credential B2C and other initiator APIs check.
 CREATE TABLE "initiators" (
     "project_id"       INTEGER PRIMARY KEY,
     "name"             TEXT NOT NULL,

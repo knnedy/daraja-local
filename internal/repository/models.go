@@ -62,9 +62,9 @@ type ProjectSetting struct {
 	ValidationUrl             string
 	StkTimeoutSeconds         int64
 	C2bResponseType           string
+	C2bApiVersion             string
 	ExternalValidationDefault int64
 	DefaultPhoneNumber        string
-	C2bApiVersion             string
 	B2cNextOutcome            string
 }
 
