@@ -26,6 +26,10 @@ Use the credentials of the project you're testing against. A key from one projec
 
 ## 2. A complete example
 
+Every API page also has code for its requests in cURL, Node, Python, PHP and Go, under the integration panel's language switcher. Each snippet gets its own token and builds the `Password` or `SecurityCredential` it needs, reading the variables from the `.env` you export on the Settings page. The language you pick is remembered across pages.
+
+The examples below go further: each one also runs a small server to receive the callback.
+
 Each example does the same three things:
 
 1. Gets an access token.

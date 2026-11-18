@@ -2,35 +2,9 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import CodeSnippets from "../../_components/code-snippets";
 
 const tabs = ["B2B", "Balance", "Failures"] as const;
-
-const b2bBody = `{
-  "Initiator": "testapi",
-  "SecurityCredential": "<base64>",
-  "CommandID": "BusinessPayBill",
-  "SenderIdentifierType": "4",
-  "RecieverIdentifierType": "4",
-  "Amount": "1500",
-  "PartyA": "<shortcode>",
-  "PartyB": "000000",
-  "AccountReference": "INV-001",
-  "Requester": "254708374149",
-  "Remarks": "OK",
-  "QueueTimeOutURL": "https://your-app.com/api/b2b/timeout",
-  "ResultURL": "https://your-app.com/api/b2b/result"
-}`;
-
-const balanceBody = `{
-  "Initiator": "testapi",
-  "SecurityCredential": "<base64>",
-  "CommandID": "AccountBalance",
-  "PartyA": "<shortcode>",
-  "IdentifierType": "4",
-  "Remarks": "OK",
-  "QueueTimeOutURL": "https://your-app.com/api/balance/timeout",
-  "ResultURL": "https://your-app.com/api/balance/result"
-}`;
 
 const parseSnippet = `// "Working Account|KES|700000.00|700000.00|0.00|0.00&Utility Account|..."
 const accounts = value.split("&").map((line) => {
@@ -82,7 +56,7 @@ export default function IntegrationPanel() {
               {field("AccountReference")} is up to 13 characters and{" "}
               {field("Requester")} is optional.
             </p>
-            <pre className={code}>{b2bBody}</pre>
+            <CodeSnippets request="b2b" />
           </>
         )}
         {tab === "Balance" && (
@@ -92,7 +66,7 @@ export default function IntegrationPanel() {
               string: accounts joined by {field("&")}, each one{" "}
               {field("name|currency|available|current|reserved|uncleared")}.
             </p>
-            <pre className={code}>{balanceBody}</pre>
+            <CodeSnippets request="accountBalance" />
             <pre className={cn(code, "mt-3")}>{parseSnippet}</pre>
           </>
         )}
