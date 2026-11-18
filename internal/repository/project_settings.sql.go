@@ -12,7 +12,7 @@ import (
 const createDefaultSettings = `-- name: CreateDefaultSettings :one
 INSERT INTO "project_settings" ("project_id")
 VALUES (?)
-RETURNING project_id, callback_url, validation_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number, c2b_api_version
+RETURNING project_id, callback_url, validation_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number, c2b_api_version, b2c_next_outcome
 `
 
 func (q *Queries) CreateDefaultSettings(ctx context.Context, projectID int64) (ProjectSetting, error) {
@@ -27,12 +27,13 @@ func (q *Queries) CreateDefaultSettings(ctx context.Context, projectID int64) (P
 		&i.ExternalValidationDefault,
 		&i.DefaultPhoneNumber,
 		&i.C2bApiVersion,
+		&i.B2cNextOutcome,
 	)
 	return i, err
 }
 
 const getSettingsByProjectID = `-- name: GetSettingsByProjectID :one
-SELECT project_id, callback_url, validation_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number, c2b_api_version FROM "project_settings" WHERE "project_id" = ?
+SELECT project_id, callback_url, validation_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number, c2b_api_version, b2c_next_outcome FROM "project_settings" WHERE "project_id" = ?
 `
 
 func (q *Queries) GetSettingsByProjectID(ctx context.Context, projectID int64) (ProjectSetting, error) {
@@ -47,6 +48,7 @@ func (q *Queries) GetSettingsByProjectID(ctx context.Context, projectID int64) (
 		&i.ExternalValidationDefault,
 		&i.DefaultPhoneNumber,
 		&i.C2bApiVersion,
+		&i.B2cNextOutcome,
 	)
 	return i, err
 }
@@ -59,7 +61,7 @@ SET "callback_url" = ?,
     "external_validation_default" = ?,
     "c2b_api_version" = ?
 WHERE "project_id" = ?
-RETURNING project_id, callback_url, validation_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number, c2b_api_version
+RETURNING project_id, callback_url, validation_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number, c2b_api_version, b2c_next_outcome
 `
 
 type UpdateRegistrationParams struct {
@@ -90,6 +92,7 @@ func (q *Queries) UpdateRegistration(ctx context.Context, arg UpdateRegistration
 		&i.ExternalValidationDefault,
 		&i.DefaultPhoneNumber,
 		&i.C2bApiVersion,
+		&i.B2cNextOutcome,
 	)
 	return i, err
 }
@@ -99,7 +102,7 @@ UPDATE "project_settings"
 SET "stk_timeout_seconds" = ?,
     "default_phone_number" = ?
 WHERE "project_id" = ?
-RETURNING project_id, callback_url, validation_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number, c2b_api_version
+RETURNING project_id, callback_url, validation_url, stk_timeout_seconds, c2b_response_type, external_validation_default, default_phone_number, c2b_api_version, b2c_next_outcome
 `
 
 type UpdateSimulationDefaultsParams struct {
@@ -120,6 +123,7 @@ func (q *Queries) UpdateSimulationDefaults(ctx context.Context, arg UpdateSimula
 		&i.ExternalValidationDefault,
 		&i.DefaultPhoneNumber,
 		&i.C2bApiVersion,
+		&i.B2cNextOutcome,
 	)
 	return i, err
 }

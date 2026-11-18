@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/knnedy/daraja-local/internal/b2c"
 	"github.com/knnedy/daraja-local/internal/c2b"
 	"github.com/knnedy/daraja-local/internal/config"
 	"github.com/knnedy/daraja-local/internal/delivery"
@@ -25,6 +26,9 @@ import (
 )
 
 const deliveryGrace = 10 * time.Second
+
+// b2cProcessingDelay stands in for the seconds Safaricom takes to post a B2C result.
+const b2cProcessingDelay = 2 * time.Second
 
 func main() {
 	if err := run(); err != nil {
@@ -58,7 +62,8 @@ func run() error {
 	stkSessions := stk.NewLifecycle(db, requestLog, deliverer, stk.SystemClock())
 	c2bFlow := c2b.NewFlow(db, requestLog, deliverer)
 	initiators := initiator.New(db)
-	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSessions, c2bFlow, requestLog, initiators, staticFS, cfg.IsDev)
+	b2cPayouts := b2c.NewPayouts(db, requestLog, deliverer, initiators, b2cProcessingDelay)
+	r := router.New(projectSvc, settingsSvc, tokenSvc, stkSessions, c2bFlow, requestLog, initiators, b2cPayouts, staticFS, cfg.IsDev)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf("127.0.0.1:%d", cfg.Port),
@@ -92,7 +97,7 @@ func run() error {
 		if err := srv.Shutdown(shutdownCtx); err != nil {
 			return fmt.Errorf("shutdown: %w", err)
 		}
-		finishDeliveries(stkSessions.Wait, c2bFlow.Wait)
+		finishDeliveries(stkSessions.Wait, c2bFlow.Wait, b2cPayouts.Wait)
 	}
 
 	return nil

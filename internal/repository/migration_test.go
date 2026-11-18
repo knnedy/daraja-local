@@ -123,3 +123,49 @@ func TestMigration005DefaultsExistingRegistrationsToV2(t *testing.T) {
 		t.Error("an unknown version was accepted")
 	}
 }
+
+// Rebuilding request_log in 007 must keep every Entry, its ID, and the ID sequence.
+func TestMigration007KeepsTheRequestLogAndAllowsNewKinds(t *testing.T) {
+	conn, err := sql.Open("sqlite", "file:"+filepath.Join(t.TempDir(), "old.db")+"?_pragma=foreign_keys(ON)")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+	conn.SetMaxOpenConns(1)
+
+	goose.SetBaseFS(migrations.FS)
+	defer goose.SetBaseFS(nil)
+	if err := goose.SetDialect("sqlite3"); err != nil {
+		t.Fatal(err)
+	}
+	if err := goose.UpTo(conn, ".", 6); err != nil {
+		t.Fatalf("migrate to 006: %v", err)
+	}
+	if _, err := conn.Exec(`INSERT INTO projects (id, slug, name, short_code, consumer_key, consumer_secret, passkey, callback_base_url)
+		VALUES (1, 'shop', 'Shop', '174379', 'k', 's', 'p', '')`); err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []int{5, 9} {
+		if _, err := conn.Exec(`INSERT INTO request_log (id, project_id, correlation_id, kind, operation, step, direction, status, payload)
+			VALUES (?, 1, 'ws_CO_1', 'stk_push', 'stk_push', 'request', 'inbound', 'accepted', '{}')`, id); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := goose.Up(conn, "."); err != nil {
+		t.Fatalf("migrate to head: %v", err)
+	}
+
+	var count, maxID int
+	if err := conn.QueryRow(`SELECT count(*), max(id) FROM request_log WHERE correlation_id = 'ws_CO_1'`).Scan(&count, &maxID); err != nil || count != 2 || maxID != 9 {
+		t.Fatalf("kept %d entries up to id %d, err %v", count, maxID, err)
+	}
+	var newID int64
+	if err := conn.QueryRow(`INSERT INTO request_log (project_id, kind, direction, status, payload)
+		VALUES (1, 'b2c', 'inbound', 'accepted', '{}') RETURNING id`).Scan(&newID); err != nil || newID <= 9 {
+		t.Errorf("new b2c entry id = %d, err = %v", newID, err)
+	}
+	if _, err := conn.Exec(`INSERT INTO request_log (project_id, kind, direction, status, payload) VALUES (1, 'nope', 'inbound', 'accepted', '{}')`); err == nil {
+		t.Error("an unknown kind was accepted")
+	}
+}

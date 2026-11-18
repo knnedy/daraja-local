@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"strings"
 	"time"
+
+	"github.com/knnedy/daraja-local/internal/daraja"
 )
 
 type Payload struct {
@@ -32,7 +34,7 @@ func BuildPayload(req SimulateRequest, shortCode string, version APIVersion) Pay
 	}
 	return Payload{
 		TransactionType:   transactionType,
-		TransID:           GenerateTransID(),
+		TransID:           daraja.NewTransactionID(),
 		TransTime:         time.Now().Format("20060102150405"),
 		TransAmount:       req.Amount,
 		BusinessShortCode: shortCode,

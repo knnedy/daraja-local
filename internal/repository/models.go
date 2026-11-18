@@ -8,6 +8,32 @@ import (
 	"database/sql"
 )
 
+type Account struct {
+	ProjectID        int64
+	UtilityCents     int64
+	WorkingCents     int64
+	ChargesPaidCents int64
+}
+
+type B2cPayment struct {
+	ID                       int64
+	ProjectID                int64
+	OriginatorConversationID string
+	ConversationID           string
+	TransactionID            string
+	CommandID                string
+	Amount                   int64
+	PartyB                   string
+	Remarks                  string
+	Occasion                 string
+	ResultUrl                string
+	QueueTimeoutUrl          string
+	Status                   string
+	ResultCode               sql.NullInt64
+	CreatedAt                string
+	CompletedAt              sql.NullString
+}
+
 type Initiator struct {
 	ProjectID      int64
 	Name           string
@@ -39,6 +65,7 @@ type ProjectSetting struct {
 	ExternalValidationDefault int64
 	DefaultPhoneNumber        string
 	C2bApiVersion             string
+	B2cNextOutcome            string
 }
 
 type RequestLog struct {
@@ -46,12 +73,12 @@ type RequestLog struct {
 	ProjectID     int64
 	CorrelationID sql.NullString
 	Kind          string
+	Operation     string
+	Step          string
 	Direction     string
 	Status        string
 	Outcome       sql.NullString
 	Attempts      int64
 	Payload       string
 	CreatedAt     string
-	Operation     string
-	Step          string
 }

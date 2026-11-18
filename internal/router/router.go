@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/cors"
 
 	"github.com/knnedy/daraja-local/internal/auth"
+	"github.com/knnedy/daraja-local/internal/b2c"
 	"github.com/knnedy/daraja-local/internal/c2b"
 	"github.com/knnedy/daraja-local/internal/handler"
 	"github.com/knnedy/daraja-local/internal/requestlog"
@@ -23,6 +24,7 @@ func New(
 	c2bSvc handler.C2BService,
 	requestLog handler.RequestLog,
 	initiators handler.Initiators,
+	b2cPayouts handler.B2CPayouts,
 	staticFS fs.FS,
 	isDev bool,
 ) http.Handler {
@@ -45,6 +47,7 @@ func New(
 	stkHandler := handler.NewSTKHandler(projectSvc, stkSessions)
 	c2bHandler := handler.NewC2BHandler(projectSvc, c2bSvc)
 	initiatorHandler := handler.NewInitiatorHandler(projectSvc, initiators)
+	b2cHandler := handler.NewB2CHandler(projectSvc, b2cPayouts)
 	requestLogHandler := handler.NewRequestLogHandler(projectSvc, requestLog)
 
 	r.Route("/api", func(r chi.Router) {
@@ -79,6 +82,12 @@ func New(
 					r.Post("/{transactionId}/replay", c2bHandler.ReplayConfirmation)
 					r.Get("/request-log", requestLogHandler.List(requestlog.KindC2B))
 				})
+
+				r.Route("/b2c", func(r chi.Router) {
+					r.Get("/", b2cHandler.State)
+					r.Put("/", b2cHandler.UpdateState)
+					r.Get("/request-log", requestLogHandler.List(requestlog.KindB2C))
+				})
 			})
 		})
 	})
@@ -93,6 +102,8 @@ func New(
 		r.Post("/mpesa/c2b/v1/simulate", c2bHandler.Simulate)
 		r.Post("/mpesa/c2b/v2/registerurl", c2bHandler.RegisterURL(c2b.V2))
 		r.Post("/mpesa/c2b/v2/simulate", c2bHandler.Simulate)
+		r.Post("/mpesa/b2c/v1/paymentrequest", b2cHandler.PaymentRequest(b2c.V1))
+		r.Post("/mpesa/b2c/v3/paymentrequest", b2cHandler.PaymentRequest(b2c.V3))
 	})
 
 	r.Handle("/*", http.FileServerFS(staticFS))
