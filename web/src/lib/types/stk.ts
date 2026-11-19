@@ -13,6 +13,12 @@ export interface PendingSession {
 
 export type PendingSessionsResponse = PendingSession[];
 
+export interface ResolveResult {
+  receipt?: string;
+  resultCode: number;
+  resultDesc: string;
+}
+
 export type StkOutcome =
   | "approved"
   | "wrong_pin"

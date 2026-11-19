@@ -22,7 +22,11 @@ import {
   UpdateB2CStateInput,
 } from "./types/b2c";
 import { SettingsResponse } from "./types/settings";
-import { PendingSessionsResponse, StkOutcome } from "./types/stk";
+import {
+  PendingSessionsResponse,
+  ResolveResult,
+  StkOutcome,
+} from "./types/stk";
 
 const kindRoutes: Record<RequestLogKind, string> = {
   stk_push: "stk",
@@ -153,8 +157,8 @@ export const api = {
         slug: string,
         checkoutRequestId: string,
         outcome: StkOutcome,
-      ): Promise<void> {
-        return request<void>(
+      ): Promise<ResolveResult> {
+        return request<ResolveResult>(
           `/api/projects/${encodeURIComponent(slug)}/stk/${encodeURIComponent(checkoutRequestId)}/resolve`,
           {
             method: "POST",
