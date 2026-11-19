@@ -28,6 +28,6 @@ type STKSessions interface {
 	Accept(ctx context.Context, project repository.Project, req stk.Request) (stk.Session, *daraja.ValidationError)
 	Query(ctx context.Context, project repository.Project, req stk.QueryRequest) (stk.QueryResponse, *daraja.ValidationError)
 	Pending(projectID int64) []stk.Session
-	Resolve(projectID int64, checkoutRequestID string, outcome stk.Outcome) error
+	Resolve(projectID int64, checkoutRequestID string, outcome stk.Outcome) (stk.Resolution, error)
 	ResendCallback(ctx context.Context, projectID int64, checkoutRequestID string) error
 }

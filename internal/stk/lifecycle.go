@@ -86,7 +86,7 @@ func (l *Lifecycle) Accept(ctx context.Context, project repository.Project, req 
 	l.mu.Lock()
 	l.sessions[session.CheckoutRequestID] = tracked
 	tracked.stopTimeout = l.clock.AfterFunc(timeout, func() {
-		_ = l.Resolve(session.ProjectID, session.CheckoutRequestID, OutcomeTimeout)
+		_, _ = l.Resolve(session.ProjectID, session.CheckoutRequestID, OutcomeTimeout)
 	})
 	l.mu.Unlock()
 
@@ -157,17 +157,24 @@ func (l *Lifecycle) Pending(projectID int64) []Session {
 
 // Resolve gives a project's pending Session its outcome, once, then
 // delivers the callback in the background.
-func (l *Lifecycle) Resolve(projectID int64, checkoutRequestID string, outcome Outcome) error {
+// Resolution is how a session ended; Receipt is set only for a successful payment.
+type Resolution struct {
+	Receipt    string
+	ResultCode int
+	ResultDesc string
+}
+
+func (l *Lifecycle) Resolve(projectID int64, checkoutRequestID string, outcome Outcome) (Resolution, error) {
 	resultCode, resultDesc, ok := outcome.Result()
 	if !ok {
-		return response.ErrValidation
+		return Resolution{}, response.ErrValidation
 	}
 
 	l.mu.Lock()
 	tracked, ok := l.sessions[checkoutRequestID]
 	if !ok || tracked.Resolved || tracked.ProjectID != projectID {
 		l.mu.Unlock()
-		return response.ErrNotFound
+		return Resolution{}, response.ErrNotFound
 	}
 	tracked.Resolved = true
 	tracked.ResultCode = resultCode
@@ -178,12 +185,16 @@ func (l *Lifecycle) Resolve(projectID int64, checkoutRequestID string, outcome O
 
 	stopTimeout()
 
+	resolution := Resolution{ResultCode: resultCode, ResultDesc: resultDesc}
+	if resultCode == ResultCodeSuccess {
+		resolution.Receipt = GenerateMpesaReceiptNumber()
+	}
 	// Retries can take seconds, so delivery must not hold up the caller.
 	go func() {
 		defer l.deliveries.Done()
-		l.deliver(session, outcome)
+		l.deliver(session, outcome, resolution.Receipt)
 	}()
-	return nil
+	return resolution, nil
 }
 
 // ResendCallback sends a payment's callback again, byte for byte, to the
@@ -213,13 +224,11 @@ func (l *Lifecycle) Wait() {
 	l.deliveries.Wait()
 }
 
-func (l *Lifecycle) deliver(session Session, outcome Outcome) {
+func (l *Lifecycle) deliver(session Session, outcome Outcome, receipt string) {
 	ctx := context.Background()
 
-	var receipt string
 	var transactionDate int64
 	if session.ResultCode == ResultCodeSuccess {
-		receipt = GenerateMpesaReceiptNumber()
 		now := l.clock.Now()
 		transactionDate, _ = strconv.ParseInt(now.Format("20060102150405"), 10, 64)
 		_ = l.ledger.Record(ctx, ledger.Entry{

@@ -74,11 +74,22 @@ func (h *STKHandler) Resolve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.sessions.Resolve(project.ID, checkoutRequestID, stk.Outcome(req.Outcome)); err != nil {
+	resolution, err := h.sessions.Resolve(project.ID, checkoutRequestID, stk.Outcome(req.Outcome))
+	if err != nil {
 		writeServiceError(w, err, "failed to resolve session")
 		return
 	}
-	response.JSON(w, http.StatusNoContent, nil)
+	response.JSON(w, http.StatusOK, resolveSessionResponse{
+		Receipt:    resolution.Receipt,
+		ResultCode: resolution.ResultCode,
+		ResultDesc: resolution.ResultDesc,
+	})
+}
+
+type resolveSessionResponse struct {
+	Receipt    string `json:"receipt,omitempty"`
+	ResultCode int    `json:"resultCode"`
+	ResultDesc string `json:"resultDesc"`
 }
 
 // ResendCallback handles POST /api/projects/{slug}/stk/{checkoutRequestId}/resend.

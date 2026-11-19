@@ -97,7 +97,7 @@ curl -X POST "http://127.0.0.1:7060/api/projects/<slug>/stk/<CheckoutRequestID>/
   -d '{"outcome": "approved"}'
 ```
 
-Valid outcomes are `approved`, `wrong_pin`, `insufficient_balance`, `cancelled` and `timeout`. A successful call returns 204 with no body, and the callback is sent in the background. Resolving a request that is unknown or already resolved returns an error.
+Valid outcomes are `approved`, `wrong_pin`, `insufficient_balance`, `cancelled` and `timeout`. A successful call returns `resultCode` and `resultDesc`, plus the `receipt` the callback will carry when the payment is approved, e.g. `{"receipt": "TKL3H9QW2B", "resultCode": 0, "resultDesc": "The service request is processed successfully."}`. The callback is sent in the background. Resolving a request that is unknown or already resolved returns an error.
 
 ## Inspecting and resending callbacks
 

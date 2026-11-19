@@ -235,7 +235,7 @@ func TestApprovingDeliversASuccessCallback(t *testing.T) {
 	f := newFixture(t)
 	session := f.accept(t)
 
-	if err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, OutcomeApproved); err != nil {
+	if _, err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, OutcomeApproved); err != nil {
 		t.Fatalf("resolve: %v", err)
 	}
 	f.lifecycle.Wait()
@@ -283,7 +283,7 @@ func TestFailureOutcomesCarryTheirResultCodeAndNoMetadata(t *testing.T) {
 			f := newFixture(t)
 			session := f.accept(t)
 
-			if err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, outcome); err != nil {
+			if _, err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, outcome); err != nil {
 				t.Fatalf("resolve: %v", err)
 			}
 			f.lifecycle.Wait()
@@ -322,7 +322,7 @@ func TestAResolvedSessionDoesNotAlsoTimeOut(t *testing.T) {
 	f := newFixture(t)
 	session := f.accept(t)
 
-	if err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, OutcomeCancelled); err != nil {
+	if _, err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, OutcomeCancelled); err != nil {
 		t.Fatalf("resolve: %v", err)
 	}
 	f.clock.Advance(time.Minute)
@@ -337,23 +337,23 @@ func TestResolveRefusals(t *testing.T) {
 	f := newFixture(t)
 	session := f.accept(t)
 
-	if err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, "refunded"); !errors.Is(err, response.ErrValidation) {
+	if _, err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, "refunded"); !errors.Is(err, response.ErrValidation) {
 		t.Errorf("unknown outcome: err = %v", err)
 	}
-	if err := f.lifecycle.Resolve(f.project.ID+1, session.CheckoutRequestID, OutcomeApproved); !errors.Is(err, response.ErrNotFound) {
+	if _, err := f.lifecycle.Resolve(f.project.ID+1, session.CheckoutRequestID, OutcomeApproved); !errors.Is(err, response.ErrNotFound) {
 		t.Errorf("another project's session: err = %v", err)
 	}
-	if err := f.lifecycle.Resolve(f.project.ID, "ws_CO_unknown", OutcomeApproved); !errors.Is(err, response.ErrNotFound) {
+	if _, err := f.lifecycle.Resolve(f.project.ID, "ws_CO_unknown", OutcomeApproved); !errors.Is(err, response.ErrNotFound) {
 		t.Errorf("unknown session: err = %v", err)
 	}
 	if len(f.lifecycle.Pending(f.project.ID)) != 1 {
 		t.Fatal("a refused resolve changed the session")
 	}
 
-	if err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, OutcomeApproved); err != nil {
+	if _, err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, OutcomeApproved); err != nil {
 		t.Fatalf("resolve: %v", err)
 	}
-	if err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, OutcomeCancelled); !errors.Is(err, response.ErrNotFound) {
+	if _, err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, OutcomeCancelled); !errors.Is(err, response.ErrNotFound) {
 		t.Errorf("second resolve: err = %v", err)
 	}
 	f.lifecycle.Wait()
@@ -367,7 +367,7 @@ func TestAnUndeliverableCallbackIsLoggedAsFailed(t *testing.T) {
 	f.app.status = 0
 	session := f.accept(t)
 
-	if err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, OutcomeApproved); err != nil {
+	if _, err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, OutcomeApproved); err != nil {
 		t.Fatalf("resolve: %v", err)
 	}
 	f.lifecycle.Wait()
@@ -425,7 +425,7 @@ func TestQueryReportsTheOutcomeOnceResolved(t *testing.T) {
 		t.Run(string(outcome), func(t *testing.T) {
 			f := newFixture(t)
 			session := f.accept(t)
-			if err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, outcome); err != nil {
+			if _, err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, outcome); err != nil {
 				t.Fatalf("resolve: %v", err)
 			}
 
@@ -487,7 +487,7 @@ func TestResendCallbackRepeatsTheSameBodyAsAReplay(t *testing.T) {
 		t.Fatalf("resend before the customer answered: err = %v, want ErrNotFound", err)
 	}
 
-	if err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, OutcomeApproved); err != nil {
+	if _, err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, OutcomeApproved); err != nil {
 		t.Fatalf("resolve: %v", err)
 	}
 	f.lifecycle.Wait()
@@ -535,5 +535,33 @@ func TestCheckoutRequestIDEndsWithThePhone(t *testing.T) {
 	id := f.accept(t).CheckoutRequestID
 	if len(id) != len("ws_CO_191120260104173708374149") || !strings.HasSuffix(id, "712345678") {
 		t.Errorf("CheckoutRequestID = %q", id)
+	}
+}
+
+// The dashboard shows the receipt on the Virtual Phone, so it must match the callback's.
+func TestResolveReturnsTheCallbacksReceipt(t *testing.T) {
+	f := newFixture(t)
+	session := f.accept(t)
+
+	resolution, err := f.lifecycle.Resolve(f.project.ID, session.CheckoutRequestID, OutcomeApproved)
+	if err != nil || resolution.ResultCode != ResultCodeSuccess || len(resolution.Receipt) != 10 {
+		t.Fatalf("resolution = %+v, err = %v", resolution, err)
+	}
+	f.lifecycle.Wait()
+
+	callbacks := f.app.callbacks(t)
+	if len(callbacks) != 1 || callbacks[0].Body.STKCallback.CallbackMetadata == nil {
+		t.Fatalf("callbacks = %+v", callbacks)
+	}
+	for _, item := range callbacks[0].Body.STKCallback.CallbackMetadata.Item {
+		if item.Name == "MpesaReceiptNumber" && item.Value != resolution.Receipt {
+			t.Errorf("callback receipt = %v, want %s", item.Value, resolution.Receipt)
+		}
+	}
+
+	failed := f.accept(t)
+	resolution, err = f.lifecycle.Resolve(f.project.ID, failed.CheckoutRequestID, OutcomeWrongPIN)
+	if err != nil || resolution.Receipt != "" || resolution.ResultCode != ResultCodeWrongPIN {
+		t.Errorf("wrong PIN resolution = %+v, err = %v", resolution, err)
 	}
 }
