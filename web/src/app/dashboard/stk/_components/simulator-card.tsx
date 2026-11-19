@@ -90,7 +90,7 @@ export default function SimulatorCard({ slug }: { slug: string }) {
           setTimeout(() => setFailure(null), FAILURE_VISIBLE_MS),
         );
         setStatus({
-          text: "Timed out · callback sent",
+          text: "Timeout",
           code: 1037,
           ok: false,
         });
@@ -137,7 +137,12 @@ export default function SimulatorCard({ slug }: { slug: string }) {
               showFailure(outcome);
             }
             setStatus({
-              text: result.receipt ?? "Callback sent",
+              text:
+                result.receipt ??
+                (outcome === "wrong_pin"
+                  ? "Wrong PIN"
+                  : (DEV_ACTIONS.find((a) => a.outcome === outcome)?.label ??
+                    "Declined")),
               code: result.resultCode,
               ok: result.resultCode === 0,
             });
