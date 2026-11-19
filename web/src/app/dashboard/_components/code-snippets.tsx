@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -9,6 +8,7 @@ import { requests, type RequestName } from "@/lib/snippets/requests";
 import { useSnippetLanguage } from "@/store/snippet-language";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useInitiator, useProject } from "@/hooks/use-projects";
+import { useCopy } from "@/hooks/use-copy";
 
 /** A Daraja request as a body or as runnable code, in the language last picked anywhere. */
 export default function CodeSnippets({ request }: { request: RequestName }) {
@@ -16,7 +16,7 @@ export default function CodeSnippets({ request }: { request: RequestName }) {
   const slug = useActiveProjectStore((s) => s.slug) ?? "";
   const { data: project } = useProject(slug);
   const { data: initiator } = useInitiator(slug);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy: copyText } = useCopy();
 
   const code = generate(language, requests[request], {
     DARAJA_SHORTCODE: project?.shortCode,
@@ -25,10 +25,7 @@ export default function CodeSnippets({ request }: { request: RequestName }) {
   });
 
   function copy() {
-    navigator.clipboard.writeText(code).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1200);
-    });
+    void copyText(code);
   }
 
   return (

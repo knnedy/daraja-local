@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useApiPort } from "@/hooks/use-api-port";
 import { useProject } from "@/hooks/use-projects";
+import { useCopy } from "@/hooks/use-copy";
 
 function buildSnippets(
   baseUrl: string,
@@ -44,12 +44,10 @@ access_token = res.json()["access_token"]`,
 }
 
 function SnippetBlock({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false);
+  const { copied, copy: copyText } = useCopy();
 
   function copy() {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+    void copyText(code);
   }
 
   return (

@@ -6,6 +6,7 @@ import { useActiveProjectStore } from "@/store/active-project";
 import { useApiPort } from "@/hooks/use-api-port";
 import { useProject } from "@/hooks/use-projects";
 import type { Project } from "@/lib/types/project";
+import { useCopy } from "@/hooks/use-copy";
 
 interface EnvVar {
   key: string;
@@ -29,14 +30,12 @@ function buildEnvVars(project: Project, port: number): EnvVar[] {
 
 function EnvVarRow({ envVar }: { envVar: EnvVar }) {
   const [revealed, setRevealed] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy: copyText } = useCopy();
 
   const display = envVar.secret && !revealed ? "•".repeat(24) : envVar.value;
 
   function copy() {
-    navigator.clipboard.writeText(envVar.value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+    void copyText(envVar.value);
   }
 
   return (

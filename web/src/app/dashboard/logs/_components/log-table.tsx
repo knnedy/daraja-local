@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import type { LogGroup } from "@/lib/request-log/group";
 import { groupStatus } from "@/lib/request-log/status";
 import { formatClock, formatDateTime, relativeTime } from "@/lib/format";
+import { useCopy } from "@/hooks/use-copy";
 
 const KIND_LABEL: Record<LogGroup["kind"], string> = {
   stk_push: "STK",
@@ -27,15 +28,13 @@ function pretty(payload: string) {
 }
 
 function CopyButton({ value }: { value: string }) {
-  const [copied, setCopied] = useState(false);
+  const { copied, copy: copyText } = useCopy();
   return (
     <button
       type="button"
       onClick={(e) => {
         e.stopPropagation();
-        navigator.clipboard.writeText(value);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1200);
+        void copyText(value);
       }}
       className="shrink-0 rounded p-1 text-terminal-fg-muted transition-colors hover:bg-white/5 hover:text-terminal-fg">
       {copied ? (

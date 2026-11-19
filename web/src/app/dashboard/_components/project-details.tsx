@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useProject } from "@/hooks/use-projects";
 import { formatDate } from "@/lib/format";
+import { useCopy } from "@/hooks/use-copy";
 
 function Row({
   label,
@@ -17,12 +17,10 @@ function Row({
   mono?: boolean;
   copyable?: boolean;
 }) {
-  const [copied, setCopied] = useState(false);
+  const { copied, copy: copyText } = useCopy();
 
   function copy() {
-    navigator.clipboard.writeText(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+    void copyText(value);
   }
 
   return (

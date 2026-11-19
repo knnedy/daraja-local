@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CheckIcon, CopyIcon, EyeIcon, EyeOffIcon } from "lucide-react";
+import { useCopy } from "@/hooks/use-copy";
 
 export default function CredentialRow({
   label,
@@ -13,14 +14,12 @@ export default function CredentialRow({
   secret?: boolean;
 }) {
   const [revealed, setRevealed] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy: copyText } = useCopy();
 
   const display = secret && !revealed ? "•".repeat(28) : value;
 
   function copy() {
-    navigator.clipboard.writeText(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+    void copyText(value);
   }
 
   return (

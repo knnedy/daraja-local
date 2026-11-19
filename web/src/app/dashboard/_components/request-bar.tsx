@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { useApiPort } from "@/hooks/use-api-port";
+import { useCopy } from "@/hooks/use-copy";
 
 export default function RequestBar({
   path,
@@ -12,13 +12,11 @@ export default function RequestBar({
   label: string;
 }) {
   const port = useApiPort();
-  const [copied, setCopied] = useState(false);
+  const { copied, copy: copyText } = useCopy();
   const fullUrl = `http://localhost:${port}${path}`;
 
   function copy() {
-    navigator.clipboard.writeText(fullUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+    void copyText(fullUrl);
   }
 
   return (

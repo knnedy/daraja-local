@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { CheckIcon, CopyIcon, TerminalIcon } from "lucide-react";
 import { useApiPort } from "@/hooks/use-api-port";
 import { Button } from "@/components/ui/button";
+import { useCopy } from "@/hooks/use-copy";
 
 const PATH = "/mpesa/stkpush/v1/processrequest";
 
@@ -26,14 +26,12 @@ const CURL = (url: string) => `curl -X POST ${url} \\
 
 export default function RequestBar() {
   const port = useApiPort();
-  const [copied, setCopied] = useState<"url" | "curl" | null>(null);
+  const { copied, copy: copyText } = useCopy<"url" | "curl">();
   const baseUrl = `http://localhost:${port}`;
   const fullUrl = `${baseUrl}${PATH}`;
 
   function copy(value: string, key: "url" | "curl") {
-    navigator.clipboard.writeText(value);
-    setCopied(key);
-    setTimeout(() => setCopied(null), 1200);
+    void copyText(value, key);
   }
 
   return (

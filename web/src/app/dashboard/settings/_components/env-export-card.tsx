@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useApiPort } from "@/hooks/use-api-port";
 import { useInitiator, useProject } from "@/hooks/use-projects";
 import type { Initiator } from "@/lib/types/initiator";
 import type { Project } from "@/lib/types/project";
+import { useCopy } from "@/hooks/use-copy";
 
 function buildEnvTemplate(
   baseUrl: string,
@@ -30,7 +30,7 @@ export default function EnvExportCard() {
   const { data: project } = useProject(slug);
   const { data: initiator } = useInitiator(slug);
   const port = useApiPort();
-  const [copied, setCopied] = useState(false);
+  const { copied, copy: copyText } = useCopy();
 
   const ready = project && initiator;
   const envTemplate = ready
@@ -39,9 +39,7 @@ export default function EnvExportCard() {
 
   function copy() {
     if (!ready) return;
-    navigator.clipboard.writeText(envTemplate);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+    void copyText(envTemplate);
   }
 
   return (

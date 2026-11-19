@@ -6,6 +6,7 @@ import { useActiveProjectStore } from "@/store/active-project";
 import { useProject } from "@/hooks/use-projects";
 import { useGenerateToken } from "@/hooks/use-oauth";
 import { Button } from "@/components/ui/button";
+import { useCopy } from "@/hooks/use-copy";
 
 function formatRemaining(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -20,7 +21,7 @@ export default function TokenGeneratorCard() {
 
   const [token, setToken] = useState<string | null>(null);
   const [remaining, setRemaining] = useState(0);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy: copyText } = useCopy();
 
   useEffect(() => {
     if (!token || remaining <= 0) return;
@@ -46,9 +47,7 @@ export default function TokenGeneratorCard() {
 
   function copy() {
     if (!token) return;
-    navigator.clipboard.writeText(token);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
+    void copyText(token);
   }
 
   const expired = token !== null && remaining <= 0;
