@@ -88,7 +88,7 @@ export default function TokenSnippetCard() {
   );
 
   return (
-    <div className="rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm">
+    <div className="panel p-4">
       <span className="text-[13px] font-medium text-foreground">
         Get an access token
       </span>

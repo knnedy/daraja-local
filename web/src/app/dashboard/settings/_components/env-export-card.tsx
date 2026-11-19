@@ -45,7 +45,7 @@ export default function EnvExportCard() {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm">
+    <div className="flex flex-col gap-3 panel p-4">
       <div className="flex items-center justify-between">
         <span className="text-[13px] font-medium text-foreground">
           Export as .env

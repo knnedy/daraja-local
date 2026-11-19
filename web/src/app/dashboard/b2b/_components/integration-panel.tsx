@@ -29,7 +29,7 @@ export default function IntegrationPanel() {
   const [tab, setTab] = useState<(typeof tabs)[number]>("B2B");
 
   return (
-    <div className="flex flex-col rounded-lg border border-border-strong bg-surface-1 shadow-sm">
+    <div className="flex flex-col panel">
       <div className="flex border-b border-border">
         {tabs.map((t) => (
           <button

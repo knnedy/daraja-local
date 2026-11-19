@@ -138,6 +138,10 @@
 
   --border-strong: oklch(0.82 0.014 145);
 
+  --panel-shadow:
+    0 1px 2px oklch(0.22 0.008 145 / 0.05),
+    0 6px 16px -8px oklch(0.22 0.008 145 / 0.08);
+
   /* Terminal panels stay dark in both themes. */
   --terminal-bg: oklch(0.18 0.012 145);
   --terminal-border: oklch(0.3 0.03 145);
@@ -206,6 +210,10 @@
 
   --border-strong: oklch(0.38 0.012 145);
 
+  --panel-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.04),
+    0 1px 2px oklch(0 0 0 / 0.3);
+
   --terminal-bg: oklch(0.13 0.01 145);
   --terminal-border: oklch(0.28 0.03 145);
   --terminal-green: oklch(0.74 0.18 145);
@@ -214,6 +222,14 @@
   --terminal-red: oklch(0.68 0.19 24.6);
   --terminal-fg: oklch(0.92 0.008 145);
   --terminal-fg-muted: oklch(0.62 0.014 145);
+}
+
+/* The surface every dashboard card sits on. */
+@utility panel {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  background-color: var(--surface-1);
+  box-shadow: var(--panel-shadow);
 }
 
 @layer base {

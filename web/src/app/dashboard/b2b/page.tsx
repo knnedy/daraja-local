@@ -14,6 +14,7 @@ import { useBalanceQuery, useSendB2B } from "@/hooks/use-accounts";
 import { useProject } from "@/hooks/use-projects";
 import { useActiveProjectStore } from "@/store/active-project";
 import { Field, TextInput } from "@/components/form";
+import { PageHeader } from "@/components/page-header";
 
 export default function B2BPage() {
   const slug = useActiveProjectStore((s) => s.slug) ?? "";
@@ -61,15 +62,11 @@ export default function B2BPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="mb-0.5 font-heading text-[21px] font-medium text-foreground">
-          B2B
-        </h1>
-        <p className="text-[13px] text-muted-foreground">
-          Pay another business&apos;s PayBill or Till, check your account
-          balances, and watch each result arrive at your ResultURL.
-        </p>
-      </div>
+      <PageHeader
+        page="b2b"
+        title="B2B"
+        description={<>Pay another business&apos;s PayBill or Till, check your account balances, and watch each result arrive at your ResultURL.</>}
+      />
 
       <HowItWorks />
 
@@ -103,7 +100,7 @@ export default function B2BPage() {
             queryDisabledReason={disabledReason}
             querying={query.isPending}
           />
-          <div className="flex flex-col gap-3 rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm">
+          <div className="flex flex-col gap-3 panel p-4">
             <div>
               <p className="text-[13px] font-medium text-foreground">
                 Send results to

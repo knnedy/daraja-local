@@ -13,7 +13,7 @@ export default function LatestResult({
 }) {
   const ok = result && result.resultCode === "0";
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-border-strong bg-surface-1 p-5 shadow-sm">
+    <div className="flex flex-col gap-4 panel p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-[13px] font-medium text-foreground">
           Latest result

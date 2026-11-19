@@ -10,6 +10,7 @@ import EnvCard from "./_components/env-card";
 import ProjectDetailsCard from "./_components/project-details";
 import StatsCard from "./_components/stats-card";
 import QuickActions from "./_components/quick-actions";
+import { PageHeader } from "@/components/page-header";
 
 export default function OverviewPage() {
   const slug = useActiveProjectStore((s) => s.slug);
@@ -19,15 +20,11 @@ export default function OverviewPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="mb-0.5 font-heading text-[21px] font-medium text-foreground">
-          Overview
-        </h1>
-        <p className="text-[13px] text-muted-foreground">
-          Environment values and activity for this project&apos;s local Daraja
-          instance.
-        </p>
-      </div>
+      <PageHeader
+        page="overview"
+        title="Overview"
+        description={<>Environment values and activity for this project&apos;s local Daraja instance.</>}
+      />
 
       <QuickActions />
 

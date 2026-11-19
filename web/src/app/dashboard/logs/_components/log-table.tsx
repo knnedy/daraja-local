@@ -137,7 +137,7 @@ export default function LogTable({ groups }: { groups: LogGroup[] }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border-strong bg-surface-1 shadow-sm">
+    <div className="overflow-hidden panel">
       {groups.map((group) => (
         <Row key={group.id} group={group} />
       ))}

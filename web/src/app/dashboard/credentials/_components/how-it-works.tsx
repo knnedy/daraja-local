@@ -33,7 +33,7 @@ const steps = [
 
 export default function HowItWorksAccordion() {
   return (
-    <Accordion className="rounded-lg border border-border-strong bg-surface-1 shadow-sm">
+    <Accordion className="panel">
       <AccordionItem value="how-it-works" className="px-4">
         <AccordionTrigger className="text-[13px] font-medium text-foreground">
           How token authentication works

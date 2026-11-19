@@ -14,6 +14,7 @@ import { useProject } from "@/hooks/use-projects";
 import { useActiveProjectStore } from "@/store/active-project";
 import type { Transaction } from "@/lib/types/transactions";
 import { Field, TextInput } from "@/components/form";
+import { PageHeader } from "@/components/page-header";
 
 export default function TransactionsPage() {
   const slug = useActiveProjectStore((s) => s.slug) ?? "";
@@ -61,15 +62,11 @@ export default function TransactionsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="mb-0.5 font-heading text-[21px] font-medium text-foreground">
-          Transactions
-        </h1>
-        <p className="text-[13px] text-muted-foreground">
-          Every completed payment, ready to check with Transaction Status or
-          undo with Reversal.
-        </p>
-      </div>
+      <PageHeader
+        page="transactions"
+        title="Transactions"
+        description={<>Every completed payment, ready to check with Transaction Status or undo with Reversal.</>}
+      />
 
       <HowItWorks />
 
@@ -100,7 +97,7 @@ export default function TransactionsPage() {
         </div>
 
         <div className="flex flex-col gap-5">
-          <div className="flex flex-col gap-3 rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm">
+          <div className="flex flex-col gap-3 panel p-4">
             <div>
               <p className="text-[13px] font-medium text-foreground">
                 Send results to

@@ -54,7 +54,7 @@ export default function TokenGeneratorCard() {
   const expired = token !== null && remaining <= 0;
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm">
+    <div className="flex flex-col gap-3 panel p-4">
       <div className="flex items-center gap-2">
         <KeyRoundIcon className="size-3.5 text-muted-foreground" />
         <span className="text-[13px] font-medium text-foreground">

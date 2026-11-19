@@ -37,7 +37,7 @@ export default function ProjectIdentityCard() {
         e.preventDefault();
         handleSave();
       }}
-      className="flex flex-col gap-4 rounded-xl border border-border-strong bg-surface-1 p-4 shadow-sm">
+      className="flex flex-col gap-4 panel p-4">
       <span className="text-[13px] font-medium text-foreground">Project</span>
 
       <Field

@@ -10,6 +10,7 @@ import CallbacksCard from "./_components/callbacks-card";
 import { derivePayments } from "./lib/callbacks";
 import { useLiveRequestLog } from "@/hooks/use-request-log";
 import { useActiveProjectStore } from "@/store/active-project";
+import { PageHeader } from "@/components/page-header";
 
 export default function StkPushPage() {
   const slug = useActiveProjectStore((s) => s.slug);
@@ -19,15 +20,11 @@ export default function StkPushPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="mb-0.5 font-heading text-[21px] font-medium text-foreground">
-          STK Push
-        </h1>
-        <p className="text-[13px] text-muted-foreground">
-          Call this endpoint from your app, then watch and respond to what comes
-          in.
-        </p>
-      </div>
+      <PageHeader
+        page="stk"
+        title="STK Push"
+        description={<>Call this endpoint from your app, then watch and respond to what comes in.</>}
+      />
 
       <HowItWorks />
 

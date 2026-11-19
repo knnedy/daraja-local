@@ -32,7 +32,7 @@ export default function TransactionsTable({
   onReverse: (t: Transaction) => void;
 }) {
   return (
-    <div className="rounded-lg border border-border-strong bg-surface-1 shadow-sm">
+    <div className="panel">
       <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
         <span className="text-[13px] font-medium text-foreground">
           Completed transactions

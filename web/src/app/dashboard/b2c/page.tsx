@@ -10,6 +10,7 @@ import PayoutFlow from "./_components/payout-flow";
 import { derivePayouts } from "./lib/payouts";
 import { useLiveRequestLog } from "@/hooks/use-request-log";
 import { useActiveProjectStore } from "@/store/active-project";
+import { PageHeader } from "@/components/page-header";
 
 export default function B2CPage() {
   const slug = useActiveProjectStore((s) => s.slug);
@@ -19,15 +20,11 @@ export default function B2CPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="mb-0.5 font-heading text-[21px] font-medium text-foreground">
-          B2C
-        </h1>
-        <p className="text-[13px] text-muted-foreground">
-          Pay out from your shortcode to a customer&apos;s phone, then watch the
-          result arrive at your ResultURL.
-        </p>
-      </div>
+      <PageHeader
+        page="b2c"
+        title="B2C"
+        description={<>Pay out from your shortcode to a customer&apos;s phone, then watch the result arrive at your ResultURL.</>}
+      />
 
       <HowItWorks />
 

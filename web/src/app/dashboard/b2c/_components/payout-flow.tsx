@@ -35,7 +35,7 @@ export default function PayoutFlow({ payouts }: { payouts: PayoutSession[] }) {
 
   if (!session) {
     return (
-      <div className="rounded-lg border border-border-strong bg-surface-1 p-5 shadow-sm">
+      <div className="panel p-5">
         <Header />
         <div className="mt-3 rounded-md border border-dashed border-border px-4 py-10 text-center">
           <p className="text-[12px] text-muted-foreground">No payouts yet.</p>
@@ -82,7 +82,7 @@ export default function PayoutFlow({ payouts }: { payouts: PayoutSession[] }) {
       }`;
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-border-strong bg-surface-1 p-5 shadow-sm">
+    <div className="flex flex-col gap-4 panel p-5">
       <Header>
         <div className="flex items-center gap-3">
           <span className="font-mono text-[10.5px] text-muted-foreground">

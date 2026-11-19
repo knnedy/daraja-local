@@ -51,7 +51,7 @@ export default function CallbacksCard({
     recent.find((p) => p.checkoutRequestId === selectedId) ?? recent[0];
 
   return (
-    <div className="flex flex-col rounded-lg border border-border-strong bg-surface-1 shadow-sm">
+    <div className="flex flex-col panel">
       <div className="border-b border-border px-5 py-3.5">
         <p className="text-[13px] font-medium text-foreground">Callbacks</p>
         <p className="mt-0.5 text-[11px] text-muted-foreground">

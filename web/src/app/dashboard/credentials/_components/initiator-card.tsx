@@ -42,7 +42,7 @@ export default function InitiatorCard() {
   const [language, setLanguage] = useState<Language>("Node.js");
 
   return (
-    <div className="rounded-lg border border-border-strong bg-surface-1 shadow-sm">
+    <div className="panel">
       <div className="border-b border-border px-4 py-2.5">
         <span className="text-[13px] font-medium text-foreground">
           Initiator

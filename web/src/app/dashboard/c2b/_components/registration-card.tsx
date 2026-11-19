@@ -41,7 +41,7 @@ export default function RegistrationCard({
     registration?.responseType === "Cancelled" ? "rejected" : "accepted";
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm">
+    <div className="flex flex-col gap-4 panel p-4">
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-[13px] font-medium text-foreground">

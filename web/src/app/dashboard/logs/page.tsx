@@ -12,10 +12,11 @@ import FilterBar, {
 } from "./_components/filter-bar";
 import LogTable from "./_components/log-table";
 import StatsBar from "./_components/stats-bar";
+import { PageHeader } from "@/components/page-header";
 
 function TableSkeleton() {
   return (
-    <div className="animate-pulse overflow-hidden rounded-lg border border-border-strong bg-surface-1 shadow-sm">
+    <div className="animate-pulse overflow-hidden panel">
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}
@@ -96,14 +97,11 @@ export default function LogsPage() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="mb-0.5 font-heading text-[21px] font-medium text-foreground">
-            Request Log
-          </h1>
-          <p className="text-[13px] text-muted-foreground">
-            Every Daraja request this project has seen, grouped by session.
-          </p>
-        </div>
+        <PageHeader
+          page="logs"
+          title="Request Log"
+          description={<>Every Daraja request this project has seen, grouped by session.</>}
+        />
         <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"

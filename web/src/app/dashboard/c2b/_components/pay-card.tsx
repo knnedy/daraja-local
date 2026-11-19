@@ -54,7 +54,7 @@ export default function PayCard({
         e.preventDefault();
         pay();
       }}
-      className="flex flex-col gap-3.5 rounded-xl border border-border-strong bg-surface-1 p-4 shadow-sm">
+      className="flex flex-col gap-3.5 panel p-4">
       <div>
         <p className="text-[13px] font-medium text-foreground">
           Send a test payment

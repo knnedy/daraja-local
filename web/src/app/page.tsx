@@ -20,7 +20,7 @@ import { relativeTime } from "@/lib/format";
 
 function CardSkeleton() {
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm">
+    <div className="flex flex-col gap-3 panel p-4">
       <div className="flex items-center gap-2.5">
         <div className="size-7 animate-pulse rounded-lg bg-surface-2" />
         <div className="h-3.5 w-28 animate-pulse rounded bg-surface-2" />

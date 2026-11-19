@@ -11,6 +11,7 @@ import { derivePayments } from "./lib/sessions";
 import { useC2BRegistration } from "@/hooks/use-c2b";
 import { useLiveRequestLog } from "@/hooks/use-request-log";
 import { useActiveProjectStore } from "@/store/active-project";
+import { PageHeader } from "@/components/page-header";
 
 export default function C2BPage() {
   const slug = useActiveProjectStore((s) => s.slug);
@@ -23,15 +24,11 @@ export default function C2BPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="mb-0.5 font-heading text-[21px] font-medium text-foreground">
-          C2B
-        </h1>
-        <p className="text-[13px] text-muted-foreground">
-          Register your callback URLs, then call simulate from your app or send
-          a test payment here, and watch every step land.
-        </p>
-      </div>
+      <PageHeader
+        page="c2b"
+        title="C2B"
+        description={<>Register your callback URLs, then call simulate from your app or send a test payment here, and watch every step land.</>}
+      />
 
       <HowItWorks />
 
