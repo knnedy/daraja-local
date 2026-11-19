@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useSimulatePayment } from "@/hooks/use-c2b";
 import { useProjectSettings } from "@/hooks/use-settings";
 import type { C2BCommandId } from "@/lib/types/c2b";
+import { formatKesWhole } from "@/lib/format";
 
 const commands: { id: C2BCommandId; label: string }[] = [
   { id: "CustomerPayBillOnline", label: "PayBill" },
@@ -151,7 +152,7 @@ export default function PayCard({
         <SendIcon className="size-3.5" />
         {simulate.isPending
           ? "Sending…"
-          : `Pay KES ${amountValid ? Number(amount).toLocaleString() : "—"}`}
+          : `Pay KES ${amountValid ? formatKesWhole(Number(amount)) : "—"}`}
       </button>
 
       {!registered && (

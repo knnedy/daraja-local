@@ -3,8 +3,8 @@ import { PlayIcon, ScrollTextIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { groupEntries } from "@/lib/request-log/group";
 import { groupStatus } from "@/lib/request-log/status";
-import { relativeTime } from "@/lib/request-log/time";
 import type { RequestLogEntry } from "@/lib/types/request-log";
+import { relativeTime } from "@/lib/format";
 
 const KIND_LABEL = {
   stk_push: "STK",

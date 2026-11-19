@@ -4,6 +4,7 @@ import { useState } from "react";
 import { SendIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { B2BCommandId } from "@/lib/types/accounts";
+import { formatKesWhole } from "@/lib/format";
 
 const commands: { id: B2BCommandId; label: string; party: string }[] = [
   { id: "BusinessPayBill", label: "Pay Bill", party: "PayBill number" },
@@ -150,7 +151,7 @@ export default function PaymentCard({
         <SendIcon className="size-3.5" />
         {sending
           ? "Sending…"
-          : `Pay KES ${amountValid ? Number(amount).toLocaleString() : "—"}`}
+          : `Pay KES ${amountValid ? formatKesWhole(Number(amount)) : "—"}`}
       </button>
     </form>
   );

@@ -4,14 +4,7 @@ import { useState } from "react";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useProject } from "@/hooks/use-projects";
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
+import { formatDate } from "@/lib/format";
 
 function Row({
   label,

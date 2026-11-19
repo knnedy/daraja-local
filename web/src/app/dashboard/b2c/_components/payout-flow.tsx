@@ -11,6 +11,7 @@ import {
 import { Call, Empty } from "../../_components/delivery-call";
 import type { PayoutSession } from "../lib/payouts";
 import { outcomeInfo } from "../lib/outcomes";
+import { formatClock, formatKes } from "@/lib/format";
 
 function Header({ children }: { children?: React.ReactNode }) {
   return (
@@ -86,7 +87,7 @@ export default function PayoutFlow({ payouts }: { payouts: PayoutSession[] }) {
         <div className="flex items-center gap-3">
           <span className="font-mono text-[10.5px] text-muted-foreground">
             {index === 0 ? "latest" : "earlier"} ·{" "}
-            {session.createdAt.slice(11, 19)}
+            {formatClock(session.createdAt)}
           </span>
           {payouts.length > 1 && (
             <Pager
@@ -114,9 +115,7 @@ export default function PayoutFlow({ payouts }: { payouts: PayoutSession[] }) {
         {completed && result.utilityAfter !== null && (
           <Chip
             label="balance"
-            value={result.utilityAfter.toLocaleString("en-KE", {
-              minimumFractionDigits: 2,
-            })}
+            value={formatKes(result.utilityAfter)}
           />
         )}
       </div>

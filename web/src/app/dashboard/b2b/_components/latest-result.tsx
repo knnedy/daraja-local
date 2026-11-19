@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Call, Empty } from "../../_components/delivery-call";
 import type { B2BResult } from "../lib/results";
+import { formatClock } from "@/lib/format";
 
 /** The newest Result posted back, with what your server replied. */
 export default function LatestResult({
@@ -23,7 +24,7 @@ export default function LatestResult({
               ? "B2B payment"
               : "Account Balance"}
             {result.receipt && ` · ${result.receipt}`} ·{" "}
-            {new Date(result.at).toLocaleTimeString()}
+            {formatClock(result.at)}
           </span>
         )}
       </div>

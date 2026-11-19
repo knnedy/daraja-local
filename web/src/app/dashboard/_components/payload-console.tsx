@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import type { RequestLogEntry } from "@/lib/types/request-log";
 import Link from "next/link";
 import { entryTag } from "@/lib/request-log/entry";
+import { formatClock } from "@/lib/format";
 
 function pretty(payload: string) {
   try {
@@ -28,7 +29,7 @@ function LogLine({ entry }: { entry: RequestLogEntry }) {
   return (
     <div className="flex gap-2.5">
       <span className="mt-0.5 shrink-0 font-mono text-[10px] text-terminal-fg-muted">
-        {entry.createdAt.slice(11, 23)}
+        {formatClock(entry.createdAt, { ms: true })}
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">

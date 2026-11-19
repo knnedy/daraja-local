@@ -5,7 +5,7 @@ import { CheckIcon, ChevronDownIcon, CopyIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LogGroup } from "@/lib/request-log/group";
 import { groupStatus } from "@/lib/request-log/status";
-import { relativeTime } from "@/lib/request-log/time";
+import { formatClock, formatDateTime, relativeTime } from "@/lib/format";
 
 const KIND_LABEL: Record<LogGroup["kind"], string> = {
   stk_push: "STK",
@@ -64,7 +64,7 @@ function Row({ group }: { group: LogGroup }) {
           )}
         />
         <span
-          title={new Date(group.createdAt).toLocaleString()}
+          title={formatDateTime(group.createdAt)}
           className="w-16 shrink-0 font-mono text-[10.5px] text-muted-foreground">
           {relativeTime(group.createdAt)}
         </span>
@@ -101,7 +101,7 @@ function Row({ group }: { group: LogGroup }) {
             {[...group.entries].reverse().map((entry) => (
               <div key={entry.id} className="flex gap-2.5">
                 <span className="mt-0.5 shrink-0 font-mono text-[10px] text-terminal-fg-muted">
-                  {entry.createdAt.slice(11, 23)}
+                  {formatClock(entry.createdAt, { ms: true })}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">

@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Call, Empty } from "../../_components/delivery-call";
 import type { InitiatorResult } from "../lib/results";
+import { formatClock } from "@/lib/format";
 
 /** The newest Result posted back, with what your server replied. */
 export default function LatestResult({
@@ -22,7 +23,7 @@ export default function LatestResult({
             {result.operation === "reversal"
               ? "Reversal"
               : "Transaction Status"}{" "}
-            · {result.receipt || "—"} · {result.at.slice(11, 19)}
+            · {result.receipt || "—"} · {formatClock(result.at)}
           </span>
         )}
       </div>

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useResendCallback } from "@/hooks/use-stk";
 import { Call, Empty } from "../../_components/delivery-call";
 import type { StkPayment } from "../lib/callbacks";
+import { formatClock } from "@/lib/format";
 
 const outcomeLabels: Record<string, string> = {
   approved: "Paid",
@@ -96,7 +97,7 @@ export default function CallbacksCard({
                     <Status payment={p} />
                   </span>
                   <span className="truncate font-mono text-[10.5px] text-muted-foreground">
-                    {p.phone} · {p.at.slice(11, 19)}
+                    {p.phone} · {formatClock(p.at)}
                   </span>
                 </button>
               </li>
@@ -153,7 +154,7 @@ export default function CallbacksCard({
                       {selected.deliveries.length > 1 && (
                         <p className="font-mono text-[11px] text-muted-foreground">
                           {d.replay ? "resent" : "original"} ·{" "}
-                          {d.at.slice(11, 19)} ·{" "}
+                          {formatClock(d.at)} ·{" "}
                           <span
                             className={
                               d.delivered ? "text-green" : "text-destructive"

@@ -7,6 +7,7 @@ import { useSendPayout } from "@/hooks/use-b2c";
 import { useProject } from "@/hooks/use-projects";
 import { useProjectSettings } from "@/hooks/use-settings";
 import type { B2CCommandId } from "@/lib/types/b2c";
+import { formatKesWhole } from "@/lib/format";
 
 const commands: { id: B2CCommandId; label: string }[] = [
   { id: "BusinessPayment", label: "Business" },
@@ -183,7 +184,7 @@ export default function PayoutCard({ slug }: { slug: string }) {
         <SendIcon className="size-3.5" />
         {send.isPending
           ? "Sending…"
-          : `Pay out KES ${amountValid ? Number(amount).toLocaleString() : "—"}`}
+          : `Pay out KES ${amountValid ? formatKesWhole(Number(amount)) : "—"}`}
       </button>
 
       {send.isError && (

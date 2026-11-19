@@ -3,16 +3,10 @@
 import { useState } from "react";
 import { useAccounts, useUpdateAccounts } from "@/hooks/use-accounts";
 import type { Accounts } from "@/lib/types/accounts";
+import { formatKes } from "@/lib/format";
 
 const fieldClass =
   "w-full rounded-md border border-border bg-surface-2 px-2.5 py-1.5 font-mono text-[12.5px] text-foreground outline-none focus:border-ring disabled:opacity-60";
-
-function kes(value: number) {
-  return value.toLocaleString("en-KE", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
 
 const rows: { key: keyof Accounts; label: string; hint: string }[] = [
   {
@@ -77,7 +71,7 @@ export default function AccountsCard({
                 {editing !== row.key && (
                   <div className="flex shrink-0 items-center gap-2">
                     <span className="font-mono text-[12.5px] text-foreground tabular-nums">
-                      {accounts ? kes(accounts[row.key]) : "—"}
+                      {accounts ? formatKes(accounts[row.key]) : "—"}
                     </span>
                     {editable && (
                       <button

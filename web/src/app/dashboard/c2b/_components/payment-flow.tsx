@@ -10,6 +10,7 @@ import {
 } from "../../_components/flow-parts";
 import type { PaymentSession } from "../lib/sessions";
 import DeliveryInspector from "./delivery-inspector";
+import { formatClock } from "@/lib/format";
 
 export default function PaymentFlow({
   slug,
@@ -97,7 +98,7 @@ export default function PaymentFlow({
         <div className="flex items-center gap-3">
           <span className="font-mono text-[10.5px] text-muted-foreground">
             {index === 0 ? "latest" : "earlier"} ·{" "}
-            {session.createdAt.slice(11, 19)}
+            {formatClock(session.createdAt)}
           </span>
           {payments.length > 1 && (
             <Pager

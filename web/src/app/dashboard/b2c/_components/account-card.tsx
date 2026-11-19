@@ -5,16 +5,10 @@ import { cn } from "@/lib/utils";
 import { useB2CState, useUpdateB2CState } from "@/hooks/use-b2c";
 import type { B2COutcome } from "@/lib/types/b2c";
 import { outcomeInfo } from "../lib/outcomes";
+import { formatKes } from "@/lib/format";
 
 const fieldClass =
   "w-full rounded-md border border-border bg-surface-2 px-2.5 py-1.5 font-mono text-[12.5px] text-foreground outline-none focus:border-ring disabled:opacity-60";
-
-function kes(value: number) {
-  return value.toLocaleString("en-KE", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
 
 /** The simulated utility account payouts draw from, and the forced next result. */
 export default function AccountCard({ slug }: { slug: string }) {
@@ -51,7 +45,7 @@ export default function AccountCard({ slug }: { slug: string }) {
         <div className="flex items-end justify-between gap-2">
           <p className="font-heading text-[21px] font-medium text-foreground tabular-nums">
             <span className="mr-1 text-[12px] text-muted-foreground">KES</span>
-            {state ? kes(state.utilityBalance) : "—"}
+            {state ? formatKes(state.utilityBalance) : "—"}
           </p>
           <button
             type="button"

@@ -5,14 +5,7 @@ import { useActiveProjectStore } from "@/store/active-project";
 import { useApiPort } from "@/hooks/use-api-port";
 import { useProject } from "@/hooks/use-projects";
 import { useUpdateProjectName } from "@/hooks/use-projects";
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
+import { formatDate } from "@/lib/format";
 
 export default function ProjectIdentityCard() {
   const slug = useActiveProjectStore((s) => s.slug) ?? "";

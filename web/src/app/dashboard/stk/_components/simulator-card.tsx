@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { BanIcon, ClockIcon, WalletIcon } from "lucide-react";
 import VirtualPhone, {
   TEST_PIN,
-  formatKes,
   formatPhone,
   type FailureOutcome,
   type PhoneMessage,
@@ -13,6 +12,7 @@ import { usePendingSessions, useResolveSession } from "@/hooks/use-stk";
 import { useProject } from "@/hooks/use-projects";
 import type { PendingSession, StkOutcome } from "@/lib/types/stk";
 import { cn } from "@/lib/utils";
+import { formatKes } from "@/lib/format";
 
 // Long enough to read "Processing…", short enough not to feel slow.
 const MIN_PROCESSING_MS = 700;

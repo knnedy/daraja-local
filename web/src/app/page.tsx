@@ -16,20 +16,7 @@ import { useSetActiveProject } from "@/hooks/use-projects";
 import type { Project } from "@/lib/types/project";
 import { cn } from "@/lib/utils";
 import EmptyState from "./_components/empty-state";
-
-function formatRelativeTime(iso: string | null): string {
-  if (!iso) return "Never used";
-
-  const diffMs = Date.now() - new Date(iso).getTime();
-  const diffMin = Math.floor(diffMs / 60_000);
-
-  if (diffMin < 1) return "Just now";
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
-  const diffDay = Math.floor(diffHr / 24);
-  return `${diffDay}d ago`;
-}
+import { relativeTime } from "@/lib/format";
 
 function CardSkeleton() {
   return (
@@ -109,7 +96,9 @@ function ProjectCard({ project }: { project: Project }) {
 
       <div className="mt-auto flex items-center gap-1.5 text-xs text-muted-foreground">
         <ClockIcon className="size-3" />
-        {formatRelativeTime(project.lastActiveAt)}
+        {project.lastActiveAt
+          ? relativeTime(project.lastActiveAt)
+          : "Never used"}
       </div>
     </button>
   );

@@ -2,8 +2,8 @@
 
 import { RotateCcwIcon, SearchIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { relativeTime } from "@/lib/request-log/time";
 import type { Transaction } from "@/lib/types/transactions";
+import { formatKesWhole, relativeTime } from "@/lib/format";
 
 const kindLabel: Record<Transaction["kind"], string> = {
   stk_push: "STK",
@@ -69,7 +69,7 @@ export default function TransactionsTable({
                   <p className="flex flex-wrap items-center gap-x-2 font-mono text-[12px] text-foreground">
                     {t.receipt}
                     <span className="text-muted-foreground">
-                      KES {t.amount.toLocaleString()}
+                      KES {formatKesWhole(t.amount)}
                     </span>
                     {t.reversedBy && (
                       <span className="rounded bg-amber/10 px-1.5 py-0.5 text-[10px] text-amber">

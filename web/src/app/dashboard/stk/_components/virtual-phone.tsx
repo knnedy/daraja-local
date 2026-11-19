@@ -10,6 +10,7 @@ import {
 import { CheckIcon, DeleteIcon, LockIcon, XIcon } from "lucide-react";
 import type { PendingSession, StkOutcome } from "@/lib/types/stk";
 import { cn } from "@/lib/utils";
+import { formatKes, formatShortTime } from "@/lib/format";
 
 // The emulator can't know a customer's real PIN, so one test PIN approves.
 export const TEST_PIN = "1234";
@@ -68,15 +69,6 @@ const KEYS = [
   ["0", "+"],
   ["ok", ""],
 ] as const;
-
-const money = new Intl.NumberFormat("en-KE", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
-export function formatKes(amount: number) {
-  return money.format(amount);
-}
 
 function formatPhone(msisdn: string) {
   const local = msisdn.replace(/^254/, "0");
@@ -568,7 +560,7 @@ function StatusBar({ now }: { now: Date }) {
   return (
     <div className="relative z-30 flex items-center justify-between px-7 pt-3.5 text-[12px] font-semibold text-white">
       <span className="tabular-nums">
-        {now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+        {formatShortTime(now)}
       </span>
       <span className="flex items-center gap-1.5">
         <span className="text-[10.5px] font-medium tracking-tight opacity-90">
@@ -622,7 +614,7 @@ function LockScreen({
         })}
       </p>
       <p className="text-[68px] leading-[1.05] font-semibold tracking-tight text-white tabular-nums">
-        {now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+        {formatShortTime(now)}
       </p>
 
       <div className="mt-5 flex w-full flex-col gap-2 px-2.5">
@@ -673,10 +665,7 @@ function SmsCard({
           )}>
           {now - message.at < 60_000
             ? "now"
-            : new Date(message.at).toLocaleTimeString("en-GB", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+            : formatShortTime(message.at)}
         </span>
       </div>
       <p

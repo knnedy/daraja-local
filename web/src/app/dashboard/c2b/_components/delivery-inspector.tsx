@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useReplayConfirmation } from "@/hooks/use-c2b";
 import type { PaymentSession } from "../lib/sessions";
 import { Call, Empty } from "../../_components/delivery-call";
+import { formatClock } from "@/lib/format";
 
 const panels = ["Validation", "Confirmation"] as const;
 type Panel = (typeof panels)[number];
@@ -110,7 +111,7 @@ export default function DeliveryInspector({
               <div key={`${d.at}-${i}`} className="flex flex-col gap-2">
                 {deliveries.length > 1 && (
                   <p className="font-mono text-[11px] text-muted-foreground">
-                    {d.replay ? "replay" : "original"} · {d.at.slice(11, 19)} ·{" "}
+                    {d.replay ? "replay" : "original"} · {formatClock(d.at)} ·{" "}
                     <span
                       className={
                         d.delivered ? "text-green" : "text-destructive"

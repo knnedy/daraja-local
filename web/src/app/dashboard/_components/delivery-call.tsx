@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { DeliveryAttempt } from "@/lib/request-log/delivery";
+import { formatClock } from "@/lib/format";
 
 const terminal =
   "max-h-64 overflow-auto rounded-md border border-terminal-border bg-terminal-bg p-3 font-mono text-[11.5px] leading-relaxed";
@@ -25,7 +26,7 @@ function AttemptRow({
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-[11px]">
         <span className="text-muted-foreground">#{index + 1}</span>
         <span className="text-muted-foreground">
-          {attempt.at.slice(11, 19)}
+          {formatClock(attempt.at)}
         </span>
         <span
           className={cn(
