@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PlayIcon, ScrollTextIcon } from "lucide-react";
+import { ArrowRightIcon, PlayIcon, ScrollTextIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { groupEntries } from "@/lib/request-log/group";
 import { groupStatus } from "@/lib/request-log/status";
@@ -17,6 +17,22 @@ const KIND_LABEL = {
   mixed: "—",
 } as const;
 
+function Header() {
+  return (
+    <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+      <h2 className="text-[13px] font-medium text-foreground">
+        Recent activity
+      </h2>
+      <Link
+        href="/dashboard/logs"
+        className="flex items-center gap-1 rounded text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none">
+        View all
+        <ArrowRightIcon className="size-3" />
+      </Link>
+    </div>
+  );
+}
+
 export default function RecentActivity({
   entries,
   className,
@@ -28,11 +44,9 @@ export default function RecentActivity({
 
   if (groups.length === 0) {
     return (
-      <div
-        className={cn(
-          "flex flex-1 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-surface-1 px-6 py-10 text-center",
-          className,
-        )}>
+      <div className={cn("panel flex flex-1 flex-col overflow-hidden", className)}>
+        <Header />
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-10 text-center">
         <div className="flex size-9 items-center justify-center rounded-lg border border-border bg-surface-2">
           <ScrollTextIcon className="size-4 text-muted-foreground" />
         </div>
@@ -51,6 +65,7 @@ export default function RecentActivity({
           <PlayIcon className="size-3" />
           Set up STK Push
         </Link>
+        </div>
       </div>
     );
   }
@@ -58,9 +73,10 @@ export default function RecentActivity({
   return (
     <div
       className={cn(
-        "flex flex-1 flex-col rounded-lg border border-border bg-surface-1",
+        "panel flex flex-1 flex-col overflow-hidden",
         className,
       )}>
+      <Header />
       {groups.map((group) => {
         const status = groupStatus(group);
         return (

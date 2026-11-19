@@ -24,18 +24,18 @@ export default function StatsCard({ entries }: { entries: RequestLogEntry[] }) {
 
   return (
     <div>
-      <div className="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-border bg-border shadow-(--panel-shadow) sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <div
             key={stat.label}
             className="flex items-center gap-3 bg-surface-1 px-5 py-4"
           >
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-2">
-              <stat.icon className="size-4 text-muted-foreground" />
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-green-mid/60 bg-green-light">
+              <stat.icon className="size-4 text-green" />
             </div>
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">{stat.label}</p>
-              <p className="font-mono text-[19px] font-medium leading-tight text-foreground">
+              <p className="font-mono text-[20px] leading-tight font-semibold tabular-nums text-foreground">
                 {stat.value}
               </p>
             </div>

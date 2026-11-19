@@ -56,19 +56,18 @@ export default function QuickActions() {
         <Link
           key={action.href}
           href={action.href}
-          className="group flex items-start gap-3 rounded-lg border border-border-strong bg-surface-1 p-3.5 shadow-sm transition-colors hover:bg-surface-2/60"
-        >
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border bg-surface-2">
-            <action.icon className="size-3.75 text-muted-foreground" />
+          className="group flex items-start gap-3 panel p-3.5 transition-[border-color,background-color] duration-150 hover:border-green-mid hover:bg-surface-2/50 focus-visible:ring-3 focus-visible:ring-ring/30 focus-visible:outline-none">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-surface-2 transition-colors duration-150 group-hover:border-green-mid/60 group-hover:bg-green-light">
+            <action.icon className="size-3.75 text-muted-foreground transition-colors duration-150 group-hover:text-green" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1">
-              <span className="text-[12.5px] font-medium text-foreground">
+              <span className="text-[13px] font-medium text-foreground">
                 {action.label}
               </span>
               <ArrowUpRightIcon className="size-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
             </div>
-            <p className="mt-0.5 truncate text-[10.5px] text-muted-foreground">
+            <p className="mt-0.5 truncate text-[11.5px] text-muted-foreground">
               {action.description}
             </p>
           </div>

@@ -141,11 +141,11 @@ export default function EndpointsCard({
   ];
 
   return (
-    <div className="rounded-lg border border-border bg-surface-1">
+    <div className="panel overflow-hidden">
       <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-        <span className="text-[13px] font-medium text-foreground">
+        <h2 className="text-[13px] font-medium text-foreground">
           Mocked endpoints
-        </span>
+        </h2>
         <span className="text-xs text-muted-foreground">
           {endpoints.length} endpoints
         </span>
