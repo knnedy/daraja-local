@@ -57,6 +57,13 @@
       "skillPath": "skills/productivity/grilling/SKILL.md",
       "computedHash": "485451958784497cd4c4dbea13cb5bbb579da58fac0d0e45f3bcb310fab68ac7"
     },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "commit": "b49177d32788f2dc585c42831d845dacf1ebed2c",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "08bd5bf141cb507f46bd8347890cd985865606f15adf88295ed3a73bc9ad5d96"
+    },
     "implement-spec": {
       "source": "mattpocock/skills",
       "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
@@ -77,6 +84,13 @@
       "sourceType": "github",
       "skillPath": "skills/engineering/setup-matt-pocock-skills/SKILL.md",
       "computedHash": "9659e7025d4cf1c0a0b40ddff32ed4b8debb87a4b20d7a52ff89c506a638df69"
+    },
+    "shadcn": {
+      "source": "shadcn-ui/ui",
+      "commit": "f50887ae68d0fdcbfbe86b57be08af94a4c88a68",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "computedHash": "388962d16c7a4f13aaeee0d8f128e50a87df8553d42ef7988c39c0e1c74a40e8"
     },
     "tdd": {
       "source": "mattpocock/skills",
