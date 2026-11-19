@@ -6,9 +6,8 @@ import { useB2CState, useUpdateB2CState } from "@/hooks/use-b2c";
 import type { B2COutcome } from "@/lib/types/b2c";
 import { outcomeInfo } from "../lib/outcomes";
 import { formatKes } from "@/lib/format";
-
-const fieldClass =
-  "w-full rounded-md border border-border bg-surface-2 px-2.5 py-1.5 font-mono text-[12.5px] text-foreground outline-none focus:border-ring disabled:opacity-60";
+import { Button } from "@/components/ui/button";
+import { TextInput } from "@/components/form";
 
 /** The simulated utility account payouts draw from, and the forced next result. */
 export default function AccountCard({ slug }: { slug: string }) {
@@ -64,30 +63,24 @@ export default function AccountCard({ slug }: { slug: string }) {
           }}
           className="flex flex-col gap-2"
         >
-          <input
+          <TextInput
             autoFocus
             inputMode="decimal"
             aria-label="Utility balance in KES"
             value={draft}
             onChange={(e) => setDraft(e.target.value.trim())}
             onKeyDown={(e) => e.key === "Escape" && setDraft(null)}
-            className={fieldClass}
           />
           <div className="flex gap-2">
-            <button
+            <Button
               type="submit"
-              disabled={!draftValid || update.isPending}
-              className="flex-1 rounded-md bg-green px-2.5 py-1.5 text-[11.5px] font-medium text-white transition-[background-color,transform] hover:bg-green/90 active:scale-[0.98] disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:scale-100"
-            >
-              Save
-            </button>
-            <button
-              type="button"
-              onClick={() => setDraft(null)}
-              className="rounded-md border border-border-strong px-2.5 py-1.5 text-[11.5px] font-medium text-foreground transition-colors hover:bg-surface-2"
-            >
+              className="flex-1"
+              disabled={!draftValid || update.isPending}>
+              {update.isPending ? "Saving…" : "Save"}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setDraft(null)}>
               Cancel
-            </button>
+            </Button>
           </div>
           {!draftValid && draft !== "" && (
             <p className="text-[11px] text-destructive">

@@ -5,6 +5,7 @@ import { CheckIcon, CopyIcon, KeyRoundIcon } from "lucide-react";
 import { useActiveProjectStore } from "@/store/active-project";
 import { useProject } from "@/hooks/use-projects";
 import { useGenerateToken } from "@/hooks/use-oauth";
+import { Button } from "@/components/ui/button";
 
 function formatRemaining(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -102,21 +103,21 @@ export default function TokenGeneratorCard() {
 
       {generateToken.isError && (
         <p className="text-xs text-destructive">
-          Failed to generate a token — try again.
+          Couldn&apos;t generate a token. Check the consumer key and secret, then try again.
         </p>
       )}
 
-      <button
+      <Button
         type="button"
+        size="lg"
         onClick={generate}
-        disabled={!project || generateToken.isPending}
-        className="rounded-lg bg-green py-2 text-xs font-medium text-white transition-colors hover:bg-green/90 disabled:cursor-not-allowed disabled:opacity-50">
+        disabled={!project || generateToken.isPending}>
         {generateToken.isPending
           ? "Generating…"
           : token
             ? "Regenerate token"
             : "Generate access token"}
-      </button>
+      </Button>
     </div>
   );
 }

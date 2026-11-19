@@ -13,9 +13,7 @@ import { useInitiatorCall, useTransactions } from "@/hooks/use-transactions";
 import { useProject } from "@/hooks/use-projects";
 import { useActiveProjectStore } from "@/store/active-project";
 import type { Transaction } from "@/lib/types/transactions";
-
-const fieldClass =
-  "w-full rounded-md border border-border bg-surface-2 px-2.5 py-1.5 font-mono text-[12.5px] text-foreground outline-none focus:border-ring";
+import { Field, TextInput } from "@/components/form";
 
 export default function TransactionsPage() {
   const slug = useActiveProjectStore((s) => s.slug) ?? "";
@@ -111,26 +109,22 @@ export default function TransactionsPage() {
                 Used by the Status and Reverse buttons
               </p>
             </div>
-            <label className="flex flex-col gap-1">
-              <span className="text-[11px] font-medium text-muted-foreground">
-                ResultURL
-              </span>
-              <input
+            <Field label="ResultURL">
+              <TextInput
+                name="resultUrl"
+                type="url"
                 value={result}
                 onChange={(e) => setResultUrl(e.target.value.trim())}
-                className={fieldClass}
               />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-[11px] font-medium text-muted-foreground">
-                QueueTimeOutURL
-              </span>
-              <input
+            </Field>
+            <Field label="QueueTimeOutURL">
+              <TextInput
+                name="queueTimeOutUrl"
+                type="url"
                 value={timeout}
                 onChange={(e) => setTimeoutUrl(e.target.value.trim())}
-                className={fieldClass}
               />
-            </label>
+            </Field>
           </div>
         </div>
       </div>

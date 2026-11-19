@@ -130,10 +130,10 @@ export function DashboardTopbar() {
           className="relative flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-surface-1 hover:text-foreground"
         >
           <span className="absolute inset-0 flex items-center justify-center">
-            <SunIcon className="size-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+            <SunIcon className="size-4 scale-100 rotate-0 transition-[transform,scale,rotate] duration-200 motion-reduce:transition-none dark:scale-0 dark:-rotate-90" />
           </span>
           <span className="absolute inset-0 flex items-center justify-center">
-            <MoonIcon className="size-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+            <MoonIcon className="size-4 scale-0 rotate-90 transition-[transform,scale,rotate] duration-200 motion-reduce:transition-none dark:scale-100 dark:rotate-0" />
           </span>
           <span className="sr-only">Toggle theme</span>
         </button>

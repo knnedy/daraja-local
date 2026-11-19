@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CheckIcon, CopyIcon, TerminalIcon } from "lucide-react";
 import { useApiPort } from "@/hooks/use-api-port";
+import { Button } from "@/components/ui/button";
 
 const PATH = "/mpesa/stkpush/v1/processrequest";
 
@@ -46,28 +47,26 @@ export default function RequestBar() {
         </span>
       </div>
       <div className="flex shrink-0 gap-1.5 px-1 sm:px-0">
-        <button
+        <Button
+          variant="ghost"
+          size="lg"
           onClick={() => copy(fullUrl, "url")}
-          className="flex items-center gap-1.5 rounded-md px-2.5 py-2 text-xs text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
-        >
+          className="text-muted-foreground">
           {copied === "url" ? (
             <CheckIcon className="size-3.5 text-green" />
           ) : (
             <CopyIcon className="size-3.5" />
           )}
           URL
-        </button>
-        <button
-          onClick={() => copy(CURL(fullUrl), "curl")}
-          className="flex items-center gap-1.5 rounded-md bg-green px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-green/90"
-        >
+        </Button>
+        <Button size="lg" onClick={() => copy(CURL(fullUrl), "curl")}>
           {copied === "curl" ? (
             <CheckIcon className="size-3.5" />
           ) : (
             <TerminalIcon className="size-3.5" />
           )}
           Copy curl
-        </button>
+        </Button>
       </div>
     </div>
   );

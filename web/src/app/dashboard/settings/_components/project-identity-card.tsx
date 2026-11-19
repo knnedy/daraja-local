@@ -6,6 +6,8 @@ import { useApiPort } from "@/hooks/use-api-port";
 import { useProject } from "@/hooks/use-projects";
 import { useUpdateProjectName } from "@/hooks/use-projects";
 import { formatDate } from "@/lib/format";
+import { Button } from "@/components/ui/button";
+import { Field, TextInput } from "@/components/form";
 
 export default function ProjectIdentityCard() {
   const slug = useActiveProjectStore((s) => s.slug) ?? "";
@@ -30,62 +32,65 @@ export default function ProjectIdentityCard() {
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSave();
+      }}
+      className="flex flex-col gap-4 rounded-xl border border-border-strong bg-surface-1 p-4 shadow-sm">
       <span className="text-[13px] font-medium text-foreground">Project</span>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium text-muted-foreground">
-          Name
-        </label>
-        <input
+      <Field
+        label="Name"
+        error={
+          name.trim().length > 0 && name.trim().length < 2
+            ? "Name must be at least 2 characters"
+            : null
+        }>
+        <TextInput
+          name="projectName"
+          mono={false}
           value={name}
           onChange={(e) => setName(e.target.value)}
           disabled={!project}
-          className="rounded-md border border-border bg-surface-2 px-3 py-2 text-[13px] text-foreground outline-none focus:border-ring disabled:opacity-60"
         />
-        {name.trim().length > 0 && name.trim().length < 2 && (
-          <p className="text-xs text-destructive">
-            Name must be at least 2 characters
-          </p>
-        )}
-      </div>
+      </Field>
 
-      <div className="grid grid-cols-2 gap-4">
+      <dl className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
+          <dt className="text-[11.5px] font-medium text-muted-foreground">
             Created
-          </label>
-          <p className="rounded-md border border-border bg-surface-2 px-3 py-2 text-[13px] text-muted-foreground">
+          </dt>
+          <dd className="flex h-9 items-center rounded-lg border border-border bg-surface-2 px-3 text-[13px] text-muted-foreground">
             {project ? formatDate(project.createdAt) : "…"}
-          </p>
+          </dd>
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
+          <dt className="text-[11.5px] font-medium text-muted-foreground">
             Local server
-          </label>
-          <p className="rounded-md border border-border bg-surface-2 px-3 py-2 font-mono text-[12.5px] text-muted-foreground">
+          </dt>
+          <dd
+            translate="no"
+            className="flex h-9 items-center rounded-lg border border-border bg-surface-2 px-3 font-mono text-[12.5px] text-muted-foreground">
             http://127.0.0.1:{port}
-          </p>
+          </dd>
         </div>
-      </div>
+      </dl>
 
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={!canSave}
-          className="self-start rounded-lg bg-green px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-green/90 disabled:cursor-not-allowed disabled:opacity-50">
+      <div className="flex items-center gap-3" aria-live="polite">
+        <Button type="submit" disabled={!canSave}>
           {updateName.isPending ? "Saving…" : "Save changes"}
-        </button>
+        </Button>
         {updateName.isError && (
           <span className="text-xs text-destructive">
-            Failed to save — try again.
+            Couldn&apos;t save. Check that Daraja Local is running, then try
+            again.
           </span>
         )}
         {updateName.isSuccess && !isDirty && (
           <span className="text-xs text-green">Saved</span>
         )}
       </div>
-    </div>
+    </form>
   );
 }

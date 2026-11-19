@@ -7,6 +7,8 @@ import { useProjectSettings } from "@/hooks/use-settings";
 import { useUpdateSettings } from "@/hooks/use-settings";
 import { updateSettingsSchema } from "@/lib/schemas/settings";
 import type { ProjectSettings } from "@/lib/types/settings";
+import { Button } from "@/components/ui/button";
+import { Field, TextInput } from "@/components/form";
 
 export default function SimulationDefaultsCard() {
   const slug = useActiveProjectStore((s) => s.slug) ?? "";
@@ -47,60 +49,55 @@ export default function SimulationDefaultsCard() {
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSave();
+      }}
+      className="flex flex-col gap-4 rounded-xl border border-border-strong bg-surface-1 p-4 shadow-sm">
       <span className="text-[13px] font-medium text-foreground">
         Simulation defaults
       </span>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium text-muted-foreground">
-          STK Push timeout (seconds)
-        </label>
-        <input
+      <Field
+        label="STK Push timeout (seconds)"
+        error={timeoutValid ? null : "Must be between 5 and 60"}
+        hint="How long the Virtual Phone waits before sending ResultCode 1037. Shorter is faster to test with.">
+        <TextInput
+          name="stkTimeoutSeconds"
           type="number"
+          inputMode="numeric"
           min={5}
           max={60}
           value={stkTimeout}
           disabled={!settings}
           onChange={(e) => setStkTimeout(Number(e.target.value))}
-          className="w-24 rounded-md border border-border bg-surface-2 px-3 py-2 font-mono text-[13px] text-foreground outline-none focus:border-ring disabled:opacity-60"
+          className="w-24"
         />
-        <p className="text-[10.5px] text-muted-foreground">
-          Real M-Pesa uses ~60s. Shorter is faster to test with.
-        </p>
-        {!timeoutValid && (
-          <p className="text-xs text-destructive">Must be between 5 and 60</p>
-        )}
-      </div>
+      </Field>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium text-muted-foreground">
-          Default phone number
-        </label>
-        <input
+      <Field
+        label="Default phone number"
+        error={
+          phoneNumber.trim().length > 0 && !phoneCheck.success
+            ? "Use the format 254XXXXXXXXX"
+            : null
+        }
+        hint="Pre-fills the phone on the C2B and B2C test forms.">
+        <TextInput
+          name="defaultPhoneNumber"
+          type="tel"
+          inputMode="numeric"
           value={phoneNumber}
           disabled={!settings}
           onChange={(e) => setPhoneNumber(e.target.value)}
-          placeholder="254708374149"
-          className="w-40 rounded-md border border-border bg-surface-2 px-3 py-2 font-mono text-[13px] text-foreground outline-none focus:border-ring disabled:opacity-60"
+          placeholder="254708374149…"
+          className="w-44"
         />
-        <p className="text-[10.5px] text-muted-foreground">
-          Pre-fills the STK virtual phone. Change it to simulate a wrong or
-          unreachable number.
-        </p>
-        {phoneNumber.trim().length > 0 && !phoneCheck.success && (
-          <p className="text-xs text-destructive">
-            Enter a valid number in the format 254XXXXXXXXX
-          </p>
-        )}
-      </div>
+      </Field>
 
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={!canSave}
-          className="flex items-center justify-center gap-1.5 self-start rounded-lg bg-green px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-green/90 disabled:cursor-not-allowed disabled:opacity-50">
+      <div className="flex items-center gap-3" aria-live="polite">
+        <Button type="submit" disabled={!canSave}>
           {updateSettings.isPending ? (
             "Saving…"
           ) : updateSettings.isSuccess && !isDirty ? (
@@ -111,13 +108,14 @@ export default function SimulationDefaultsCard() {
           ) : (
             "Save defaults"
           )}
-        </button>
+        </Button>
         {updateSettings.isError && (
           <span className="text-xs text-destructive">
-            Failed to save — try again.
+            Couldn&apos;t save. Check that Daraja Local is running, then try
+            again.
           </span>
         )}
       </div>
-    </div>
+    </form>
   );
 }

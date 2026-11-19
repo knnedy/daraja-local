@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { SendIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Field, SegmentedControl, TextInput } from "@/components/form";
 import type { B2BCommandId } from "@/lib/types/accounts";
 import { formatKesWhole } from "@/lib/format";
 
@@ -10,26 +11,6 @@ const commands: { id: B2BCommandId; label: string; party: string }[] = [
   { id: "BusinessPayBill", label: "Pay Bill", party: "PayBill number" },
   { id: "BusinessBuyGoods", label: "Buy Goods", party: "Till number" },
 ];
-
-const fieldClass =
-  "w-full rounded-md border border-border bg-surface-2 px-2.5 py-1.5 font-mono text-[12.5px] text-foreground outline-none focus:border-ring disabled:opacity-60";
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="flex flex-col gap-1">
-      <span className="text-[11px] font-medium text-muted-foreground">
-        {label}
-      </span>
-      {children}
-    </label>
-  );
-}
 
 export type B2BPaymentDraft = {
   commandId: B2BCommandId;
@@ -74,8 +55,7 @@ export default function PaymentCard({
           accountReference: reference,
         });
       }}
-      className="flex flex-col gap-3.5 rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm"
-    >
+      className="flex flex-col gap-3.5 rounded-xl border border-border-strong bg-surface-1 p-4 shadow-sm">
       <div>
         <p className="text-[13px] font-medium text-foreground">
           Pay a business
@@ -85,74 +65,61 @@ export default function PaymentCard({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 rounded-md border border-border bg-surface-2 p-0.5">
-        {commands.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            onClick={() => setCommandId(c.id)}
-            aria-pressed={commandId === c.id}
-            className={cn(
-              "rounded px-2 py-1 text-[11.5px] font-medium text-muted-foreground transition-colors hover:text-foreground",
-              commandId === c.id && "bg-surface-1 text-foreground shadow-sm",
-            )}
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        label="Payment type"
+        value={commandId}
+        options={commands.map((c) => ({ value: c.id, label: c.label }))}
+        onChange={setCommandId}
+      />
 
-      <div className="grid grid-cols-[88px_1fr] gap-2">
-        <Field label="Amount">
-          <input
+      <div className="grid grid-cols-[96px_1fr] gap-2.5">
+        <Field
+          label="Amount"
+          error={!amountValid && amount !== "" ? "Whole KES above 0" : null}>
+          <TextInput
+            name="amount"
             inputMode="numeric"
             value={amount}
             onChange={(e) => setAmount(e.target.value.trim())}
-            className={fieldClass}
           />
         </Field>
-        <Field label={`${command.party} (PartyB)`}>
-          <input
+        <Field
+          label={`${command.party} (PartyB)`}
+          error={
+            !partyValid && partyB !== ""
+              ? partyB === shortCode
+                ? "That's your own shortcode; pay another business"
+                : "A shortcode of 5 to 9 digits"
+              : null
+          }>
+          <TextInput
+            name="partyB"
             inputMode="numeric"
             value={partyB}
             onChange={(e) => setPartyB(e.target.value.trim())}
-            className={fieldClass}
           />
         </Field>
       </div>
-      <Field label="AccountReference">
-        <input
+      <Field
+        label="AccountReference"
+        hint={`${reference.length}/13 characters`}>
+        <TextInput
+          name="accountReference"
           value={reference}
           maxLength={13}
           onChange={(e) => setReference(e.target.value)}
-          className={fieldClass}
         />
       </Field>
 
-      {!amountValid && amount !== "" && (
-        <p className="text-[11px] text-destructive">
-          Whole shillings only, above 0
-        </p>
-      )}
-      {!partyValid && partyB !== "" && (
-        <p className="text-[11px] text-destructive">
-          {partyB === shortCode
-            ? "That's your own shortcode; pay another business"
-            : "A shortcode of 5 to 9 digits"}
-        </p>
-      )}
-
-      <button
-        type="submit"
-        disabled={!canSend}
-        title={disabledReason ?? undefined}
-        className="flex items-center justify-center gap-1.5 rounded-lg bg-green px-3.5 py-2 text-xs font-medium text-white transition-[background-color,transform] hover:bg-green/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:scale-100"
-      >
+      <Button type="submit" size="lg" disabled={!canSend}>
         <SendIcon className="size-3.5" />
         {sending
           ? "Sending…"
           : `Pay KES ${amountValid ? formatKesWhole(Number(amount)) : "—"}`}
-      </button>
+      </Button>
+      {disabledReason && !sending && (
+        <p className="text-[11px] text-muted-foreground">{disabledReason}</p>
+      )}
     </form>
   );
 }

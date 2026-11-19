@@ -16,6 +16,7 @@ import {
 import { useActiveProjectStore } from "@/store/active-project";
 import { useProject } from "@/hooks/use-projects";
 import { useDeleteProject } from "@/hooks/use-projects";
+import { TextInput } from "@/components/form";
 
 export default function DangerZoneCard() {
   const router = useRouter();
@@ -35,7 +36,7 @@ export default function DangerZoneCard() {
   }
 
   return (
-    <div className="rounded-lg border border-destructive/30 bg-destructive/3 p-4">
+    <div className="rounded-xl border border-destructive/30 bg-destructive/3 p-4">
       <span className="text-[13px] font-medium text-destructive">
         Danger zone
       </span>
@@ -54,18 +55,20 @@ export default function DangerZoneCard() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Delete &quot;{projectName}&quot;?
+              Delete “{projectName}”?
             </AlertDialogTitle>
             <AlertDialogDescription>
               This permanently removes the project&apos;s credentials, callback
               configuration, and request log. Type the project name to confirm.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <input
+          <TextInput
+            name="confirmProjectName"
+            mono={false}
+            aria-label="Type the project name to confirm"
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
             placeholder={projectName}
-            className="w-full rounded-md border border-border bg-surface-2 px-3 py-2 text-[13px] text-foreground outline-none focus:border-destructive"
           />
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>

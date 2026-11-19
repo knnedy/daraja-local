@@ -4,9 +4,8 @@ import { useState } from "react";
 import { useAccounts, useUpdateAccounts } from "@/hooks/use-accounts";
 import type { Accounts } from "@/lib/types/accounts";
 import { formatKes } from "@/lib/format";
-
-const fieldClass =
-  "w-full rounded-md border border-border bg-surface-2 px-2.5 py-1.5 font-mono text-[12.5px] text-foreground outline-none focus:border-ring disabled:opacity-60";
+import { Button } from "@/components/ui/button";
+import { TextInput } from "@/components/form";
 
 const rows: { key: keyof Accounts; label: string; hint: string }[] = [
   {
@@ -98,22 +97,20 @@ export default function AccountsCard({
                   }}
                   className="flex gap-2"
                 >
-                  <input
+                  <TextInput
                     autoFocus
                     inputMode="decimal"
                     aria-label={`${row.label} balance in KES`}
                     value={draft}
                     onChange={(e) => setDraft(e.target.value.trim())}
                     onKeyDown={(e) => e.key === "Escape" && setEditing(null)}
-                    className={fieldClass}
                   />
-                  <button
+                  <Button
                     type="submit"
-                    disabled={!draftValid || update.isPending}
-                    className="rounded-md bg-green px-2.5 text-[11.5px] font-medium text-white transition-[background-color,transform] hover:bg-green/90 active:scale-[0.98] disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:scale-100"
-                  >
-                    Save
-                  </button>
+                    size="lg"
+                    disabled={!draftValid || update.isPending}>
+                    {update.isPending ? "Saving…" : "Save"}
+                  </Button>
                 </form>
               )}
             </div>

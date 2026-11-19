@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { SendIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Field, SegmentedControl, TextInput } from "@/components/form";
 import { useSendPayout } from "@/hooks/use-b2c";
 import { useProject } from "@/hooks/use-projects";
 import { useProjectSettings } from "@/hooks/use-settings";
@@ -14,26 +15,6 @@ const commands: { id: B2CCommandId; label: string }[] = [
   { id: "SalaryPayment", label: "Salary" },
   { id: "PromotionPayment", label: "Promotion" },
 ];
-
-const fieldClass =
-  "w-full rounded-md border border-border bg-surface-2 px-2.5 py-1.5 font-mono text-[12.5px] text-foreground outline-none focus:border-ring disabled:opacity-60";
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="flex flex-col gap-1">
-      <span className="text-[11px] font-medium text-muted-foreground">
-        {label}
-      </span>
-      {children}
-    </label>
-  );
-}
 
 /** Sends a payout with the project's own initiator, as the developer's app would. */
 export default function PayoutCard({ slug }: { slug: string }) {
@@ -77,8 +58,7 @@ export default function PayoutCard({ slug }: { slug: string }) {
           queueTimeOutUrl: timeout,
         });
       }}
-      className="flex flex-col gap-3.5 rounded-lg border border-border-strong bg-surface-1 p-4 shadow-sm"
-    >
+      className="flex flex-col gap-3.5 rounded-xl border border-border-strong bg-surface-1 p-4 shadow-sm">
       <div>
         <p className="text-[13px] font-medium text-foreground">
           Send a test payout
@@ -88,94 +68,78 @@ export default function PayoutCard({ slug }: { slug: string }) {
         </p>
       </div>
 
-      <div className="grid grid-cols-3 rounded-md border border-border bg-surface-2 p-0.5">
-        {commands.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            onClick={() => setCommandId(c.id)}
-            aria-pressed={commandId === c.id}
-            className={cn(
-              "rounded px-2 py-1 text-[11.5px] font-medium text-muted-foreground transition-colors hover:text-foreground",
-              commandId === c.id && "bg-surface-1 text-foreground shadow-sm",
-            )}
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        label="Payout type"
+        value={commandId}
+        options={commands.map((c) => ({ value: c.id, label: c.label }))}
+        onChange={setCommandId}
+      />
 
-      <div className="grid grid-cols-[88px_1fr] gap-2">
-        <Field label="Amount">
-          <input
+      <div className="grid grid-cols-[96px_1fr] gap-2.5">
+        <Field
+          label="Amount"
+          error={!amountValid && amount !== "" ? "Whole KES above 0" : null}>
+          <TextInput
+            name="amount"
             inputMode="numeric"
             value={amount}
             onChange={(e) => setAmount(e.target.value.trim())}
-            className={fieldClass}
           />
         </Field>
-        <Field label="To phone (PartyB)">
-          <input
+        <Field
+          label="To phone (PartyB)"
+          error={
+            !phoneValid && phone !== ""
+              ? "Use 2547XXXXXXXX or 2541XXXXXXXX"
+              : null
+          }>
+          <TextInput
+            name="partyB"
+            type="tel"
             inputMode="numeric"
             value={phone}
             onChange={(e) => setPartyB(e.target.value.trim())}
-            placeholder="254708374149"
-            className={fieldClass}
+            placeholder="254708374149…"
           />
         </Field>
       </div>
 
-      <Field label="Remarks">
-        <input
+      <Field
+        label="Remarks"
+        error={remarksValid ? null : "Remarks must be 2 to 100 characters"}>
+        <TextInput
+          name="remarks"
+          mono={false}
           value={remarks}
           maxLength={100}
           onChange={(e) => setRemarks(e.target.value)}
-          className={fieldClass}
         />
       </Field>
       <Field label="ResultURL">
-        <input
+        <TextInput
+          name="resultUrl"
+          type="url"
           value={result}
           onChange={(e) => setResultUrl(e.target.value.trim())}
-          placeholder="https://your-app.com/api/b2c/result"
-          className={fieldClass}
+          placeholder="https://your-app.com/api/b2c/result…"
         />
       </Field>
       <Field label="QueueTimeOutURL">
-        <input
+        <TextInput
+          name="queueTimeOutUrl"
+          type="url"
           value={timeout}
           onChange={(e) => setTimeoutUrl(e.target.value.trim())}
-          placeholder="https://your-app.com/api/b2c/timeout"
-          className={fieldClass}
+          placeholder="https://your-app.com/api/b2c/timeout…"
         />
       </Field>
 
-      {!amountValid && amount !== "" && (
-        <p className="text-[11px] text-destructive">
-          Whole shillings only, above 0
-        </p>
-      )}
-      {!phoneValid && phone !== "" && (
-        <p className="text-[11px] text-destructive">
-          Use the format 2547XXXXXXXX or 2541XXXXXXXX
-        </p>
-      )}
-      {!remarksValid && (
-        <p className="text-[11px] text-destructive">
-          Remarks must be 2 to 100 characters
-        </p>
-      )}
-
-      <button
-        type="submit"
-        disabled={!canSend}
-        className="flex items-center justify-center gap-1.5 rounded-lg bg-green px-3.5 py-2 text-xs font-medium text-white transition-[background-color,transform] hover:bg-green/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:scale-100"
-      >
+      <Button type="submit" size="lg" disabled={!canSend}>
         <SendIcon className="size-3.5" />
         {send.isPending
           ? "Sending…"
           : `Pay out KES ${amountValid ? formatKesWhole(Number(amount)) : "—"}`}
-      </button>
+      </Button>
 
       {send.isError && (
         <p className="text-[11px] text-destructive">{send.error.message}</p>
