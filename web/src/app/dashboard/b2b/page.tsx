@@ -17,16 +17,6 @@ import { useActiveProjectStore } from "@/store/active-project";
 const fieldClass =
   "w-full rounded-md border border-border bg-surface-2 px-2.5 py-1.5 font-mono text-[12.5px] text-foreground outline-none focus:border-ring";
 
-function errorText(error: Error): string {
-  try {
-    return (
-      (JSON.parse(error.message) as { error?: string }).error ?? error.message
-    );
-  } catch {
-    return error.message;
-  }
-}
-
 export default function B2BPage() {
   const slug = useActiveProjectStore((s) => s.slug) ?? "";
   const { data: project } = useProject(slug);
@@ -96,7 +86,7 @@ export default function B2BPage() {
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px] lg:items-start">
         <div className="flex min-w-0 flex-col gap-5">
           {failed && (
-            <p className="text-[11px] text-destructive">{errorText(failed)}</p>
+            <p className="text-[11px] text-destructive">{failed.message}</p>
           )}
           <LatestResult result={latest} waiting={waiting} />
           <IntegrationPanel />

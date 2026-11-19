@@ -18,16 +18,6 @@ const commands: { id: B2CCommandId; label: string }[] = [
 const fieldClass =
   "w-full rounded-md border border-border bg-surface-2 px-2.5 py-1.5 font-mono text-[12.5px] text-foreground outline-none focus:border-ring disabled:opacity-60";
 
-function errorText(error: Error): string {
-  try {
-    return (
-      (JSON.parse(error.message) as { error?: string }).error ?? error.message
-    );
-  } catch {
-    return error.message;
-  }
-}
-
 function Field({
   label,
   children,
@@ -188,7 +178,7 @@ export default function PayoutCard({ slug }: { slug: string }) {
       </button>
 
       {send.isError && (
-        <p className="text-[11px] text-destructive">{errorText(send.error)}</p>
+        <p className="text-[11px] text-destructive">{send.error.message}</p>
       )}
     </form>
   );

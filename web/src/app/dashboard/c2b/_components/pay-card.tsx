@@ -16,16 +16,6 @@ const commands: { id: C2BCommandId; label: string }[] = [
 const fieldClass =
   "w-full rounded-md border border-border bg-surface-2 px-2.5 py-1.5 font-mono text-[12.5px] text-foreground outline-none focus:border-ring disabled:opacity-60";
 
-function errorText(error: Error): string {
-  try {
-    return (
-      (JSON.parse(error.message) as { error?: string }).error ?? error.message
-    );
-  } catch {
-    return error.message;
-  }
-}
-
 /** Makes a Simulated Payment from the dashboard, as simulate would from an app. */
 export default function PayCard({
   slug,
@@ -162,7 +152,7 @@ export default function PayCard({
       )}
       {simulate.isError && (
         <p className="text-[11px] text-destructive">
-          {errorText(simulate.error)}
+          {simulate.error.message}
         </p>
       )}
     </form>

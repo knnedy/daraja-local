@@ -11,16 +11,6 @@ import { formatClock } from "@/lib/format";
 const panels = ["Validation", "Confirmation"] as const;
 type Panel = (typeof panels)[number];
 
-function errorText(error: Error): string {
-  try {
-    return (
-      (JSON.parse(error.message) as { error?: string }).error ?? error.message
-    );
-  } catch {
-    return error.message;
-  }
-}
-
 /** What each call to the developer's server sent and got back, with replay. */
 export default function DeliveryInspector({
   slug,
@@ -61,7 +51,7 @@ export default function DeliveryInspector({
           <div className="flex items-center gap-2.5">
             {replay.isError && (
               <span className="text-[11px] text-destructive">
-                {errorText(replay.error)}
+                {replay.error.message}
               </span>
             )}
             <button

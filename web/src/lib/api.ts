@@ -41,6 +41,17 @@ const kindRoutes: Record<RequestLogKind, string> = {
 // Empty in the embedded build (same-origin); only set for `make dev`.
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
+// The dashboard API answers {"error": "..."}; Daraja routes answer {"errorMessage": "..."}.
+async function errorMessage(response: Response): Promise<string> {
+  const text = await response.text();
+  try {
+    const body = JSON.parse(text) as { error?: string; errorMessage?: string };
+    return body.error ?? body.errorMessage ?? text;
+  } catch {
+    return text || `Request failed with status ${response.status}`;
+  }
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${BASE_URL}${path}`, {
     headers: { "Content-Type": "application/json" },
@@ -48,8 +59,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Request failed with status ${response.status}`);
+    throw new Error(await errorMessage(response));
   }
 
   // Touch/Delete/Resolve return 204 No Content — no body to parse.

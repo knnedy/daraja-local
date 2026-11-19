@@ -16,16 +16,6 @@ const outcomeLabels: Record<string, string> = {
   timeout: "No answer",
 };
 
-function errorText(error: Error): string {
-  try {
-    return (
-      (JSON.parse(error.message) as { error?: string }).error ?? error.message
-    );
-  } catch {
-    return error.message;
-  }
-}
-
 function Status({ payment }: { payment: StkPayment }) {
   const pending = payment.outcome === "";
   const paid = payment.outcome === "approved";
@@ -138,7 +128,7 @@ export default function CallbacksCard({
               </div>
               {resend.isError && (
                 <p className="text-[11px] text-destructive">
-                  {errorText(resend.error)}
+                  {resend.error.message}
                 </p>
               )}
 
