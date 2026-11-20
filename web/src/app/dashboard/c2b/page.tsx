@@ -1,11 +1,9 @@
 "use client";
 
-import RequestBar from "../_components/request-bar";
 import IntegrationPanel from "./_components/integration-panel";
 import RegistrationCard from "./_components/registration-card";
-import PayCard from "./_components/pay-card";
-import PaymentFlow from "./_components/payment-flow";
-import PayloadConsole from "../_components/payload-console";
+import ActivityPanel from "./_components/activity-panel";
+import PhoneCard from "./_components/phone-card";
 import HowItWorks from "./_components/how-it-works";
 import { derivePayments } from "./lib/sessions";
 import { useC2BRegistration } from "@/hooks/use-c2b";
@@ -21,47 +19,25 @@ export default function C2BPage() {
   if (!slug) return null;
 
   const payments = derivePayments(entries);
+  const registered = registration?.registered ?? false;
 
   return (
-    <div className="flex flex-col gap-5">
-      <PageHeader
-        page="c2b"
-        title="C2B"
-        description={<>Register your callback URLs, then call simulate from your app or send a test payment here, and watch every step land.</>}
-      />
-
-      <HowItWorks />
-
-      <div className="flex flex-col gap-2.5">
-        <RequestBar
-          path="/mpesa/c2b/v2/registerurl"
-          label="step 1 · register"
+    <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="flex min-w-0 flex-col gap-6">
+        <PageHeader
+          eyebrow="Customer to Business"
+          title="C2B"
+          description="Customers pay your Paybill or Till from their own phone. Register where to be told, pay from the Customer's phone, and watch validation and confirmation reach your server."
+          actions={<HowItWorks />}
         />
-        <RequestBar path="/mpesa/c2b/v2/simulate" label="step 2 · pay" />
-      </div>
-
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px] lg:items-start">
+        <RegistrationCard registration={registration ?? null} />
+        <ActivityPanel slug={slug} payments={payments} registered={registered} />
         <IntegrationPanel />
-        <div className="flex flex-col gap-5">
-          <RegistrationCard registration={registration ?? null} />
-          <PayCard slug={slug} registered={registration?.registered ?? false} />
-        </div>
       </div>
 
-      <PaymentFlow
-        slug={slug}
-        payments={payments}
-        registered={registration?.registered ?? false}
-      />
-
-      <PayloadConsole
-        entries={entries}
-        title="callback log"
-        emptyState={[
-          "waiting for a payment…",
-          "register your URLs, then send a payment",
-        ]}
-      />
+      <div className="xl:sticky xl:top-0">
+        <PhoneCard slug={slug} payments={payments} registered={registered} />
+      </div>
     </div>
   );
 }

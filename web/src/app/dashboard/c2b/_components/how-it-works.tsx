@@ -1,43 +1,56 @@
-import FlowSteps, { type FlowStep } from "../../_components/flow-steps";
+"use client";
 
-const steps: FlowStep[] = [
+import { GuideSheet, type GuideOutcome, type GuideStep } from "../../_components/guide-sheet";
+
+const steps: GuideStep[] = [
   {
-    from: "You",
-    to: "Safaricom",
-    title: "Register your URLs — once",
+    who: "Your app → Daraja",
+    title: "Register your URLs, once",
     detail:
-      "Call registerurl with your ConfirmationURL (and ValidationURL if you want one). This isn't per-transaction — Safaricom just stores the mapping against your shortcode. Re-running it later can fail if nothing's changed.",
+      "Call registerurl with your ConfirmationURL, and a ValidationURL if you want one. Daraja stores them against your shortcode; it isn't a per-payment call.",
   },
   {
-    from: "Customer",
-    to: "Safaricom",
-    title: "Customer pays independently",
+    who: "Customer → Daraja",
+    title: "The customer pays on their own",
     detail:
-      "They open their own M-Pesa menu, enter your Paybill/Till, an account number, and an amount, then confirm with their PIN. Your app has zero visibility into this — you don't know it's happening yet.",
+      "They open M-PESA, pick Pay Bill or Buy Goods, enter your shortcode, an account number and an amount, then their PIN. Your app doesn't start this and can't see it yet.",
   },
   {
-    from: "Safaricom",
-    to: "You",
-    title: "Validation — optional, off by default",
+    who: "Daraja → your app",
+    title: "Validation, if you registered a ValidationURL",
     detail:
-      "Optional, and off unless Safaricom enables it for your shortcode (in Daraja Local, registering a ValidationURL turns it on). Safaricom asks your ValidationURL 'should I allow this?' — your one chance to reject before the money moves. Most real integrations skip this and reconcile mismatches afterward instead.",
+      "Daraja asks your ValidationURL whether to allow the payment, your one chance to decline it. If your server can't answer, ResponseType decides. On real Daraja, Safaricom has to enable validation for your shortcode.",
   },
   {
-    from: "Safaricom",
-    to: "M-Pesa",
-    title: "Payment settles",
-    detail:
-      "The customer is debited. Invisible to you — no callback yet, nothing to catch here.",
+    who: "Daraja → customer",
+    title: "The payment completes",
+    detail: "The customer is charged and gets the M-PESA SMS. Nothing reaches you at this point.",
   },
   {
-    from: "Safaricom",
-    to: "You",
-    title: "Confirmation — cannot be rejected",
+    who: "Daraja → your app",
+    title: "Confirmation tells you it happened",
     detail:
-      "Safaricom hits your ConfirmationURL to tell you it already happened. This is how you actually find out — mark an order paid, issue a receipt, update your ledger.",
+      "The same body is POSTed to your ConfirmationURL. The money has already moved, so this can't be declined. Mark the invoice paid here.",
   },
 ];
 
+const outcomes: GuideOutcome[] = [
+  { code: "\"0\"", meaning: "Your ValidationURL accepts", how: "Payment completes, then Confirmation", ok: true },
+  { code: "other", meaning: "Your ValidationURL declines", how: "Payment fails, no Confirmation" },
+  { code: "Completed", meaning: "ValidationURL unreachable", how: "Accepted anyway" },
+  { code: "Cancelled", meaning: "ValidationURL unreachable", how: "Declined" },
+];
+
 export default function HowItWorks() {
-  return <FlowSteps title="How C2B actually works" steps={steps} />;
+  return (
+    <GuideSheet
+      title="How C2B works"
+      description="Unlike STK Push, the customer starts the payment. Your app only registers where to be told."
+      steps={steps}
+      outcomes={outcomes}
+      outcomesTitle="How validation decides"
+      codeLabel="Answer"
+      howLabel="Result"
+    />
+  );
 }

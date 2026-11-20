@@ -1,126 +1,115 @@
 "use client";
 
-import { CheckCircle2Icon, CircleDashedIcon } from "lucide-react";
+import { CheckIcon, CopyIcon } from "lucide-react";
+import { useCopy } from "@/hooks/use-copy";
 import { cn } from "@/lib/utils";
 import type { C2BRegistration } from "@/lib/types/c2b";
 
-function UrlRow({
-  label,
-  value,
-  muted,
-}: {
-  label: string;
-  value: string;
-  muted?: boolean;
-}) {
+function Url({ label, value, off }: { label: string; value: string; off?: string }) {
+  const { copied, copy } = useCopy();
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-[11px] font-medium text-muted-foreground">
-        {label}
-      </span>
-      <span
-        className={cn(
-          "truncate rounded-md border border-border bg-surface-2 px-2.5 py-1.5 font-mono text-[11.5px]",
-          muted ? "text-muted-foreground/60" : "text-foreground",
-        )}
-        title={value || undefined}>
-        {value || "not set"}
-      </span>
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <span className="text-[12px] font-medium text-muted-foreground">{label}</span>
+      {value ? (
+        <span className="flex h-9 min-w-0 items-center gap-2 rounded-lg border border-border bg-surface-2/70 pr-1 pl-3">
+          <span className="min-w-0 flex-1 truncate font-mono text-[12.5px] text-foreground" title={value}>
+            {value}
+          </span>
+          <button
+            type="button"
+            onClick={() => void copy(value)}
+            aria-label={copied ? "Copied" : `Copy ${label}`}
+            className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-surface-1 hover:text-foreground">
+            {copied ? <CheckIcon className="size-3.5 text-green" /> : <CopyIcon className="size-3.5" />}
+          </button>
+        </span>
+      ) : (
+        <span className="flex h-9 items-center rounded-lg border border-dashed border-border px-3 text-[12.5px] text-muted-foreground">
+          {off}
+        </span>
+      )}
     </div>
   );
 }
 
-export default function RegistrationCard({
-  registration,
-}: {
-  registration: C2BRegistration | null;
-}) {
+function Fact({ label, value, hint }: { label: string; value: string; hint: string }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-[12px] font-medium text-muted-foreground">{label}</span>
+      <span className="font-mono text-[13px] text-foreground">{value}</span>
+      <span className="text-[12px] leading-snug text-muted-foreground">{hint}</span>
+    </div>
+  );
+}
+
+/** What registerurl last stored for this shortcode, and what it means for each payment. */
+export default function RegistrationCard({ registration }: { registration: C2BRegistration | null }) {
   const registered = registration?.registered ?? false;
-  const validationOn = Boolean(registration?.validationUrl);
-  const fallbackWord =
-    registration?.responseType === "Cancelled" ? "rejected" : "accepted";
 
   return (
-    <div className="flex flex-col gap-4 panel p-4">
-      <div className="flex items-start justify-between gap-2">
+    <section className="panel overflow-hidden" aria-labelledby="registration-title">
+      <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
         <div>
-          <p className="text-[13px] font-medium text-foreground">
-            Registered URLs
-          </p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Set by your last registerurl call
+          <h2 id="registration-title" className="text-[15px] font-semibold tracking-[-0.01em] text-foreground">
+            Registration
+          </h2>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">
+            Where payments to this shortcode are sent, from your last registerurl call.
           </p>
         </div>
         <span
           className={cn(
-            "flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-1 text-[10.5px] font-medium",
-            registered
-              ? "border-green/30 bg-green/10 text-green"
-              : "border-border text-muted-foreground",
+            "inline-flex h-[22px] shrink-0 items-center gap-1.5 rounded-full px-2 text-[11.5px] font-medium ring-1 ring-inset",
+            registered ? "bg-green-light text-green ring-green-mid/60" : "bg-amber-bg text-amber ring-amber-border/60",
           )}>
-          {registered ? (
-            <CheckCircle2Icon className="size-3" />
-          ) : (
-            <CircleDashedIcon className="size-3" />
-          )}
+          <span className={cn("size-1.5 rounded-full", registered ? "bg-green-2" : "bg-amber")} />
           {registered ? "Registered" : "Not registered"}
         </span>
       </div>
 
       {registration && registered ? (
-        <>
-          <UrlRow
-            label="Confirmation URL"
-            value={registration.confirmationUrl}
-          />
-          <UrlRow
-            label="Validation URL"
-            value={registration.validationUrl}
-            muted={!validationOn}
-          />
-
-          <div className="flex items-center justify-between gap-2 text-[11px]">
-            <span className="text-muted-foreground">
-              Registered via{" "}
-              <span className="font-mono text-foreground">
-                {registration.apiVersion}
-              </span>
-            </span>
-            <span className="text-muted-foreground">
-              MSISDN arrives{" "}
-              {registration.apiVersion === "v1" ? "SHA-256 hashed" : "masked"}
-            </span>
+        <div className="flex flex-col gap-5 p-5">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Url label="ConfirmationURL" value={registration.confirmationUrl} />
+            <Url
+              label="ValidationURL"
+              value={registration.validationUrl}
+              off="None, so payments skip validation"
+            />
           </div>
-
-          <div className="rounded-md border border-border bg-surface-2 px-3 py-2.5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[12.5px] font-medium text-foreground">
-                External validation
-              </p>
-              <span
-                className={cn(
-                  "rounded px-1.5 py-0.5 font-mono text-[10.5px]",
-                  validationOn
-                    ? "bg-blue-bg text-blue"
-                    : "bg-surface-1 text-muted-foreground",
-                )}>
-                {validationOn ? "on" : "off"}
-              </span>
-            </div>
-            <p className="mt-1 text-[10.5px] leading-relaxed text-muted-foreground">
-              {validationOn
-                ? `Every payment calls your ValidationURL first. If it can't answer, the payment is ${fallbackWord} (ResponseType: ${registration.responseType}).`
-                : "No ValidationURL registered, so payments go straight to confirmation."}
-            </p>
+          <div className="grid gap-4 border-t border-border pt-4 sm:grid-cols-3">
+            <Fact
+              label="Validation"
+              value={registration.validationUrl ? "On" : "Off"}
+              hint={
+                registration.validationUrl
+                  ? "Your server is asked before each payment completes."
+                  : "Every valid payment completes and is confirmed."
+              }
+            />
+            <Fact
+              label="ResponseType"
+              value={registration.responseType}
+              hint={`If your ValidationURL can't answer, the payment is ${
+                registration.responseType === "Cancelled" ? "declined" : "accepted"
+              }.`}
+            />
+            <Fact
+              label="Registered via"
+              value={registration.apiVersion}
+              hint={`MSISDN reaches you ${registration.apiVersion === "v1" ? "as a SHA-256 hash" : "masked, e.g. 2547*****149"}.`}
+            />
           </div>
-        </>
+        </div>
       ) : (
-        <p className="rounded-md border border-dashed border-border px-3 py-6 text-center text-[11.5px] leading-relaxed text-muted-foreground">
-          Call registerurl with your ConfirmationURL to get started.
-          <br />
-          Whatever you register appears here.
-        </p>
+        <div className="flex flex-col gap-1 px-5 py-6">
+          <p className="text-[14px] font-medium text-foreground">Nowhere to send payments yet</p>
+          <p className="max-w-[60ch] text-[13px] leading-relaxed text-muted-foreground">
+            Call registerurl once with your ConfirmationURL (see <span className="font-medium text-foreground">Integrate</span>{" "}
+            below). Until then, payments to this shortcode are rejected.
+          </p>
+        </div>
       )}
-    </div>
+    </section>
   );
 }

@@ -50,6 +50,8 @@ export type PaymentSession = {
   msisdn: string;
   billRef: string;
   commandId: string;
+  /** The simulate body, pretty-printed. */
+  request: string;
   transId: string | null;
   validation: ValidationStep | null;
   confirmation: ConfirmationStep | null;
@@ -81,6 +83,7 @@ export function derivePayments(entries: RequestLogEntry[]): PaymentSession[] {
       msisdn: body?.Msisdn ?? "",
       billRef: body?.BillRefNumber ?? "",
       commandId: body?.CommandID ?? "",
+      request: pretty(body) || inbound.payload,
       transId: null,
       validation: null,
       confirmation: null,
@@ -104,8 +107,9 @@ export function derivePayments(entries: RequestLogEntry[]): PaymentSession[] {
           URL?: string;
           DurationMs?: number;
           Reply?: string;
-          Payload?: unknown;
+          Payload?: { TransID?: string };
         }>(row.payload);
+        session.transId ??= result?.Payload?.TransID ?? null;
         session.validation = {
           ran: true,
           accepted: result?.Accepted ?? false,
@@ -163,4 +167,21 @@ export function derivePayments(entries: RequestLogEntry[]): PaymentSession[] {
   }
 
   return sessions;
+}
+
+/** What happened to the money, from the customer's side. */
+export function paymentStatus(p: PaymentSession): {
+  state: "rejected" | "declined" | "paid" | "processing";
+  label: string;
+} {
+  if (p.rejected) return { state: "rejected", label: "Rejected" };
+  if (p.validation && !p.validation.accepted) return { state: "declined", label: "Declined" };
+  if (p.validation?.accepted || p.confirmation) return { state: "paid", label: "Paid" };
+  return { state: "processing", label: "Processing" };
+}
+
+/** When the payment settled: validation passed, or the first Confirmation went out. */
+export function settledAt(p: PaymentSession): string | null {
+  if (p.validation?.accepted) return p.validation.attempt?.at ?? p.createdAt;
+  return p.confirmation?.deliveries[0]?.at ?? null;
 }
