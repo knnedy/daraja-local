@@ -3,6 +3,7 @@ package ledger
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -89,21 +90,25 @@ func (l *Ledger) QueryBalance(ctx context.Context, project repository.Project, r
 }
 
 func (l *Ledger) balanceResult(ctx context.Context, project repository.Project, req BalanceRequest, accept AcceptResponse) (string, daraja.ResultBody) {
+	// Codes are numbers, as two live sandbox captures show, though Safaricom's sample quotes them.
 	r := baseResult(accept)
-	// Safaricom's Account Balance sample sends both as strings.
-	r.ResultType = "0"
 	r.ReferenceData.ReferenceItem = daraja.Param("QueueTimeoutURL", balanceQueueTimeoutURL)
-	now := time.Now().Format("20060102150405")
+	now, _ := strconv.ParseInt(time.Now().Format("20060102150405"), 10, 64)
 
 	ok, err := l.verifier.Verify(ctx, project.ID, req.Initiator, req.SecurityCredential)
 	accounts, accountsErr := l.Accounts(ctx, project.ID)
 	if err != nil || !ok || accountsErr != nil {
-		r.ResultCode, r.ResultDesc = "2001", "The initiator information is invalid."
-		r.ResultParameters = &daraja.ResultParameters{ResultParameter: daraja.Param("BOCompletedTime", now)}
+		// The sandbox's failure shape (8006, captured twice); its ErrorMsg text for 2001 is unknown, so it's left out.
+		r.ResultCode, r.ResultDesc = 2001, "The initiator information is invalid."
+		r.ResultParameters = &daraja.ResultParameters{ResultParameter: []daraja.KeyValue{
+			daraja.Param("ActionType", "AccountBalance"),
+			daraja.Param("BOCompletedTime", now),
+		}}
+		r.ReferenceData.ReferenceItem = daraja.Param("QueueTimeoutURL", nil)
 		return BalanceInvalidInitiator, daraja.ResultBody{Result: r}
 	}
 
-	r.ResultCode, r.ResultDesc = "0", "The service request is processed successfully."
+	r.ResultCode, r.ResultDesc = 0, "The service request is processed successfully."
 	r.ResultParameters = &daraja.ResultParameters{ResultParameter: []daraja.KeyValue{
 		daraja.Param("AccountBalance", strings.Join([]string{
 			accountLine("Working Account", accounts.WorkingCents),

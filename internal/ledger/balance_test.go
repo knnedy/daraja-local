@@ -38,8 +38,12 @@ func TestBalanceReportsEveryAccount(t *testing.T) {
 	}
 	r := f.lastResult(t)
 	raw := f.rawResult(t)
-	if raw["ResultCode"] != "0" || raw["ResultType"] != "0" {
-		t.Fatalf("codes %v %v, want the strings Safaricom's sample sends", raw["ResultCode"], raw["ResultType"])
+	// Two live sandbox captures send numbers, although Safaricom's sample quotes them.
+	if raw["ResultCode"] != float64(0) || raw["ResultType"] != float64(0) {
+		t.Fatalf("codes %v %v, want numbers", raw["ResultCode"], raw["ResultType"])
+	}
+	if _, ok := r.param("BOCompletedTime").(float64); !ok {
+		t.Errorf("BOCompletedTime = %v, want a number", r.param("BOCompletedTime"))
 	}
 	want := "Working Account|KES|500.00|500.00|0.00|0.00&Float Account|KES|0.00|0.00|0.00|0.00&" +
 		"Utility Account|KES|1000150.00|1000150.00|0.00|0.00&Charges Paid Account|KES|0.00|0.00|0.00|0.00&" +
@@ -60,8 +64,21 @@ func TestBalanceRefusals(t *testing.T) {
 	req = f.balanceRequest()
 	req.SecurityCredential = "d3Jvbmc="
 	_, _ = f.ledger.QueryBalance(context.Background(), f.project, req)
-	if got := f.rawResult(t)["ResultCode"]; got != "2001" {
-		t.Errorf("ResultCode = %v, want 2001", got)
+	raw := f.rawResult(t)
+	if raw["ResultCode"] != float64(2001) {
+		t.Errorf("ResultCode = %v, want 2001", raw["ResultCode"])
+	}
+	// The sandbox's failure shape: ActionType and BOCompletedTime, and a QueueTimeoutURL with no Value.
+	failed := f.lastResult(t)
+	if failed.param("ActionType") != "AccountBalance" {
+		t.Errorf("ActionType = %v", failed.param("ActionType"))
+	}
+	if _, ok := failed.param("BOCompletedTime").(float64); !ok {
+		t.Errorf("BOCompletedTime = %v, want a number", failed.param("BOCompletedTime"))
+	}
+	ref, _ := raw["ReferenceData"].(map[string]any)["ReferenceItem"].(map[string]any)
+	if _, has := ref["Value"]; has || ref["Key"] != "QueueTimeoutURL" {
+		t.Errorf("ReferenceItem = %v, want QueueTimeoutURL with no Value", ref)
 	}
 }
 

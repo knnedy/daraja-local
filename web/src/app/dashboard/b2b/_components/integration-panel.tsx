@@ -65,8 +65,9 @@ export default function IntegrationPanel() {
           {tab === "failures" && (
             <>
               <Prose>
-                Failures arrive at your ResultURL with a single <C>BOCompletedTime</C> parameter instead of a list.
-                Account Balance sends <C>ResultCode</C> as a string and B2B as a number, so compare it as a string.
+                Failures arrive at your ResultURL too. A B2B failure carries a single <C>BOCompletedTime</C> parameter;
+                an Account Balance failure carries <C>ActionType</C> and <C>BOCompletedTime</C>. <C>ResultCode</C> is a
+                number for both.
               </Prose>
               <dl className="overflow-hidden rounded-lg ring-1 ring-border">
                 {failures.map(([code, desc]) => (
