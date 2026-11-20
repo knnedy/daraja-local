@@ -64,7 +64,16 @@ export function usePaginatedRequestLog(slug: string) {
     if (lastId !== null) load(lastId);
   }, [entries, load]);
 
-  const refresh = useCallback(() => load(null), [load]);
+  // Prepends anything newer than what's loaded, keeping older pages.
+  const refresh = useCallback(async () => {
+    if (!slug) return;
+    const page = await api.projects.requestLog.list(slug, null, PAGE_SIZE);
+    setEntries((prev) => {
+      const newest = prev[0]?.id ?? 0;
+      const fresh = page.filter((e) => e.id > newest);
+      return fresh.length ? [...fresh, ...prev] : prev;
+    });
+  }, [slug]);
 
   const clear = useMutation({
     mutationFn: () => api.projects.requestLog.clear(slug),

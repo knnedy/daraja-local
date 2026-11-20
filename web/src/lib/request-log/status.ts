@@ -2,7 +2,7 @@ import type { LogGroup } from "./group";
 
 export type StatusTone = "success" | "error" | "pending" | "neutral";
 
-const ERROR_OUTCOMES = new Set([
+export const ERROR_OUTCOMES = new Set([
   "wrong_pin",
   "cancelled",
   "insufficient_balance",

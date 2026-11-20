@@ -56,8 +56,16 @@ export function elapsed(from: string, to: string) {
   return ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`;
 }
 
-export function Disclosure({ label, children }: { label: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
+export function Disclosure({
+  label,
+  defaultOpen = false,
+  children,
+}: {
+  label: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="mt-2">
       <button
@@ -75,10 +83,20 @@ export function Disclosure({ label, children }: { label: string; children: React
   );
 }
 
-export function JsonDisclosure({ label, code, maxHeight }: { label: string; code: string; maxHeight?: string }) {
+export function JsonDisclosure({
+  label,
+  code,
+  maxHeight,
+  defaultOpen,
+}: {
+  label: string;
+  code: string;
+  maxHeight?: string;
+  defaultOpen?: boolean;
+}) {
   if (!code) return null;
   return (
-    <Disclosure label={label}>
+    <Disclosure label={label} defaultOpen={defaultOpen}>
       <CodeBlock code={code} lang="json" lineNumbers={false} maxHeight={maxHeight ?? "20rem"} />
     </Disclosure>
   );
