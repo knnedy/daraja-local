@@ -2,7 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { RadioIcon } from "lucide-react";
+import { LoadingMark } from "@/components/loading-mark";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "./_components/sidebar";
@@ -18,17 +18,7 @@ function useHasHydrated() {
 }
 
 function ConnectingScreen() {
-  return (
-    <div className="flex min-h-svh items-center justify-center">
-      <div className="relative flex size-9 items-center justify-center rounded-lg border border-green-mid bg-green-light">
-        <RadioIcon className="size-4 text-green" />
-        <span className="absolute -right-0.5 -top-0.5 flex size-2 items-center justify-center">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green opacity-60" />
-          <span className="relative inline-flex size-2 rounded-full bg-green ring-2 ring-background" />
-        </span>
-      </div>
-    </div>
-  );
+  return <LoadingMark label="Opening project…" className="min-h-svh" />;
 }
 
 export default function DashboardLayout({

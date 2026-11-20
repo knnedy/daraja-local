@@ -12,6 +12,7 @@ import { useActiveProjectStore } from "@/store/active-project";
 import type { Project } from "@/lib/types/project";
 import { formatDate, relativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { LoadingMark } from "@/components/loading-mark";
 import FrontHeader from "./_components/front-header";
 import EmptyState from "./_components/empty-state";
 
@@ -54,21 +55,6 @@ function ProjectCard({ project, current, now }: { project: Project; current: boo
   );
 }
 
-function Skeleton() {
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-hidden>
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="flex animate-pulse flex-col gap-4 panel p-5 motion-reduce:animate-none">
-          <div className="size-10 rounded-xl bg-surface-2" />
-          <div className="h-3.5 w-32 rounded bg-surface-2" />
-          <div className="h-3 w-44 rounded bg-surface-2" />
-          <div className="h-3 w-full rounded bg-surface-2" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export default function ProjectsPage() {
   const { data: projects, isLoading, isError, refetch } = useProjects();
   const activeSlug = useActiveProjectStore((s) => s.slug);
@@ -84,7 +70,9 @@ export default function ProjectsPage() {
   return (
     <div className="min-h-svh bg-background">
       <FrontHeader />
-      {projects && projects.length === 0 ? (
+      {isLoading ? (
+        <LoadingMark label="Loading projects…" className="min-h-[calc(100svh-3.5rem)] pb-14" />
+      ) : projects && projects.length === 0 ? (
         <EmptyState />
       ) : (
         <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 sm:py-14">
@@ -117,9 +105,7 @@ export default function ProjectsPage() {
             </div>
           </div>
 
-          {isLoading ? (
-            <Skeleton />
-          ) : isError ? (
+          {isError ? (
             <div className="flex flex-col items-center gap-3 panel px-6 py-14 text-center">
               <p className="text-[14px] font-medium text-foreground">Couldn&apos;t load your projects</p>
               <p className="max-w-sm text-[13px] text-muted-foreground">
