@@ -9,7 +9,7 @@ export function PageHeader({
 }: {
   /** Kept for callers; the header no longer draws the page icon. */
   page?: keyof typeof pageIcons;
-  title: string;
+  title: React.ReactNode;
   eyebrow?: React.ReactNode;
   description: React.ReactNode;
   actions?: React.ReactNode;

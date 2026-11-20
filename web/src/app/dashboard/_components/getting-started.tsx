@@ -6,9 +6,10 @@ import { groupEntries } from "@/lib/request-log/group";
 import { groupStatus } from "@/lib/request-log/status";
 import type { RequestLogEntry } from "@/lib/types/request-log";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /** First-run checklist, ticked off from what the request log has actually seen. */
-export default function GettingStarted({ entries }: { entries: RequestLogEntry[] }) {
+export default function GettingStarted({ entries, loading }: { entries: RequestLogEntry[]; loading?: boolean }) {
   const groups = groupEntries(entries);
   const steps = [
     {
@@ -41,6 +42,7 @@ export default function GettingStarted({ entries }: { entries: RequestLogEntry[]
     },
   ];
   const done = steps.filter((s) => s.done).length;
+  if (loading) return <GettingStartedSkeleton />;
   if (done === steps.length) return null;
   const next = steps.findIndex((s) => !s.done);
 
@@ -98,6 +100,27 @@ export default function GettingStarted({ entries }: { entries: RequestLogEntry[]
           </li>
         ))}
       </ol>
+    </section>
+  );
+}
+
+function GettingStartedSkeleton() {
+  return (
+    <section className="panel overflow-hidden" aria-busy aria-label="Getting started">
+      <div className="flex flex-col gap-2 border-b border-border px-5 py-4">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-3 w-72 max-w-full" />
+      </div>
+      <div className="grid sm:grid-cols-2 xl:grid-cols-4">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="flex flex-col gap-2.5 border-border p-5 not-last:border-b sm:not-last:border-r xl:not-last:border-b-0">
+            <Skeleton className="size-6 rounded-full" />
+            <Skeleton className="h-3.5 w-36" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-2/3" />
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

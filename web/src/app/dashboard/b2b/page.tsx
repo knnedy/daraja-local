@@ -12,7 +12,7 @@ import { PageHeader } from "@/components/page-header";
 
 export default function B2BPage() {
   const slug = useActiveProjectStore((s) => s.slug) ?? "";
-  const { data: payments = [] } = useLiveRequestLog(slug, "b2b");
+  const { data: payments = [], isPending } = useLiveRequestLog(slug, "b2b");
   const { data: balances = [] } = useLiveRequestLog(slug, "account_balance");
 
   if (!slug) return null;
@@ -33,7 +33,7 @@ export default function B2BPage() {
             </>
           }
         />
-        <ActivityPanel sessions={sessions} />
+        <ActivityPanel sessions={sessions} loading={isPending} />
         <IntegrationPanel />
       </div>
 

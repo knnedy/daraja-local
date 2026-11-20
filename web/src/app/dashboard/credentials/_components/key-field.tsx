@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CheckIcon, CopyIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import { useCopy } from "@/hooks/use-copy";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const iconButton =
   "flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-surface-1 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
@@ -36,7 +37,7 @@ export default function KeyField({
             "min-w-0 flex-1 truncate font-mono text-[12.5px] text-foreground",
             hidden && "text-[15px] leading-none tracking-[0.12em] text-muted-foreground",
           )}>
-          {value === undefined ? "…" : hidden ? "•".repeat(Math.min(value.length, 24)) : value}
+          {value === undefined ? <Skeleton className="h-3 w-40 max-w-full" /> : hidden ? "•".repeat(Math.min(value.length, 24)) : value}
         </span>
         {secret && (
           <button

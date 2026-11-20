@@ -8,6 +8,7 @@ import { groupEntries } from "@/lib/request-log/group";
 import { groupStatus } from "@/lib/request-log/status";
 import { relativeTime } from "@/lib/format";
 import type { RequestLogEntry, RequestLogKind } from "@/lib/types/request-log";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const apis: { href: string; name: string; blurb: string; icon: LucideIcon; kinds: RequestLogKind[]; paths: string[] }[] = [
   {
@@ -53,7 +54,7 @@ const apis: { href: string; name: string; blurb: string; icon: LucideIcon; kinds
 ];
 
 /** One card per Daraja API, with how much this project has used it. */
-export default function ApiGrid({ entries }: { entries: RequestLogEntry[] }) {
+export default function ApiGrid({ entries, loading }: { entries: RequestLogEntry[]; loading?: boolean }) {
   const now = useNow(10000);
   const groups = groupEntries(entries);
 
@@ -90,11 +91,22 @@ export default function ApiGrid({ entries }: { entries: RequestLogEntry[] }) {
                 ))}
               </div>
               <div className="mt-auto flex items-center gap-3 border-t border-border pt-3 text-[12px]">
-                <span className="font-medium text-foreground tabular-nums">
-                  {mine.length} {mine.length === 1 ? "request" : "requests"}
-                </span>
-                {errors > 0 && <span className="text-red tabular-nums">{errors} failed</span>}
-                <span className="ml-auto text-muted-foreground">{last ? relativeTime(last.createdAt, now) : "Not used yet"}</span>
+                {loading ? (
+                  <>
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="ml-auto h-3 w-14" />
+                  </>
+                ) : (
+                  <>
+                    <span className="font-medium text-foreground tabular-nums">
+                      {mine.length} {mine.length === 1 ? "request" : "requests"}
+                    </span>
+                    {errors > 0 && <span className="text-red tabular-nums">{errors} failed</span>}
+                    <span className="ml-auto text-muted-foreground">
+                      {last ? relativeTime(last.createdAt, now) : "Not used yet"}
+                    </span>
+                  </>
+                )}
               </div>
             </Link>
           );

@@ -9,6 +9,7 @@ import { useNow } from "@/hooks/use-now";
 import type { DeliveryAttempt } from "@/lib/request-log/delivery";
 import { formatClock, formatDateTime, formatKesWhole, relativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export type Tone = "success" | "danger" | "warning" | "pending" | "idle";
 
@@ -240,10 +241,12 @@ export function ActivityPanel<T extends ActivityItem>({
   items,
   empty,
   renderDetail,
+  loading = false,
 }: {
   title?: string;
   description: string;
   items: T[];
+  loading?: boolean;
   empty: { title: string; body: React.ReactNode };
   renderDetail: (item: T) => React.ReactNode;
 }) {
@@ -269,7 +272,9 @@ export function ActivityPanel<T extends ActivityItem>({
         </Link>
       </div>
 
-      {recent.length === 0 ? (
+      {loading && recent.length === 0 ? (
+        <ActivitySkeleton />
+      ) : recent.length === 0 ? (
         <div className="flex flex-col items-center px-6 py-14 text-center">
           <span className="flex size-11 items-center justify-center rounded-xl bg-surface-2 ring-1 ring-border">
             <InboxIcon className="size-5 text-muted-foreground" strokeWidth={1.75} />
@@ -316,6 +321,38 @@ export function ActivityPanel<T extends ActivityItem>({
         </div>
       )}
     </section>
+  );
+}
+
+/** The activity list and detail, shaped like the real thing, while the log loads. */
+function ActivitySkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-[300px_minmax(0,1fr)]" aria-busy role="status" aria-label="Loading activity">
+      <ul className="flex flex-col gap-0.5 border-b border-border p-2 md:border-r md:border-b-0">
+        {[0, 1, 2, 3].map((i) => (
+          <li key={i} className="flex flex-col gap-2 px-3 py-3">
+            <span className="flex items-center justify-between gap-2">
+              <Skeleton className="h-3.5 w-20" />
+              <Skeleton className="h-4 w-16 rounded-full" />
+            </span>
+            <span className="flex items-center justify-between gap-2">
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-3 w-10" />
+            </span>
+          </li>
+        ))}
+      </ul>
+      <div className="hidden flex-col gap-4 p-5 md:flex">
+        <Skeleton className="h-6 w-32" />
+        <Skeleton className="h-3 w-48" />
+        <div className="mt-2 grid grid-cols-2 gap-3">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-9" />
+          ))}
+        </div>
+        <Skeleton className="mt-2 h-24" />
+      </div>
+    </div>
   );
 }
 

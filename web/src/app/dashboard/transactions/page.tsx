@@ -16,8 +16,8 @@ import { PageHeader } from "@/components/page-header";
 export default function TransactionsPage() {
   const slug = useActiveProjectStore((s) => s.slug) ?? "";
   const { data: project } = useProject(slug);
-  const { data: transactions = [] } = useTransactions(slug);
-  const { data: statusLog = [] } = useLiveRequestLog(slug, "transaction_status");
+  const { data: transactions = [], isPending: ledgerPending } = useTransactions(slug);
+  const { data: statusLog = [], isPending } = useLiveRequestLog(slug, "transaction_status");
   const { data: reversalLog = [] } = useLiveRequestLog(slug, "reversal");
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -40,13 +40,14 @@ export default function TransactionsPage() {
           shortCode={project?.shortCode ?? ""}
           selected={current?.receipt ?? null}
           onSelect={setSelected}
+          loading={ledgerPending}
         />
-        <ActivityPanel sessions={sessions} />
+        <ActivityPanel sessions={sessions} loading={isPending} />
         <IntegrationPanel />
       </div>
 
       <div className="xl:sticky xl:top-0">
-        <ReceiptCard slug={slug} transaction={current} sessions={sessions} onSelect={setSelected} />
+        <ReceiptCard slug={slug} loading={ledgerPending} transaction={current} sessions={sessions} onSelect={setSelected} />
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { useNow } from "@/hooks/use-now";
 import { SegmentedControl } from "@/components/form";
 import { formatKes, relativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Transaction, TransactionKind } from "@/lib/types/transactions";
 import { direction, kindInfo, partyLabel } from "../lib/kinds";
 
@@ -26,8 +27,10 @@ export default function Ledger({
   shortCode,
   selected,
   onSelect,
+  loading,
 }: {
   transactions: Transaction[];
+  loading?: boolean;
   shortCode: string;
   selected: string | null;
   onSelect: (receipt: string) => void;
@@ -55,8 +58,8 @@ export default function Ledger({
             Ledger
           </h2>
           <p className="mt-0.5 text-[13px] text-muted-foreground">
-            {transactions.length} completed {transactions.length === 1 ? "transaction" : "transactions"}. Pick one to
-            check or reverse it.
+            {loading ? "Loading completed transactions…" : <>{transactions.length} completed {transactions.length === 1 ? "transaction" : "transactions"}. Pick one to
+            check or reverse it.</>}
           </p>
         </div>
         <label className="relative w-full sm:w-52">
@@ -76,7 +79,23 @@ export default function Ledger({
         <SegmentedControl label="Filter by type" value={filter} options={filters} onChange={setFilter} className="w-max" />
       </div>
 
-      {shown.length === 0 ? (
+      {loading ? (
+        <ul role="status" aria-label="Loading transactions">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <li key={i} className="flex items-center gap-3 border-b border-border/70 px-5 py-3 last:border-0">
+              <Skeleton className="size-8 rounded-lg" />
+              <span className="flex flex-1 flex-col gap-1.5">
+                <Skeleton className="h-3.5 w-28" />
+                <Skeleton className="h-3 w-40" />
+              </span>
+              <span className="flex flex-col items-end gap-1.5">
+                <Skeleton className="h-3.5 w-20" />
+                <Skeleton className="h-3 w-12" />
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : shown.length === 0 ? (
         <div className="flex flex-col items-center px-6 py-14 text-center">
           <span className="flex size-11 items-center justify-center rounded-xl bg-surface-2 ring-1 ring-border">
             <InboxIcon className="size-5 text-muted-foreground" strokeWidth={1.75} />

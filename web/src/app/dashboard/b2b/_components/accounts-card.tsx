@@ -11,6 +11,7 @@ import { Field, TextInput } from "@/components/form";
 import { formatClock, formatKes, relativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { B2BSession } from "../lib/sessions";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const money = /^\d+(\.\d{1,2})?$/;
 
@@ -87,8 +88,17 @@ export default function AccountsCard({ slug, sessions }: { slug: string; session
           />
           <div className="relative flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate text-[13px] font-semibold">{project?.name ?? "Your business"}</p>
-              <p className="font-mono text-[11.5px] text-white/65">Shortcode {project?.shortCode ?? "—"}</p>
+              {project ? (
+                <>
+                  <p className="truncate text-[13px] font-semibold">{project.name}</p>
+                  <p className="font-mono text-[11.5px] text-white/65">Shortcode {project.shortCode}</p>
+                </>
+              ) : (
+                <span className="flex flex-col gap-1.5 py-0.5">
+                  <Skeleton className="h-3.5 w-28 bg-white/20" />
+                  <Skeleton className="h-3 w-24 bg-white/20" />
+                </span>
+              )}
             </div>
             <span className="rounded-md bg-white/12 px-1.5 py-0.5 text-[10.5px] font-semibold tracking-[0.08em] text-white/85 ring-1 ring-white/15">
               M-PESA
@@ -100,7 +110,7 @@ export default function AccountsCard({ slug, sessions }: { slug: string; session
             <div className="flex items-baseline gap-2">
               <p className="text-[26px] leading-tight font-semibold tracking-[-0.02em] tabular-nums">
                 <span className="mr-1 text-[13px] font-medium text-white/65">KES</span>
-                {accounts ? formatKes(accounts.working) : "—"}
+                {accounts ? formatKes(accounts.working) : <Skeleton className="inline-block h-6 w-28 align-middle bg-white/20" />}
               </p>
               <AnimatePresence>
                 {fresh && (
@@ -121,11 +131,11 @@ export default function AccountsCard({ slug, sessions }: { slug: string; session
           <div className="relative mt-4 grid grid-cols-2 gap-3 border-t border-white/12 pt-3">
             <div>
               <p className="text-[11px] text-white/60">Utility</p>
-              <p className="font-mono text-[12.5px] tabular-nums">{accounts ? formatKes(accounts.utility) : "—"}</p>
+              <p className="font-mono text-[12.5px] tabular-nums">{accounts ? formatKes(accounts.utility) : <Skeleton className="mt-1 h-3.5 w-20 bg-white/20" />}</p>
             </div>
             <div>
               <p className="text-[11px] text-white/60">Charges paid</p>
-              <p className="font-mono text-[12.5px] tabular-nums">{accounts ? formatKes(accounts.chargesPaid) : "—"}</p>
+              <p className="font-mono text-[12.5px] tabular-nums">{accounts ? formatKes(accounts.chargesPaid) : <Skeleton className="mt-1 h-3.5 w-16 bg-white/20" />}</p>
             </div>
           </div>
         </div>

@@ -16,6 +16,7 @@ import { PageHeader } from "@/components/page-header";
 import { StatusPill, type Tone } from "../_components/activity";
 import SessionDetail from "./_components/session-detail";
 import { KINDS, kindShort, sessionStatus, summaryOf } from "./lib/describe";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type KindFilter = LogGroup["kind"] | "all";
 type StatusFilter = "all" | "success" | "danger" | "pending";
@@ -185,8 +186,14 @@ export default function LogsPage() {
           <div className="grid min-h-[560px] grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)]">
             <div className="flex min-w-0 flex-col border-b border-border lg:border-r lg:border-b-0">
               <p className="border-b border-border px-4 py-2 text-[12px] text-muted-foreground">
-                {groups.length} of {all.length} sessions
-                {errors > 0 && <span className="text-red"> · {errors} with errors</span>}
+                {initialized ? (
+                  <>
+                    {groups.length} of {all.length} sessions
+                    {errors > 0 && <span className="text-red"> · {errors} with errors</span>}
+                  </>
+                ) : (
+                  <Skeleton className="my-0.5 h-3 w-24" />
+                )}
               </p>
               {!initialized ? (
                 <ul aria-hidden className="animate-pulse p-2 motion-reduce:animate-none">

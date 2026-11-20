@@ -117,7 +117,7 @@ function Detail({ p }: { p: PayoutSession }) {
 }
 
 /** Every payout this project sent, with the full story of the selected one. */
-export default function ActivityPanel({ payouts }: { payouts: PayoutSession[] }) {
+export default function ActivityPanel({ payouts, loading }: { payouts: PayoutSession[]; loading?: boolean }) {
   const items = payouts.map((p) => {
     const s = statusOf(p);
     return {
@@ -131,6 +131,7 @@ export default function ActivityPanel({ payouts }: { payouts: PayoutSession[] })
   });
   return (
     <Shell
+      loading={loading}
       description="Every payout this project sent, step by step."
       items={items}
       empty={{

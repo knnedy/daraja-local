@@ -10,6 +10,7 @@ import { useActiveProjectStore } from "@/store/active-project";
 import { useProject } from "@/hooks/use-projects";
 import { stripTrailingSlash } from "@/lib/utils";
 import CommandPalette from "@/components/command-palette";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const pages: Record<string, { label: string; icon: React.ElementType }> = {
   "/dashboard": { label: "Overview", icon: pageIcons.overview },
@@ -76,7 +77,11 @@ export function DashboardTopbar() {
       <div className="mx-1 h-4 w-px bg-border-strong" />
 
       <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-[13px]">
-        <span className="truncate text-muted-foreground">{project?.name ?? "…"}</span>
+        {project ? (
+          <span className="truncate text-muted-foreground">{project.name}</span>
+        ) : (
+          <Skeleton className="h-3 w-24" />
+        )}
         <span className="text-muted-foreground/50">/</span>
         {page && (
           <span aria-current="page" className="flex shrink-0 items-center gap-1.5 font-medium text-foreground">

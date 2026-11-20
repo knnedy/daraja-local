@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import type { Transaction } from "@/lib/types/transactions";
 import { CopyId, StatusPill } from "../../_components/activity";
 import { kindInfo, notReversibleReason, partyLabel, reversible } from "../lib/kinds";
+import { Skeleton } from "@/components/ui/skeleton";
 import { sessionStatus, type InitiatorSession } from "../lib/sessions";
 
 // A torn-paper bottom edge.
@@ -37,8 +38,10 @@ export default function ReceiptCard({
   transaction: t,
   sessions,
   onSelect,
+  loading,
 }: {
   slug: string;
+  loading?: boolean;
   transaction: Transaction | null;
   sessions: InitiatorSession[];
   onSelect: (receipt: string) => void;
@@ -52,6 +55,24 @@ export default function ReceiptCard({
 
   const shortCode = project?.shortCode ?? "";
   const base = project?.callbackBaseUrl.replace(/\/+$/, "") ?? "";
+
+  if (!t && loading) {
+    return (
+      <section className="panel flex flex-col gap-4 p-6" aria-label="Receipt" aria-busy>
+        <Skeleton className="mx-auto h-4 w-24" />
+        <Skeleton className="mx-auto h-8 w-40" />
+        <div className="mt-2 flex flex-col gap-3 border-t border-dashed border-border pt-4">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <span key={i} className="flex justify-between gap-4">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-3 w-28" />
+            </span>
+          ))}
+        </div>
+        <Skeleton className="mt-2 h-9" />
+      </section>
+    );
+  }
 
   if (!t) {
     return (

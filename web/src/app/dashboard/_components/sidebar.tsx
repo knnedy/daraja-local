@@ -33,6 +33,7 @@ import { usePendingSessions } from "@/hooks/use-stk";
 import { ProjectMark } from "@/components/project-mark";
 import { useApiPort } from "@/hooks/use-api-port";
 import { cn, stripTrailingSlash } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type NavItem = {
   label: string;
@@ -79,21 +80,26 @@ function ProjectSwitcher() {
   const { data: project } = useProject(slug);
   const { data: projects = [] } = useProjects();
   const setActive = useSetActiveProject();
-  const name = project?.name ?? "…";
+  const name = project?.name ?? "";
 
   return (
     <Menu.Root>
       <Menu.Trigger
         className="flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left outline-none transition-colors hover:bg-foreground/[0.045] focus-visible:ring-2 focus-visible:ring-ring/40 data-popup-open:bg-foreground/[0.045] group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0">
-        <ProjectMark name={name} />
-        <span className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-          <span className="block truncate text-[13px] leading-tight font-semibold text-foreground">
-            {name}
+        {project ? <ProjectMark name={name} /> : <Skeleton className="size-8 rounded-lg" />}
+        {project ? (
+          <span className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+            <span className="block truncate text-[13px] leading-tight font-semibold text-foreground">{name}</span>
+            <span className="block truncate font-mono text-[11px] leading-tight text-muted-foreground">
+              Shortcode {project.shortCode}
+            </span>
           </span>
-          <span className="block truncate font-mono text-[11px] leading-tight text-muted-foreground">
-            Shortcode {project?.shortCode ?? "…"}
+        ) : (
+          <span className="flex min-w-0 flex-1 flex-col gap-1.5 group-data-[collapsible=icon]:hidden" aria-label="Loading project">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-2.5 w-20" />
           </span>
-        </span>
+        )}
         <ChevronsUpDownIcon className="size-3.5 shrink-0 text-muted-foreground group-data-[collapsible=icon]:hidden" />
       </Menu.Trigger>
       <Menu.Portal>

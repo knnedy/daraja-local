@@ -130,13 +130,22 @@ function Detail({ attempt, slug }: { attempt: StkAttempt; slug: string }) {
 }
 
 /** Every STK Push this project received, with the full story of the selected one. */
-export default function ActivityPanel({ slug, attempts }: { slug: string; attempts: StkAttempt[] }) {
+export default function ActivityPanel({
+  slug,
+  attempts,
+  loading,
+}: {
+  slug: string;
+  attempts: StkAttempt[];
+  loading?: boolean;
+}) {
   const items = attempts.map((a) => {
     const s = statusOf(a);
     return { ...a, who: a.phone ? formatPhone(a.phone) : "", tone: s.tone, status: s.label };
   });
   return (
     <Shell
+      loading={loading}
       description="Every STK Push this project received, step by step."
       items={items}
       empty={{

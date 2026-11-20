@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import type { B2COutcome } from "@/lib/types/b2c";
 import { outcomeInfo } from "../lib/outcomes";
 import type { PayoutSession } from "../lib/payouts";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function UtilityAccount({ slug }: { slug: string }) {
   const { data: state } = useB2CState(slug);
@@ -42,7 +43,7 @@ function UtilityAccount({ slug }: { slug: string }) {
           {draft === null ? (
             <p className="mt-0.5 text-[20px] leading-tight font-semibold tracking-[-0.02em] text-foreground tabular-nums">
               <span className="mr-1 text-[12px] font-medium text-muted-foreground">KES</span>
-              {state ? formatKes(state.utilityBalance) : "—"}
+              {state ? formatKes(state.utilityBalance) : <Skeleton className="inline-block h-5 w-24 align-middle" />}
             </p>
           ) : (
             <form
@@ -169,7 +170,7 @@ export default function RecipientCard({ slug, payouts }: { slug: string; payouts
           <h2 id="recipient-title" className="text-[14px] font-semibold tracking-[-0.01em] text-foreground">
             Recipient&apos;s phone
           </h2>
-          <p className="font-mono text-[12px] text-muted-foreground">{number ? formatPhone(number) : "—"}</p>
+          <p className="font-mono text-[12px] text-muted-foreground">{number ? formatPhone(number) : settings ? "—" : <Skeleton className="mt-1 h-3 w-24" />}</p>
         </div>
         <span
           className={cn(

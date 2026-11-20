@@ -12,7 +12,7 @@ import { PageHeader } from "@/components/page-header";
 
 export default function B2CPage() {
   const slug = useActiveProjectStore((s) => s.slug);
-  const { data: entries = [] } = useLiveRequestLog(slug ?? "", "b2c");
+  const { data: entries = [], isPending } = useLiveRequestLog(slug ?? "", "b2c");
 
   if (!slug) return null;
 
@@ -32,7 +32,7 @@ export default function B2CPage() {
             </>
           }
         />
-        <ActivityPanel payouts={payouts} />
+        <ActivityPanel payouts={payouts} loading={isPending} />
         <IntegrationPanel />
       </div>
 

@@ -12,7 +12,7 @@ import { PageHeader } from "@/components/page-header";
 
 export default function StkPushPage() {
   const slug = useActiveProjectStore((s) => s.slug);
-  const { data: entries = [] } = useLiveRequestLog(slug ?? "", "stk_push");
+  const { data: entries = [], isPending } = useLiveRequestLog(slug ?? "", "stk_push");
 
   if (!slug) return null;
 
@@ -30,7 +30,7 @@ export default function StkPushPage() {
             </>
           }
         />
-        <ActivityPanel slug={slug} attempts={deriveAttempts(entries)} />
+        <ActivityPanel slug={slug} attempts={deriveAttempts(entries)} loading={isPending} />
         <IntegrationPanel />
       </div>
 

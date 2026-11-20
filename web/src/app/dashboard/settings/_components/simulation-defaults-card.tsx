@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Field, TextInput } from "@/components/form";
 import { formatPhone } from "@/components/phone";
 import { Section } from "./section";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /** How the simulated phone behaves, and what the test forms pre-fill. */
 export default function SimulationDefaultsCard({ slug }: { slug: string }) {
@@ -45,7 +46,7 @@ export default function SimulationDefaultsCard({ slug }: { slug: string }) {
             ) : update.isSuccess && !dirty ? (
               <span className="text-green">Saved.</span>
             ) : (
-              "Applies to the next request."
+                "Applies to the next request."
             )}
           </p>
           <Button type="submit" disabled={!dirty || !phoneOk || update.isPending}>
@@ -58,19 +59,27 @@ export default function SimulationDefaultsCard({ slug }: { slug: string }) {
           <label htmlFor="stk-timeout" className="text-[12px] font-medium text-muted-foreground">
             STK Push timeout
           </label>
-          <span className="font-mono text-[13px] text-foreground tabular-nums">{timeout} s</span>
+          {settings ? (
+            <span className="font-mono text-[13px] text-foreground tabular-nums">{timeout} s</span>
+          ) : (
+            <Skeleton className="h-3.5 w-10" />
+          )}
         </div>
-        <input
-          id="stk-timeout"
-          type="range"
-          min={5}
-          max={60}
-          step={1}
-          value={timeout}
-          disabled={!settings}
-          onChange={(e) => setTimeoutDraft(Number(e.target.value))}
-          className="h-2 w-full cursor-pointer accent-(--green-2)"
-        />
+        {!settings ? (
+          <Skeleton className="my-[3px] h-2 rounded-full" />
+        ) : (
+          <input
+            id="stk-timeout"
+            type="range"
+            min={5}
+            max={60}
+            step={1}
+            value={timeout}
+            disabled={!settings}
+            onChange={(e) => setTimeoutDraft(Number(e.target.value))}
+            className="h-2 w-full cursor-pointer accent-(--green-2)"
+          />
+        )}
         <div className="flex justify-between font-mono text-[11px] text-muted-foreground">
           <span>5 s</span>
           <span>60 s</span>
@@ -85,16 +94,20 @@ export default function SimulationDefaultsCard({ slug }: { slug: string }) {
         label="Default phone number"
         error={phone && !phoneOk ? "Use the format 254XXXXXXXXX" : null}
         hint={phoneOk ? `Pre-fills the test forms · shows as ${formatPhone(phone)}` : "Pre-fills the C2B and B2C test forms."}>
-        <TextInput
-          name="defaultPhoneNumber"
-          type="tel"
-          inputMode="numeric"
-          value={phone}
-          disabled={!settings}
-          onChange={(e) => setPhoneDraft(e.target.value)}
-          placeholder="254708374149"
-          className="sm:w-56"
-        />
+        {!settings ? (
+          <Skeleton className="h-9 rounded-lg sm:w-56" />
+        ) : (
+          <TextInput
+            name="defaultPhoneNumber"
+            type="tel"
+            inputMode="numeric"
+            value={phone}
+            disabled={!settings}
+            onChange={(e) => setPhoneDraft(e.target.value)}
+            placeholder="254708374149"
+            className="sm:w-56"
+          />
+        )}
       </Field>
     </Section>
   );

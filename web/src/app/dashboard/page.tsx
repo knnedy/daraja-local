@@ -9,11 +9,12 @@ import GettingStarted from "./_components/getting-started";
 import MoneyStats from "./_components/money-stats";
 import ApiGrid from "./_components/api-grid";
 import LiveFeed from "./_components/live-feed";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function OverviewPage() {
   const slug = useActiveProjectStore((s) => s.slug);
   const { data: project } = useProject(slug ?? "");
-  const { data: entries = [] } = useRecentRequestLog(slug ?? "");
+  const { data: entries = [], isPending } = useRecentRequestLog(slug ?? "");
   const port = useApiPort();
 
   if (!slug) return null;
@@ -22,20 +23,25 @@ export default function OverviewPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         eyebrow="Overview"
-        title={project?.name ?? "Overview"}
+        title={project?.name ?? <Skeleton className="h-7 w-56" />}
         description={
           <>
-            Shortcode <span className="font-mono text-foreground">{project?.shortCode ?? "—"}</span>, served at{" "}
-            <span className="font-mono text-foreground">http://127.0.0.1:{port}</span>. Everything below is live.
+            Shortcode{" "}
+            {project ? (
+              <span className="font-mono text-foreground">{project.shortCode}</span>
+            ) : (
+              <Skeleton className="inline-block h-3 w-12 align-middle" />
+            )}
+            , served at <span className="font-mono text-foreground">http://127.0.0.1:{port}</span>. Everything below is live.
           </>
         }
       />
-      <GettingStarted entries={entries} />
-      <MoneyStats slug={slug} entries={entries} />
+      <GettingStarted entries={entries} loading={isPending} />
+      <MoneyStats slug={slug} entries={entries} loading={isPending} />
       <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <ApiGrid entries={entries} />
+        <ApiGrid entries={entries} loading={isPending} />
         <div className="xl:sticky xl:top-0">
-          <LiveFeed entries={entries} />
+          <LiveFeed entries={entries} loading={isPending} />
         </div>
       </div>
     </div>

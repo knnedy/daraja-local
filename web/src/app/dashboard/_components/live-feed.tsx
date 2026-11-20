@@ -8,9 +8,10 @@ import { relativeTime } from "@/lib/format";
 import type { RequestLogEntry } from "@/lib/types/request-log";
 import { StatusPill } from "./activity";
 import { kindShort, sessionStatus, summaryOf } from "../logs/lib/describe";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /** The newest sessions across every API, refreshed as they happen. */
-export default function LiveFeed({ entries }: { entries: RequestLogEntry[] }) {
+export default function LiveFeed({ entries, loading }: { entries: RequestLogEntry[]; loading?: boolean }) {
   const now = useNow(5000);
   const groups = groupEntries(entries).slice(0, 9);
 
@@ -33,7 +34,18 @@ export default function LiveFeed({ entries }: { entries: RequestLogEntry[] }) {
           <ArrowRightIcon className="size-3.5" />
         </Link>
       </div>
-      {groups.length === 0 ? (
+      {loading ? (
+        <ul className="divide-y divide-border" role="status" aria-label="Loading requests">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <li key={i} className="grid grid-cols-[38px_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-1.5 px-4 py-3">
+              <Skeleton className="row-span-2 h-5" />
+              <Skeleton className="h-3.5 w-32" />
+              <Skeleton className="h-3 w-10" />
+              <Skeleton className="h-3 w-24" />
+            </li>
+          ))}
+        </ul>
+      ) : groups.length === 0 ? (
         <div className="flex flex-col items-center px-6 py-12 text-center">
           <span className="flex size-10 items-center justify-center rounded-xl bg-surface-2 ring-1 ring-border">
             <InboxIcon className="size-4.5 text-muted-foreground" strokeWidth={1.75} />

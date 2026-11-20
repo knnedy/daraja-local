@@ -9,6 +9,7 @@ import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Field, TextInput } from "@/components/form";
 import { ReadOnly, Section } from "./section";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function Copy({ value, label }: { value: string; label: string }) {
   const { copied, copy } = useCopy();
@@ -78,9 +79,13 @@ export default function ProjectIdentityCard({ slug }: { slug: string }) {
       }>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Project name" error={value && tooShort ? "At least 2 characters" : null}>
-          <TextInput name="projectName" mono={false} value={value} disabled={!project} onChange={(e) => setName(e.target.value)} />
+          {project ? (
+            <TextInput name="projectName" mono={false} value={value} onChange={(e) => setName(e.target.value)} />
+          ) : (
+            <Skeleton className="h-9 rounded-lg" />
+          )}
         </Field>
-        <ReadOnly label="Created">{project ? formatDate(project.createdAt) : "…"}</ReadOnly>
+        <ReadOnly label="Created">{project ? formatDate(project.createdAt) : <Skeleton className="h-3 w-24" />}</ReadOnly>
         <Field
           label="Callback base URL"
           error={callbackValue && badUrl ? "An http:// or https:// URL" : null}
@@ -89,13 +94,11 @@ export default function ProjectIdentityCard({ slug }: { slug: string }) {
               ? "Dashboard tests will call back here. Registered C2B URLs keep theirs."
               : "Where your server listens, for the dashboard's test requests."
           }>
-          <TextInput
-            name="callbackBaseUrl"
-            inputMode="url"
-            value={callbackValue}
-            disabled={!project}
-            onChange={(e) => setCallback(e.target.value)}
-          />
+          {project ? (
+            <TextInput name="callbackBaseUrl" inputMode="url" value={callbackValue} onChange={(e) => setCallback(e.target.value)} />
+          ) : (
+            <Skeleton className="h-9 rounded-lg" />
+          )}
         </Field>
         <ReadOnly label="Daraja Local base URL" mono>
           <span className="truncate" translate="no">

@@ -161,10 +161,12 @@ export default function ActivityPanel({
   slug,
   payments,
   registered,
+  loading,
 }: {
   slug: string;
   payments: PaymentSession[];
   registered: boolean;
+  loading?: boolean;
 }) {
   const items = payments.map((p) => {
     const s = paymentStatus(p);
@@ -179,6 +181,7 @@ export default function ActivityPanel({
   });
   return (
     <Shell
+      loading={loading}
       description="Every payment customers made to your shortcode, step by step."
       items={items}
       empty={{

@@ -10,16 +10,19 @@ import { TEST_PIN, formatPhone } from "@/components/phone";
 import { cn } from "@/lib/utils";
 import { paymentStatus, settledAt, type PaymentSession } from "../lib/sessions";
 import CustomerPhone, { type PayInput, type PayOutcome, type PhoneSms } from "./customer-phone";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /** The customer's side of C2B: they pay from their own phone, unprompted by your app. */
 export default function PhoneCard({
   slug,
   payments,
   registered,
+  loading,
 }: {
   slug: string;
   payments: PaymentSession[];
   registered: boolean;
+  loading?: boolean;
 }) {
   const { data: project } = useProject(slug);
   const { data: settings } = useProjectSettings(slug);
@@ -91,14 +94,18 @@ export default function PhoneCard({
           </h2>
           <p className="text-[12px] text-muted-foreground">Pay like a customer would</p>
         </div>
-        <span
-          className={cn(
-            "inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[11.5px] font-medium ring-1 ring-inset",
-            registered ? "bg-green-light text-green ring-green-mid/60" : "bg-amber-bg text-amber ring-amber-border/60",
-          )}>
-          <span className={cn("size-1.5 rounded-full", registered ? "bg-green-2" : "bg-amber")} />
-          {registered ? "Registered" : "Not registered"}
-        </span>
+        {loading ? (
+          <Skeleton className="h-6 w-24 rounded-full" />
+        ) : (
+          <span
+            className={cn(
+              "inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[11.5px] font-medium ring-1 ring-inset",
+              registered ? "bg-green-light text-green ring-green-mid/60" : "bg-amber-bg text-amber ring-amber-border/60",
+            )}>
+            <span className={cn("size-1.5 rounded-full", registered ? "bg-green-2" : "bg-amber")} />
+            {registered ? "Registered" : "Not registered"}
+          </span>
+        )}
       </div>
 
       <div
@@ -154,6 +161,8 @@ export default function PhoneCard({
               </span>
               <span className="ml-auto shrink-0 text-muted-foreground">{lastStatus.label}</span>
             </>
+          ) : loading ? (
+            <Skeleton className="h-3 w-40" />
           ) : (
             <span className="text-muted-foreground">No payments yet.</span>
           )}

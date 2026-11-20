@@ -135,7 +135,7 @@ function Detail({ s }: { s: InitiatorSession }) {
 }
 
 /** Every status query and reversal, with the full story of the selected one. */
-export default function ActivityPanel({ sessions }: { sessions: InitiatorSession[] }) {
+export default function ActivityPanel({ sessions, loading }: { sessions: InitiatorSession[]; loading?: boolean }) {
   const items = sessions.map((s) => {
     const st = sessionStatus(s);
     return {
@@ -150,6 +150,7 @@ export default function ActivityPanel({ sessions }: { sessions: InitiatorSession
   });
   return (
     <Shell
+      loading={loading}
       description="Every status query and reversal, step by step."
       items={items}
       empty={{

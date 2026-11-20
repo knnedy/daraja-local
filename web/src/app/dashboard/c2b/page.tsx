@@ -13,8 +13,8 @@ import { PageHeader } from "@/components/page-header";
 
 export default function C2BPage() {
   const slug = useActiveProjectStore((s) => s.slug);
-  const { data: entries = [] } = useLiveRequestLog(slug ?? "", "c2b");
-  const { data: registration } = useC2BRegistration(slug ?? "");
+  const { data: entries = [], isPending } = useLiveRequestLog(slug ?? "", "c2b");
+  const { data: registration, isPending: registrationPending } = useC2BRegistration(slug ?? "");
 
   if (!slug) return null;
 
@@ -30,13 +30,13 @@ export default function C2BPage() {
           description="Customers pay your Paybill or Till from their own phone. Register where to be told, pay from the Customer's phone, and watch validation and confirmation reach your server."
           actions={<HowItWorks />}
         />
-        <RegistrationCard registration={registration ?? null} />
-        <ActivityPanel slug={slug} payments={payments} registered={registered} />
+        <RegistrationCard registration={registration ?? null} loading={registrationPending} />
+        <ActivityPanel slug={slug} payments={payments} registered={registered} loading={isPending} />
         <IntegrationPanel />
       </div>
 
       <div className="xl:sticky xl:top-0">
-        <PhoneCard slug={slug} payments={payments} registered={registered} />
+        <PhoneCard slug={slug} payments={payments} registered={registered} loading={isPending || registrationPending} />
       </div>
     </div>
   );

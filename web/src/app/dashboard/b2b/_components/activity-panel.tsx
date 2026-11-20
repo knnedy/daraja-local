@@ -156,7 +156,7 @@ function Detail({ s }: { s: B2BSession }) {
 }
 
 /** Every B2B payment and balance query, with the full story of the selected one. */
-export default function ActivityPanel({ sessions }: { sessions: B2BSession[] }) {
+export default function ActivityPanel({ sessions, loading }: { sessions: B2BSession[]; loading?: boolean }) {
   const items = sessions.map((s) => {
     const st = statusOf(s);
     return {
@@ -171,6 +171,7 @@ export default function ActivityPanel({ sessions }: { sessions: B2BSession[] }) 
   });
   return (
     <Shell
+      loading={loading}
       description="Every B2B payment and balance query, step by step."
       items={items}
       empty={{
