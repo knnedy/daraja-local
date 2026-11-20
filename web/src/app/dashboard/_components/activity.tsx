@@ -211,6 +211,8 @@ export type ActivityItem = {
   reference: string;
   tone: Tone;
   status: string;
+  /** Shown instead of the amount, for requests that move no money. */
+  title?: string;
 };
 
 /** A list of transactions beside the full story of the selected one. */
@@ -275,7 +277,7 @@ export function ActivityPanel<T extends ActivityItem>({
                       isSelected && "bg-surface-2 ring-1 ring-border",
                     )}>
                     <span className="flex items-center justify-between gap-2">
-                      <span className="text-[13.5px] font-medium text-foreground tabular-nums">{kes(a.amount)}</span>
+                      <span className="text-[13.5px] font-medium text-foreground tabular-nums">{a.title ?? kes(a.amount)}</span>
                       <StatusPill tone={a.tone} label={a.status} />
                     </span>
                     <span className="flex items-center justify-between gap-2 text-[12px] text-muted-foreground">
@@ -302,6 +304,7 @@ export function ActivityPanel<T extends ActivityItem>({
 /** Header of the selected transaction: amount, status, facts and actions. */
 export function DetailHeader({
   amount,
+  heading,
   tone,
   status,
   facts,
@@ -309,6 +312,8 @@ export function DetailHeader({
   action,
 }: {
   amount: string;
+  /** Replaces the amount as the headline. */
+  heading?: string;
   tone: Tone;
   status: string;
   facts: React.ReactNode[];
@@ -320,7 +325,7 @@ export function DetailHeader({
       <div className="min-w-0">
         <div className="flex items-center gap-2.5">
           <p className="text-[22px] leading-none font-semibold tracking-[-0.02em] text-foreground tabular-nums">
-            {kes(amount)}
+            {heading ?? kes(amount)}
           </p>
           <StatusPill tone={tone} label={status} />
         </div>
