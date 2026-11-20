@@ -1,13 +1,11 @@
 "use client";
 
-import RequestBar from "./_components/request-bar";
 import IntegrationPanel from "./_components/integration-panel";
 import SimulatorCard from "./_components/simulator-card";
-import PayloadConsole from "../_components/payload-console";
-import SimulationGuide from "./_components/simulation-guide";
 import HowItWorks from "./_components/how-it-works";
-import CallbacksCard from "./_components/callbacks-card";
-import { derivePayments } from "./lib/callbacks";
+import SendTestPush from "./_components/send-test-push";
+import ActivityPanel from "./_components/activity-panel";
+import { deriveAttempts } from "./lib/sessions";
 import { useLiveRequestLog } from "@/hooks/use-request-log";
 import { useActiveProjectStore } from "@/store/active-project";
 import { PageHeader } from "@/components/page-header";
@@ -19,35 +17,26 @@ export default function StkPushPage() {
   if (!slug) return null;
 
   return (
-    <div className="flex flex-col gap-5">
-      <PageHeader
-        page="stk"
-        title="STK Push"
-        description={<>Call this endpoint from your app, then watch and respond to what comes in.</>}
-      />
-
-      <HowItWorks />
-
-      <RequestBar />
-
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px] lg:items-start">
-        <div className="flex flex-col gap-5">
-          <IntegrationPanel />
-          <SimulationGuide />
-        </div>
-        <SimulatorCard slug={slug} />
+    <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="flex min-w-0 flex-col gap-6">
+        <PageHeader
+          eyebrow="Lipa na M-Pesa Online"
+          title="STK Push"
+          description="Your app asks a customer's phone for their M-Pesa PIN. Answer on the Virtual Phone to choose how it ends, then follow the callback to your server."
+          actions={
+            <>
+              <HowItWorks />
+              <SendTestPush slug={slug} />
+            </>
+          }
+        />
+        <ActivityPanel slug={slug} attempts={deriveAttempts(entries)} />
+        <IntegrationPanel />
       </div>
 
-      <CallbacksCard slug={slug} payments={derivePayments(entries)} />
-
-      <PayloadConsole
-        entries={entries}
-        title="live session"
-        emptyState={[
-          "waiting for a request…",
-          "call the endpoint above to open a session",
-        ]}
-      />
+      <div className="xl:sticky xl:top-0">
+        <SimulatorCard slug={slug} />
+      </div>
     </div>
   );
 }

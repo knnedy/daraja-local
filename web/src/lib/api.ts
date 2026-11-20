@@ -83,6 +83,23 @@ export const api = {
     },
   },
 
+  mpesa: {
+    /** Calls the real STK endpoint, exactly as a developer's app would. */
+    stkPush(
+      token: string,
+      body: Record<string, string>,
+    ): Promise<{ CheckoutRequestID: string; CustomerMessage: string }> {
+      return request("/mpesa/stkpush/v1/processrequest", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+    },
+  },
+
   projects: {
     list(): Promise<ProjectsResponse> {
       return request<ProjectsResponse>("/api/projects");

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { BanIcon, ClockIcon, WalletIcon } from "lucide-react";
+import { BanIcon, CheckIcon, ClockIcon, KeyRoundIcon, WalletIcon, XIcon } from "lucide-react";
 import VirtualPhone, {
   TEST_PIN,
   formatPhone,
@@ -13,10 +13,13 @@ import { useProject } from "@/hooks/use-projects";
 import type { PendingSession, StkOutcome } from "@/lib/types/stk";
 import { cn } from "@/lib/utils";
 import { formatKes } from "@/lib/format";
+import { useNow } from "@/hooks/use-now";
 
 // Long enough to read "Processing…", short enough not to feel slow.
 const MIN_PROCESSING_MS = 700;
 const FAILURE_VISIBLE_MS = 2800;
+
+const tick = () => performance.now();
 
 const DEV_ACTIONS: {
   outcome: FailureOutcome;
@@ -24,21 +27,31 @@ const DEV_ACTIONS: {
   code: number;
   icon: typeof BanIcon;
 }[] = [
+  { outcome: "wrong_pin", label: "Wrong PIN", code: 2001, icon: KeyRoundIcon },
   { outcome: "cancelled", label: "Cancel", code: 1032, icon: BanIcon },
-  {
-    outcome: "insufficient_balance",
-    label: "No funds",
-    code: 1,
-    icon: WalletIcon,
-  },
-  { outcome: "timeout", label: "Timeout", code: 1037, icon: ClockIcon },
+  { outcome: "insufficient_balance", label: "No funds", code: 1, icon: WalletIcon },
+  { outcome: "timeout", label: "Time out", code: 1037, icon: ClockIcon },
 ];
+
+// Types a PIN on the phone's keypad one digit at a time, then presses OK.
+function typePin(pin: string, timers: ReturnType<typeof setTimeout>[]) {
+  const keys = [...pin, "Enter"];
+  keys.forEach((key, i) =>
+    timers.push(
+      setTimeout(
+        () => window.dispatchEvent(new KeyboardEvent("keydown", { key })),
+        i * 90 + (key === "Enter" ? 140 : 0),
+      ),
+    ),
+  );
+}
 
 export default function SimulatorCard({ slug }: { slug: string }) {
   const { data: sessions = [] } = usePendingSessions(slug);
   const { data: project } = useProject(slug);
   const { mutate: resolve } = useResolveSession(slug);
 
+  const now = useNow();
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [processing, setProcessing] = useState<PendingSession | null>(null);
   const [failure, setFailure] = useState<FailureOutcome | null>(null);
@@ -106,7 +119,7 @@ export default function SimulatorCard({ slug }: { slug: string }) {
     setFailure(null);
     setProcessing(session);
     setStatus(null);
-    const started = performance.now();
+    const started = tick();
 
     resolve(
       { checkoutRequestId: session.checkoutRequestId, outcome },
@@ -114,7 +127,7 @@ export default function SimulatorCard({ slug }: { slug: string }) {
         onSuccess: (result) => {
           const wait = Math.max(
             0,
-            MIN_PROCESSING_MS - (performance.now() - started),
+            MIN_PROCESSING_MS - (tick() - started),
           );
           const t = setTimeout(() => {
             setProcessing(null);
@@ -162,29 +175,49 @@ export default function SimulatorCard({ slug }: { slug: string }) {
   }
 
   const active = !!focused && !processing && !failure;
+  const secondsLeft = focused
+    ? Math.max(0, Math.ceil((Date.parse(focused.timeoutAt) - now) / 1000))
+    : 0;
+
+  function respond(outcome: FailureOutcome) {
+    if (outcome === "wrong_pin") typePin("0000", timers.current);
+    else handleResolve(outcome);
+  }
 
   return (
-    <div className="flex flex-col gap-4 panel p-4">
-      <div className="flex items-center justify-between">
-        <span className="text-[13px] font-medium text-foreground">
-          Virtual Phone
-        </span>
-        <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <span
-            className={cn(
-              "size-1.5 rounded-full",
-              sorted.length === 0 ? "bg-muted-foreground/40" : "bg-green-2",
+    <section className="panel overflow-hidden" aria-labelledby="phone-title">
+      <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+        <div>
+          <h2 id="phone-title" className="text-[14px] font-semibold tracking-[-0.01em] text-foreground">
+            Virtual Phone
+          </h2>
+          <p className="text-[12px] text-muted-foreground">The customer&apos;s side of the payment</p>
+        </div>
+        <span
+          className={cn(
+            "inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-[11.5px] font-medium ring-1 ring-inset",
+            sorted.length
+              ? "bg-green-light text-green ring-green-mid/60"
+              : "bg-surface-2 text-muted-foreground ring-border",
+          )}
+          aria-live="polite">
+          <span className="relative flex size-1.5">
+            {sorted.length > 0 && (
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-2 opacity-60 motion-reduce:hidden" />
             )}
-          />
-          {sorted.length === 0 ? "Listening" : `${sorted.length} pending`}
+            <span
+              className={cn(
+                "relative inline-flex size-1.5 rounded-full",
+                sorted.length ? "bg-green-2" : "bg-muted-foreground/50",
+              )}
+            />
+          </span>
+          {sorted.length ? `${sorted.length} waiting` : "Listening"}
         </span>
       </div>
 
       {sorted.length > 1 && (
-        <div
-          className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5"
-          role="tablist"
-          aria-label="Pending requests">
+        <div className="flex gap-1.5 overflow-x-auto border-b border-border px-3 py-2" role="tablist" aria-label="Waiting prompts">
           {sorted.map((s) => {
             const selected = s.checkoutRequestId === focused?.checkoutRequestId;
             return (
@@ -199,10 +232,10 @@ export default function SimulatorCard({ slug }: { slug: string }) {
                   setFocusedId(s.checkoutRequestId);
                 }}
                 className={cn(
-                  "shrink-0 rounded-full border px-2.5 py-1 font-mono text-[10.5px] transition-colors active:scale-[0.97]",
+                  "shrink-0 rounded-full px-2.5 py-1 font-mono text-[11px] ring-1 transition-colors active:scale-[0.97]",
                   selected
-                    ? "border-green/40 bg-green-light text-green"
-                    : "border-border text-muted-foreground hover:text-foreground",
+                    ? "bg-green-light text-green ring-green-mid"
+                    : "text-muted-foreground ring-border hover:text-foreground",
                 )}>
                 KES {formatKes(s.amount)} · {s.phoneNumber.slice(-4)}
               </button>
@@ -211,7 +244,13 @@ export default function SimulatorCard({ slug }: { slug: string }) {
         </div>
       )}
 
-      <div className="flex justify-center pt-1">
+      <div
+        className="relative flex justify-center px-4 py-4"
+        style={{
+          backgroundImage:
+            "radial-gradient(60% 50% at 50% 45%, color-mix(in oklch, var(--green-2) 13%, transparent), transparent 75%), radial-gradient(circle, color-mix(in oklch, var(--border-strong) 70%, transparent) 1px, transparent 1px)",
+          backgroundSize: "100% 100%, 16px 16px",
+        }}>
         <VirtualPhone
           session={failure ? null : focused}
           merchant={merchant}
@@ -222,81 +261,67 @@ export default function SimulatorCard({ slug }: { slug: string }) {
         />
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 border-t border-border bg-surface-1 p-3">
+        <div className="flex items-center justify-between px-0.5">
+          <p className="text-[12px] font-medium text-foreground">Answer as the customer</p>
+          <p className="font-mono text-[11px] text-muted-foreground tabular-nums">
+            {active ? `${secondsLeft}s left` : "no prompt open"}
+          </p>
+        </div>
         <button
           type="button"
           disabled={!active}
-          onClick={() => {
-            for (const d of TEST_PIN)
-              window.dispatchEvent(new KeyboardEvent("keydown", { key: d }));
-          }}
-          className="group flex items-center justify-between rounded-lg border border-dashed border-border-strong px-3 py-2 text-left transition-colors enabled:hover:border-green/50 enabled:hover:bg-green-light disabled:opacity-60">
-          <span className="text-[11.5px] text-muted-foreground">
-            Test PIN{" "}
-            <span className="font-mono font-semibold tracking-[0.2em] text-foreground">
-              {TEST_PIN}
-            </span>{" "}
-            approves
-          </span>
-          <span className="text-[10.5px] text-muted-foreground group-enabled:group-hover:text-green">
-            {active ? "Fill in" : "Any other PIN · 2001"}
-          </span>
+          onClick={() => typePin(TEST_PIN, timers.current)}
+          className="flex h-9 items-center justify-center gap-2 rounded-lg bg-primary px-3 text-[13px] font-medium text-primary-foreground shadow-xs transition-[transform,background-color,opacity] duration-150 ease-out enabled:hover:bg-[color-mix(in_oklch,var(--primary),var(--foreground)_10%)] enabled:active:scale-[0.98] disabled:opacity-40 motion-reduce:active:scale-100">
+          <CheckIcon className="size-4" strokeWidth={2.25} />
+          Approve with PIN {TEST_PIN}
         </button>
-
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-4 gap-1.5">
           {DEV_ACTIONS.map(({ outcome, label, code, icon: Icon }) => (
             <button
               key={outcome}
               type="button"
               disabled={!active}
-              onClick={() => handleResolve(outcome)}
-              title={`Resolve with ResultCode ${code}`}
-              className="flex flex-col items-center gap-0.5 rounded-lg border border-border bg-surface-2 py-2 transition-[transform,background-color,border-color] duration-150 ease-out enabled:hover:border-border-strong enabled:hover:bg-surface-1 enabled:active:scale-[0.97] disabled:opacity-45">
-              <Icon className="size-3.5 text-muted-foreground" />
-              <span className="text-[11px] font-medium text-foreground">
+              onClick={() => respond(outcome)}
+              title={`Ends with ResultCode ${code}`}
+              className="flex h-[50px] flex-col items-center justify-center gap-0.5 rounded-lg bg-surface-2 ring-1 ring-border transition-[transform,background-color,box-shadow] duration-150 ease-out enabled:hover:bg-surface-3 enabled:hover:ring-border-strong enabled:active:scale-[0.97] disabled:opacity-40 motion-reduce:active:scale-100">
+              <span className="flex items-center gap-1 text-[11.5px] font-medium text-foreground">
+                <Icon className="size-3 text-muted-foreground" />
                 {label}
               </span>
-              <span className="font-mono text-[9.5px] text-muted-foreground">
-                {code}
-              </span>
+              <span className="font-mono text-[10.5px] text-muted-foreground">{code}</span>
             </button>
           ))}
         </div>
-      </div>
 
-      <div
-        className="min-h-[38px] rounded-lg bg-surface-2 px-3 py-2"
-        aria-live="polite">
-        {focused && !failure ? (
-          <div className="flex items-center justify-between gap-2">
-            <span className="truncate font-mono text-[10.5px] text-muted-foreground">
-              {formatPhone(focused.phoneNumber)}
+        <div className="flex min-h-7 items-center gap-2 px-0.5 text-[12px]" aria-live="polite">
+          {focused && !failure ? (
+            <span className="truncate text-muted-foreground">
+              {processing ? "Sending the callback to your app…" : `Prompt on ${formatPhone(focused.phoneNumber)}`}
             </span>
-            <span className="shrink-0 text-[11px] font-medium text-foreground">
-              {processing ? "Sending callback…" : "Waiting for the customer"}
-            </span>
-          </div>
-        ) : status ? (
-          <div className="flex items-center justify-between gap-2">
-            <span
-              className={cn(
-                "truncate font-mono text-[10.5px]",
-                status.ok ? "text-green" : "text-red",
-              )}>
-              {status.text}
-            </span>
-            {status.code !== undefined && (
-              <span className="shrink-0 rounded-full bg-surface-1 px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
-                ResultCode {status.code}
+          ) : status ? (
+            <>
+              <span
+                className={cn(
+                  "flex size-4 shrink-0 items-center justify-center rounded-full",
+                  status.ok ? "bg-green-light text-green" : "bg-red-bg text-red",
+                )}>
+                {status.ok ? <CheckIcon className="size-2.5" strokeWidth={3} /> : <XIcon className="size-2.5" strokeWidth={3} />}
               </span>
-            )}
-          </div>
-        ) : (
-          <p className="text-[11px] text-muted-foreground">
-            Call the endpoint above from your app and the prompt appears here.
-          </p>
-        )}
+              <span className={cn("min-w-0 truncate font-medium", status.ok ? "text-foreground" : "text-foreground")}>
+                {status.ok ? `Paid · ${status.text}` : status.text}
+              </span>
+              {status.code !== undefined && (
+                <span className="ml-auto shrink-0 font-mono text-[11px] text-muted-foreground">
+                  ResultCode {status.code}
+                </span>
+              )}
+            </>
+          ) : (
+            <span className="text-muted-foreground">Prompts from your app appear on the phone.</span>
+          )}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
