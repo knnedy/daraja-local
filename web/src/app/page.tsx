@@ -1,137 +1,160 @@
 "use client";
 
-import {
-  PlusIcon,
-  SmartphoneIcon,
-  ClockIcon,
-  RefreshCwIcon,
-  ArrowUpRightIcon,
-} from "lucide-react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
+import { ArrowUpRightIcon, LinkIcon, PlusIcon, RefreshCwIcon, SearchIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useProjects } from "@/hooks/use-projects";
-import { useSetActiveProject } from "@/hooks/use-projects";
+import { ProjectMark } from "@/components/project-mark";
+import { useProjects, useSetActiveProject } from "@/hooks/use-projects";
+import { useNow } from "@/hooks/use-now";
+import { useActiveProjectStore } from "@/store/active-project";
 import type { Project } from "@/lib/types/project";
+import { formatDate, relativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import FrontHeader from "./_components/front-header";
 import EmptyState from "./_components/empty-state";
-import { relativeTime } from "@/lib/format";
 
-function CardSkeleton() {
-  return (
-    <div className="flex flex-col gap-3 panel p-4">
-      <div className="flex items-center gap-2.5">
-        <div className="size-7 animate-pulse rounded-lg bg-surface-2" />
-        <div className="h-3.5 w-28 animate-pulse rounded bg-surface-2" />
-      </div>
-      <div className="h-3 w-40 animate-pulse rounded bg-surface-2" />
-      <div className="h-3 w-20 animate-pulse rounded bg-surface-2" />
-    </div>
-  );
-}
-
-function LoadingState() {
-  return (
-    <div className="mx-auto max-w-5xl px-6 py-16">
-      <div className="mb-8 h-7 w-32 animate-pulse rounded bg-surface-2" />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {[0, 1, 2].map((i) => (
-          <CardSkeleton key={i} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ErrorState({ onRetry }: { onRetry: () => void }) {
-  return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-4 px-6 text-center">
-      <p className="text-sm text-muted-foreground">
-        Couldn&apos;t reach daraja-local. Make sure the server is running.
-      </p>
-      <Button variant="outline" size="sm" className="gap-1.5" onClick={onRetry}>
-        <RefreshCwIcon className="size-3.5" />
-        Try again
-      </Button>
-    </div>
-  );
-}
-
-function ProjectCard({ project }: { project: Project }) {
+function ProjectCard({ project, current, now }: { project: Project; current: boolean; now: number }) {
   const router = useRouter();
-  const setActiveProject = useSetActiveProject();
-
-  const handleOpen = () => {
-    setActiveProject.mutate(project.slug, {
-      onSuccess: () => router.push("/dashboard"),
-    });
-  };
+  const open = useSetActiveProject();
 
   return (
     <button
       type="button"
-      onClick={handleOpen}
-      disabled={setActiveProject.isPending}
+      disabled={open.isPending}
+      onClick={() => open.mutate(project.slug, { onSuccess: () => router.push("/dashboard") })}
       className={cn(
-        "group flex flex-col gap-3 rounded-lg border border-border-strong bg-surface-1 p-4 text-left shadow-sm",
-        "border-l-[3px] border-l-green-mid transition-colors hover:border-l-green hover:bg-surface-2/40",
-        "disabled:opacity-60",
+        "group flex flex-col gap-4 panel p-5 text-left transition-[box-shadow,background-color,transform] duration-150 hover:bg-surface-2/40 active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-70 motion-reduce:active:scale-100",
+        current && "ring-1 ring-green-2/60",
       )}>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-green-mid bg-green-light">
-            <SmartphoneIcon className="size-3.5 text-green" />
-          </div>
-          <h3 className="truncate font-heading text-sm font-medium text-foreground">
-            {project.name}
-          </h3>
-        </div>
-        <ArrowUpRightIcon className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+      <div className="flex items-start justify-between gap-3">
+        <ProjectMark name={project.name} className="size-10 rounded-xl text-[13px]" />
+        {current ? (
+          <span className="rounded-full bg-green-light px-2 py-0.5 text-[11.5px] font-medium text-green ring-1 ring-green-mid/70 dark:bg-green/10">
+            Active
+          </span>
+        ) : (
+          <ArrowUpRightIcon className="size-4 text-muted-foreground transition-[color,transform] duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-foreground motion-reduce:transform-none" />
+        )}
       </div>
-
-      <p className="truncate font-mono text-xs text-muted-foreground">
-        {project.callbackBaseUrl}
+      <div className="min-w-0">
+        <h2 className="truncate text-[15px] font-semibold tracking-[-0.01em] text-foreground">{project.name}</h2>
+        <p className="mt-0.5 font-mono text-[12.5px] text-muted-foreground">Shortcode {project.shortCode}</p>
+      </div>
+      <p className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-muted-foreground">
+        <LinkIcon className="size-3.5 shrink-0" />
+        <span className="truncate font-mono">{project.callbackBaseUrl}</span>
       </p>
-
-      <div className="mt-auto flex items-center gap-1.5 text-xs text-muted-foreground">
-        <ClockIcon className="size-3" />
-        {project.lastActiveAt
-          ? relativeTime(project.lastActiveAt)
-          : "Never used"}
+      <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-3 text-[12px] text-muted-foreground">
+        <span>Created {formatDate(project.createdAt)}</span>
+        <span>{project.lastActiveAt ? `Opened ${relativeTime(project.lastActiveAt, now)}` : "Never opened"}</span>
       </div>
     </button>
   );
 }
 
-export default function HomePage() {
-  const { data: projects, isLoading, isError, refetch } = useProjects();
+function Skeleton() {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-hidden>
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="flex animate-pulse flex-col gap-4 panel p-5 motion-reduce:animate-none">
+          <div className="size-10 rounded-xl bg-surface-2" />
+          <div className="h-3.5 w-32 rounded bg-surface-2" />
+          <div className="h-3 w-44 rounded bg-surface-2" />
+          <div className="h-3 w-full rounded bg-surface-2" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
-  if (isLoading) return <LoadingState />;
-  if (isError) return <ErrorState onRetry={() => refetch()} />;
-  if (!projects || projects.length === 0) return <EmptyState />;
+export default function ProjectsPage() {
+  const { data: projects, isLoading, isError, refetch } = useProjects();
+  const activeSlug = useActiveProjectStore((s) => s.slug);
+  const now = useNow(30000);
+  const [query, setQuery] = useState("");
+
+  const q = query.trim().toLowerCase();
+  const sorted = [...(projects ?? [])].sort((a, b) =>
+    (b.lastActiveAt ?? b.createdAt).localeCompare(a.lastActiveAt ?? a.createdAt),
+  );
+  const shown = sorted.filter((p) => !q || p.name.toLowerCase().includes(q) || p.shortCode.includes(q));
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-16">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="font-heading text-lg font-medium text-foreground">
-          Projects
-        </h1>
-        <Button
-          size="sm"
-          className="gap-1.5"
-          nativeButton={false}
-          render={<Link href="/new" />}>
-          <PlusIcon className="size-3.5" />
-          New project
-        </Button>
-      </div>
+    <div className="min-h-svh bg-background">
+      <FrontHeader />
+      {projects && projects.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 sm:py-14">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h1 className="text-[28px] leading-tight font-semibold tracking-[-0.025em] text-foreground">Projects</h1>
+              <p className="mt-1.5 max-w-xl text-[14px] text-pretty text-muted-foreground">
+                Each project is its own Daraja app on this machine, with its own shortcode, keys, accounts and request
+                history.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {(projects?.length ?? 0) > 6 && (
+                <label className="relative">
+                  <span className="sr-only">Search projects</span>
+                  <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Name or shortcode"
+                    className="h-9 w-52 rounded-lg bg-surface-1 pr-3 pl-8 text-[13px] text-foreground ring-1 ring-border outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                </label>
+              )}
+              <Button size="lg" nativeButton={false} render={<Link href="/new" />}>
+                <PlusIcon className="size-4" />
+                New project
+              </Button>
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {projects.map((project) => (
-          <ProjectCard key={project.slug} project={project} />
-        ))}
-      </div>
+          {isLoading ? (
+            <Skeleton />
+          ) : isError ? (
+            <div className="flex flex-col items-center gap-3 panel px-6 py-14 text-center">
+              <p className="text-[14px] font-medium text-foreground">Couldn&apos;t load your projects</p>
+              <p className="max-w-sm text-[13px] text-muted-foreground">
+                Daraja Local didn&apos;t answer. Check that it&apos;s still running in your terminal.
+              </p>
+              <Button variant="outline" onClick={() => refetch()}>
+                <RefreshCwIcon className="size-3.5" />
+                Try again
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {shown.map((p) => (
+                <ProjectCard key={p.slug} project={p} current={p.slug === activeSlug} now={now} />
+              ))}
+              {!q && (
+                <Link
+                  href="/new"
+                  className="group flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border-strong p-5 text-center transition-colors hover:border-green-2/60 hover:bg-surface-1/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+                  <span className="flex size-10 items-center justify-center rounded-xl bg-surface-2 ring-1 ring-border transition-colors group-hover:bg-green-light group-hover:ring-green-mid dark:group-hover:bg-green/10">
+                    <PlusIcon className="size-4.5 text-muted-foreground group-hover:text-green" />
+                  </span>
+                  <span>
+                    <span className="block text-[14px] font-medium text-foreground">New project</span>
+                    <span className="mt-0.5 block text-[12.5px] text-muted-foreground">Fresh keys and an empty ledger</span>
+                  </span>
+                </Link>
+              )}
+              {q && shown.length === 0 && (
+                <p className="col-span-full py-10 text-center text-[13px] text-muted-foreground">No project matches.</p>
+              )}
+            </div>
+          )}
+        </main>
+      )}
     </div>
   );
 }
