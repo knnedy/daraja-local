@@ -38,16 +38,16 @@ func (l *Ledger) statusResult(ctx context.Context, project repository.Project, r
 	r := baseResult(accept)
 	r.ReferenceData.ReferenceItem = daraja.Param("Occasion", optional(req.Occasion))
 
+	// The sandbox reports an unknown receipt before it checks the initiator (captured 2026-11-20).
+	tx, found, err := l.find(ctx, project.ID, req.transactionID(), req.OriginalConversationID)
+	if err != nil || !found {
+		r.ResultCode, r.ResultDesc = 2032, "The transaction receipt number does not exist."
+		return StatusNotFound, daraja.ResultBody{Result: r}
+	}
+
 	if ok, err := l.verifier.Verify(ctx, project.ID, req.Initiator, req.SecurityCredential); err != nil || !ok {
 		r.ResultCode, r.ResultDesc = 2001, "The initiator information is invalid."
 		return StatusInvalidInitiator, daraja.ResultBody{Result: r}
-	}
-
-	tx, found, err := l.find(ctx, project.ID, req.transactionID(), req.OriginalConversationID)
-	if err != nil || !found {
-		// Undocumented for Transaction Status; Reversal's code for the same case.
-		r.ResultCode, r.ResultDesc = "R000002", "The OriginalTransactionID is invalid."
-		return StatusNotFound, daraja.ResultBody{Result: r}
 	}
 
 	status := "Completed"
@@ -84,7 +84,7 @@ func baseResult(accept AcceptResponse) daraja.Result {
 		ResultType:               0,
 		OriginatorConversationID: accept.OriginatorConversationID,
 		ConversationID:           accept.ConversationID,
-		TransactionID:            daraja.NewTransactionID()[:3] + "0000000",
+		TransactionID:            daraja.NewTransactionID()[:3] + "1000000",
 	}
 }
 

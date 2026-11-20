@@ -173,11 +173,20 @@ func TestStatusFindsByOriginatorConversationID(t *testing.T) {
 func TestStatusFailures(t *testing.T) {
 	f := newFixture(t)
 	_, _ = f.ledger.QueryStatus(context.Background(), f.project, f.statusRequest("NOPE000000"))
-	if r := f.lastResult(t); r.ResultCode != "R000002" || r.ResultParameters != nil {
+	if r := f.lastResult(t); r.ResultCode != float64(2032) || r.ResultDesc != "The transaction receipt number does not exist." || r.ResultParameters != nil {
 		t.Errorf("unknown receipt: %+v", r)
 	}
 
+	// The sandbox looks the receipt up before it checks the initiator.
 	req := f.statusRequest("NOPE000000")
+	req.Initiator = "someone"
+	_, _ = f.ledger.QueryStatus(context.Background(), f.project, req)
+	if r := f.lastResult(t); r.ResultCode != float64(2032) {
+		t.Errorf("unknown receipt, wrong initiator: %+v", r)
+	}
+
+	f.paid(t, "SKC82PACB8", 150)
+	req = f.statusRequest("SKC82PACB8")
 	req.Initiator = "someone"
 	_, _ = f.ledger.QueryStatus(context.Background(), f.project, req)
 	if r := f.lastResult(t); r.ResultCode != float64(2001) {
@@ -243,10 +252,16 @@ func TestReversalRefusals(t *testing.T) {
 			return f.reversalRequest("B2C0000001", "")
 		}, "R000002"},
 		{"wrong initiator", func(f *fixture) ReversalRequest {
-			req := f.reversalRequest("NOPE000000", "")
+			f.paid(t, "SKC82PACB8", 100)
+			req := f.reversalRequest("SKC82PACB8", "")
 			req.Initiator = "someone"
 			return req
 		}, float64(2001)},
+		{"unknown receipt, wrong initiator", func(f *fixture) ReversalRequest {
+			req := f.reversalRequest("NOPE000000", "")
+			req.Initiator = "someone"
+			return req
+		}, "R000002"},
 		{"utility account short", func(f *fixture) ReversalRequest {
 			f.paid(t, "SKC82PACB8", 100)
 			_, _ = f.db.Queries().SetUtilityBalance(context.Background(), repository.SetUtilityBalanceParams{UtilityCents: 5000, ProjectID: f.project.ID})

@@ -31,7 +31,8 @@ const steps: GuideStep[] = [
 
 const outcomes: GuideOutcome[] = [
   { code: "0", meaning: "Found, or reversed", how: "A receipt from the ledger", ok: true },
-  { code: "R000002", meaning: "Invalid receipt", how: "Unknown receipt, wrong amount, or not STK/C2B" },
+  { code: "2032", meaning: "Receipt not found", how: "Check the status of an unknown receipt" },
+  { code: "R000002", meaning: "Invalid receipt", how: "Reverse an unknown receipt, a wrong amount, or a non-STK/C2B payment" },
   { code: "R000001", meaning: "Already reversed", how: "Reverse the same payment twice" },
   { code: "1", meaning: "Insufficient balance", how: "Utility account below the refund" },
   { code: "2001", meaning: "Invalid initiator", how: "Wrong SecurityCredential" },

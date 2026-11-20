@@ -14,7 +14,8 @@ const failures = [
   ["0", "Success"],
   ["2001", "The initiator information is invalid."],
   ['"R000001"', "The transaction has already been reversed."],
-  ['"R000002"', "The OriginalTransactionID is invalid."],
+  ["2032", "The transaction receipt number does not exist. (status)"],
+  ['"R000002"', "The OriginalTransactionID is invalid. (reversal)"],
   ["1", "The balance is insufficient for the transaction."],
 ] as const;
 
@@ -66,8 +67,8 @@ export default function IntegrationPanel() {
                 ))}
               </dl>
               <Note>
-                Safaricom documents no code for a status query on an unknown receipt. Daraja Local answers with R000002,
-                which is a guess.
+                An unknown receipt is reported before the initiator is checked, so it fails with 2032 or R000002 even
+                when the SecurityCredential is wrong. Both were captured from the sandbox.
               </Note>
             </>
           )}

@@ -131,6 +131,7 @@ export function darajaTime(v: string) {
 
 const FAILURES: Record<string, string> = {
   "2001": "Bad initiator",
+  "2032": "Not found",
   R000001: "Already reversed",
   R000002: "Invalid receipt",
   "1": "No balance",
@@ -142,7 +143,6 @@ export function sessionStatus(s: InitiatorSession): { label: string; tone: Tone 
   if (!s.result) return { label: "Processing", tone: "pending" };
   const code = s.result.resultCode;
   if (code === "0") return { label: s.kind === "reversal" ? "Reversed" : "Found", tone: "success" };
-  if (s.kind === "status" && code === "R000002") return { label: "Not found", tone: "danger" };
   if (code === "R000001") return { label: FAILURES[code], tone: "warning" };
   return { label: FAILURES[code] ?? `Failed · ${code}`, tone: "danger" };
 }

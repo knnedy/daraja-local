@@ -53,14 +53,18 @@ func (l *Ledger) reverse(ctx context.Context, project repository.Project, req Re
 		return outcome, daraja.ResultBody{Result: r}
 	}
 
+	// As with Transaction Status, an unknown receipt is reported before the initiator is checked.
+	original, found, err := l.find(ctx, project.ID, req.TransactionID, "")
+	if err != nil || !found {
+		return fail(ReversalInvalidTransaction, "R000002", "The OriginalTransactionID is invalid.")
+	}
 	if ok, err := l.verifier.Verify(ctx, project.ID, req.Initiator, req.SecurityCredential); err != nil || !ok {
 		return fail(ReversalInvalidInitiator, 2001, "The initiator information is invalid.")
 	}
 
-	original, found, err := l.find(ctx, project.ID, req.TransactionID, "")
 	reversible := found && (original.Kind == KindSTKPush || original.Kind == KindC2B)
 	// A mismatched amount has no documented code; it is treated as invalid.
-	if err != nil || !reversible || original.Amount != wholeShillings(req.Amount) {
+	if !reversible || original.Amount != wholeShillings(req.Amount) {
 		return fail(ReversalInvalidTransaction, "R000002", "The OriginalTransactionID is invalid.")
 	}
 	if original.ReversedBy != "" {
