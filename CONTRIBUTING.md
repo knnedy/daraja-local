@@ -9,7 +9,7 @@ Thanks for your interest in contributing! Daraja Local is an offline emulator of
 **Requirements**
 
 - Go 1.27.1+ (see `go.mod`)
-- Node.js 22 (what CI uses) and pnpm
+- Node.js 24 and pnpm 12 (what CI uses)
 - [`air`](https://github.com/air-verse/air) for hot reload: `go install github.com/air-verse/air@latest`
 - [`sqlc`](https://sqlc.dev) if you change SQL queries
 
@@ -66,7 +66,7 @@ internal/response/    JSON and Daraja-shaped error responses
 web/                  Next.js dashboard (static export)
 ```
 
-Requests flow from a handler into the package that owns the behaviour (`stk`, `c2b`, `project`, `token`), which uses `delivery`, `requestlog` and `repository`. Each of those packages is tested through its own interface; see `GLOSSARY.md` for the vocabulary. If two endpoint families need the same mechanic, it gets its own package, as `delivery` and `requestlog` did, and is not copied into both.
+Requests flow from a handler into the package that owns the behaviour (`stk`, `c2b`, `project`, `token`), which uses `delivery`, `requestlog` and `repository`. Each of those packages is tested through its own interface. If two endpoint families need the same mechanic, it gets its own package, as `delivery` and `requestlog` did, and is not copied into both.
 
 ---
 

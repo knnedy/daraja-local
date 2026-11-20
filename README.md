@@ -3,12 +3,9 @@
 [![Release](https://img.shields.io/github/v/release/knnedy/daraja-local)](https://github.com/knnedy/daraja-local/releases)
 [![License: MIT](https://img.shields.io/github/license/knnedy/daraja-local)](LICENSE)
 
-A local, offline emulator of Safaricom's M-Pesa Daraja API. Build and test STK Push, C2B, B2C, Transaction Status and Reversal integrations without a public callback URL, a test phone, or any sign-up. One binary, nothing else to run.
+An offline emulator of Safaricom's M-Pesa Daraja API. Build and test STK Push, C2B, B2C, B2B, Account Balance, Transaction Status and Reversal integrations without a public callback URL, a test phone or a sign-up. It ships as one binary, with nothing else to run.
 
-Testing against Safaricom's sandbox means exposing a public callback URL and having no way to make a payment fail on demand. Daraja Local runs on your machine, speaks the same API, and lets you choose what happens: approve a payment, fail it with a wrong PIN, let it time out, or reject a C2B payment from your own validation endpoint.
-
-![STK Push with the Virtual Phone](docs/assets/stk-push.png)
-_STK Push: a pending request on the Virtual Phone. You choose the outcome._
+Safaricom's sandbox needs a public callback URL, and it gives you no way to make a payment fail on demand. Daraja Local runs on your machine and speaks the same API, and you decide what happens. You can approve a payment, fail it with a wrong PIN, let it time out, run an account dry, or reject a C2B payment from your own validation endpoint.
 
 ---
 
@@ -23,9 +20,9 @@ daraja-local
 
 Open the URL printed at startup (`http://127.0.0.1:7060` by default).
 
-**2. Create a project.** Daraja Local generates a consumer key, consumer secret, shortcode and passkey for it.
+**2. Create a project.** Daraja Local generates a consumer key, consumer secret, shortcode, passkey and B2C initiator for it.
 
-**3. Copy the environment values** from the Overview page into your app:
+**3. Copy the environment values into your app.** Settings has a ready-made `.env` to download:
 
 ```
 DARAJA_BASE_URL=http://127.0.0.1:7060
@@ -67,32 +64,37 @@ curl -X POST "$DARAJA_BASE_URL/mpesa/stkpush/v1/processrequest" \
 
 As in the real API, every request field is a JSON string. `CallBackURL` can be any URL your machine can reach, including `localhost`, so you don't need a tunnel.
 
-**5. Resolve it.** The request appears in the Virtual Phone on the STK Push page. Choose Approve, Wrong PIN, Insufficient balance or Cancel, or do nothing and it times out. Daraja Local then POSTs the callback to your `CallBackURL`, and every step is recorded on the Request Log page.
+**5. Resolve it.** The prompt appears on the phone on the STK Push page. Choose Approve, Wrong PIN, Insufficient balance or Cancel, or do nothing and it times out. Daraja Local then POSTs the callback to your `CallBackURL`, and every step is recorded in the Request log.
+
+Every API page also shows the request as runnable code in cURL, Node, Python, PHP and Go.
 
 ---
 
 ## Features
 
 - **Single binary, fully local.** Nothing to sign up for. It listens on `127.0.0.1` only, and your data stays in `~/.daraja-local`.
-- **Per-project credentials.** Each project has its own consumer key, secret, shortcode and passkey, plus its own settings and request history. Rotate them any time from the Credentials page.
-- **STK Push with a Virtual Phone.** Requests wait on a simulated handset and you pick the outcome. Each outcome returns the real Daraja ResultCode. Several pending requests can be open at once.
-- **Real callbacks.** Delivered to your `CallBackURL` over HTTP, retried on failure.
-- **C2B, end to end.** Register your URLs, simulate a payment, optionally validate it against your own `ValidationURL` (with Daraja's `ResponseType` fallback rules), then deliver the confirmation.
-- **B2C payouts.** Pay out to a phone with a real `SecurityCredential` built from your project's own initiator and certificate. Results arrive at your `ResultURL`, drawn from a simulated balance, and you can force any failure for the next payout.
-- **Transaction Status and Reversal.** Every completed payment is recorded, so you can look any receipt up or reverse a customer payment, from your app or from the Transactions page.
-- **Daraja-shaped validation and errors.** The password check, phone and amount rules, and Daraja's error codes and HTTP statuses are reproduced, so a malformed request fails the way it would against Safaricom.
-- **Request Log.** Every request, response and callback, grouped by transaction. Filter by type and status, search by phone number, reference or ID, page back through history, and copy any payload.
-- **Live dashboard.** Stats, activity and the Virtual Phone update as requests arrive.
+- **Projects.** Each project has its own consumer key, secret, shortcode, passkey and initiator, plus its own settings and history. Rotate keys from Credentials, and change the callback base URL from Settings.
+- **STK Push on a phone.** Requests wait on a simulated handset showing the M-Pesa prompt, and you pick the outcome. Each outcome sends the real Daraja `ResultCode`. STK Push Query answers for pending, resolved and unknown requests, and any callback can be resent byte for byte.
+- **C2B, end to end.** Register your URLs, send a payment from a customer's phone, validate it against your own `ValidationURL` with Daraja's `ResponseType` fallback, and deliver the confirmation. Each call to your server is inspectable and can be resent.
+- **B2C payouts.** Pay out to a phone with a real `SecurityCredential` built from your project's initiator and certificate. Results come from a simulated balance, and you can force any failure for the next payout.
+- **B2B and Account Balance.** Business Pay Bill and Buy Goods payments, and balance queries against accounts you can set.
+- **Transaction Status and Reversal.** Every completed payment is recorded on a ledger, so you can look up any receipt or reverse a customer payment, from your app or from the Transactions page.
+- **Real callbacks.** Delivered to your URLs over HTTP and retried on failure.
+- **Daraja-shaped errors and IDs.** The password check, the phone and amount rules, error codes, HTTP statuses and ID formats follow what the sandbox returns, so a malformed request fails the way it would against Safaricom.
+- **Request log.** A live two-pane inspector of every request, response and callback, grouped by transaction, with filtering, search and copyable payloads.
+- **Live dashboard.** An Overview with a getting-started checklist, money totals and a live feed. Every page updates as requests arrive, in light or dark mode.
 
 ---
 
-## Screenshots
+## What's new since 0.1.0
 
-![C2B payment flow](docs/assets/c2b.png)
-_C2B: your registered URLs, and a simulated payment traced through validation and confirmation._
+- **A redesigned dashboard.** Every page has been rebuilt around a live timeline, with the phone as the centrepiece, a new logo and colours taken from the Daraja developer portal.
+- **New APIs.** STK Push Query, B2C, B2B, Account Balance, Transaction Status and Reversal.
+- **Integration aids.** Request code in five languages, STK and C2B callback resend, a `.env` download, and callback URL editing.
+- **Closer to the sandbox.** Error codes, texts, IDs and result bodies were checked against the live sandbox. [Fidelity](docs/fidelity.md) records what was checked, when, and how confident each claim is.
+- **Installer commands.** `update` and `uninstall`, and `daraja-local --version`.
 
-![Daraja Local dashboard](docs/assets/dashboard.png)
-_Overview: live stats, recent activity and your project's credentials._
+The full list is in the [release notes](https://github.com/knnedy/daraja-local/releases).
 
 ---
 
@@ -106,10 +108,10 @@ _Overview: live stats, recent activity and your project's credentials._
 | C2B register URLs  | `POST /mpesa/c2b/v1/registerurl`, `POST /mpesa/c2b/v2/registerurl`       |
 | C2B simulate       | `POST /mpesa/c2b/v1/simulate`, `POST /mpesa/c2b/v2/simulate`             |
 | B2C payment        | `POST /mpesa/b2c/v1/paymentrequest`, `POST /mpesa/b2c/v3/paymentrequest` |
+| B2B payment        | `POST /mpesa/b2b/v1/paymentrequest`                                      |
+| Account Balance    | `POST /mpesa/accountbalance/v1/query`                                    |
 | Transaction Status | `POST /mpesa/transactionstatus/v1/query`                                 |
 | Reversal           | `POST /mpesa/reversal/v1/request`                                        |
-| B2B                | `POST /mpesa/b2b/v1/paymentrequest`                                      |
-| Account Balance    | `POST /mpesa/accountbalance/v1/query`                                    |
 
 Not implemented: B2C Account Top Up, Business to Pochi, Tax Remittance, Dynamic QR, Bill Manager and Ratiba.
 
@@ -124,10 +126,10 @@ Not implemented: B2C Account Top Up, Business to Pochi, Tax Remittance, Dynamic 
 | [STK Push](docs/stk-push.md)                            | Request shape, outcomes and ResultCodes, callbacks, timeouts        |
 | [C2B](docs/c2b.md)                                      | Registering URLs, simulating payments, validation and confirmation  |
 | [B2C](docs/b2c.md)                                      | Initiator and SecurityCredential, payouts, results and failures     |
-| [Transaction Status and Reversal](docs/transactions.md) | Looking receipts up, reversing payments, result codes               |
 | [B2B and Account Balance](docs/b2b.md)                  | Paying other businesses, your simulated accounts, balance results   |
-| [Request Log](docs/request-log.md)                      | Searching, filtering and reading the log                            |
-| [Fidelity](docs/fidelity.md)                            | What mirrors Daraja exactly, known quirks, what is emulator-only    |
+| [Transaction Status and Reversal](docs/transactions.md) | Looking receipts up, reversing payments, result codes               |
+| [Request log](docs/request-log.md)                      | Searching, filtering and reading the log                            |
+| [Fidelity](docs/fidelity.md)                            | What mirrors Daraja, with sources and confidence, and what doesn't  |
 | [Troubleshooting](docs/troubleshooting.md)              | The errors you'll actually hit and what they mean                   |
 
 ---
@@ -140,13 +142,28 @@ Not implemented: B2C Account Top Up, Business to Pochi, Tax Remittance, Dynamic 
 curl -fsSL https://raw.githubusercontent.com/knnedy/daraja-local/main/install.sh | sh
 ```
 
-It installs to `/usr/local/bin` (and asks for `sudo` if needed). To install somewhere else:
+It installs to `/usr/local/bin` and asks for `sudo` if it needs it. To install somewhere else, or to pin a version:
 
 ```bash
-INSTALL_DIR=~/.local/bin sh install.sh
+curl -fsSL https://raw.githubusercontent.com/knnedy/daraja-local/main/install.sh | INSTALL_DIR=~/.local/bin sh
+curl -fsSL https://raw.githubusercontent.com/knnedy/daraja-local/main/install.sh | VERSION=v0.1.0 sh
 ```
 
-Re-run the script any time to update.
+### Updating
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/knnedy/daraja-local/main/install.sh | sh -s -- update
+```
+
+It finds your existing install, does nothing if you're already on the latest release, and tells you to restart Daraja Local if it's running. Your projects and logs are kept. Check what you have with `daraja-local --version`.
+
+### Uninstalling
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/knnedy/daraja-local/main/install.sh | sh -s -- uninstall
+```
+
+This removes the binary. Your projects and logs stay in `~/.daraja-local`; delete that folder to wipe them.
 
 ### Manual
 
@@ -158,13 +175,15 @@ curl -L https://github.com/knnedy/daraja-local/releases/download/v${VERSION}/dar
 sudo mv daraja-local /usr/local/bin/
 ```
 
-Swap `linux_amd64` for `linux_arm64`, `darwin_amd64` or `darwin_arm64` as needed.
+Swap `linux_amd64` for `linux_arm64`, `darwin_amd64` or `darwin_arm64` as needed. To update, repeat with the new version.
 
 ### Windows
 
-Download `daraja-local_<version>_windows_amd64.zip` from the [Releases page](https://github.com/knnedy/daraja-local/releases), extract `daraja-local.exe`, and run it from a terminal. There is no Windows ARM build yet.
+Download `daraja-local_<version>_windows_amd64.zip` from the [Releases page](https://github.com/knnedy/daraja-local/releases), extract `daraja-local.exe` and run it from a terminal. To update, replace the `.exe` with the one from a newer release. There is no Windows ARM build yet.
 
 ### Verifying downloads
+
+The install script checks this for you. To check a manual download:
 
 ```bash
 curl -fsSLO https://github.com/knnedy/daraja-local/releases/download/v${VERSION}/checksums.txt
@@ -173,19 +192,18 @@ grep "daraja-local_${VERSION}_linux_amd64.tar.gz" checksums.txt | sha256sum -c -
 
 On macOS, use `shasum -a 256 -c -` instead of `sha256sum -c -`.
 
-### Uninstalling
+### Configuration
 
-```bash
-sudo rm /usr/local/bin/daraja-local
-```
-
-Your projects and logs live in `~/.daraja-local`. Delete that folder to wipe them.
+| Variable                | Default           | Effect                                                     |
+| ----------------------- | ----------------- | ---------------------------------------------------------- |
+| `DARAJA_LOCAL_PORT`     | `7060`            | Pins the port; without it, the next free port from 7060 is used |
+| `DARAJA_LOCAL_DATA_DIR` | `~/.daraja-local` | Where projects, settings and the request log are stored    |
 
 ---
 
 ## Building from source
 
-**Requirements:** Go 1.27.1+, Node.js 22, pnpm.
+**Requirements:** Go 1.27.1+, Node.js 24, pnpm 12.
 
 ```bash
 git clone https://github.com/knnedy/daraja-local.git
@@ -194,24 +212,25 @@ make build
 ./bin/daraja-local
 ```
 
-`make build` exports the frontend as static files, embeds them into the Go binary, and compiles to `bin/daraja-local`. For hot reload during development, run `make dev`. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
+`make build` exports the frontend as static files, embeds them in the Go binary, and compiles to `bin/daraja-local`. For hot reload during development, run `make dev`. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
 
 ---
 
 ## Limits worth knowing
 
-- Daraja Local is for developing and testing your integration. Run it against Safaricom's own sandbox before going live. Its behavior follows Daraja's documented and observed behavior, and a few details, such as callback retry timing and refusing `simulate` before `registerurl`, are emulator choices. [Fidelity](docs/fidelity.md) lists which is which.
-- C2B payloads carry no customer details. Name, invoice and balance fields arrive blank, and `MSISDN` hides the number: masked after a v2 registration, SHA-256 hashed after v1.
+- Daraja Local is for developing and testing your integration. Test against Safaricom's own sandbox before going live. Behaviour follows Daraja's documentation and what the live sandbox returns; where the two disagree or nothing could be checked, [Fidelity](docs/fidelity.md) says so and gives a confidence level.
+- Some details are emulator choices, such as callback retry timing and refusing `simulate` before `registerurl`.
+- C2B payloads carry no customer details. Name fields arrive blank, and `MSISDN` hides the number: masked after a v2 registration, SHA-256 hashed after v1.
 
 ---
 
 ## Tech stack
 
-| Layer        | Technology                                                                                   |
-| ------------ | -------------------------------------------------------------------------------------------- |
-| Backend      | Go, `chi/v5`, SQLite via `modernc.org/sqlite` (pure Go, no cgo), goose, sqlc                 |
-| Frontend     | Next.js (static export), TypeScript, Tailwind CSS v4, TanStack Query, Zustand, Framer Motion |
-| Distribution | Single binary via `go:embed`, cross-compiled and released with GoReleaser                    |
+| Layer        | Technology                                                                                          |
+| ------------ | --------------------------------------------------------------------------------------------------- |
+| Backend      | Go, `chi/v5`, SQLite via `modernc.org/sqlite` (pure Go, no cgo), goose, sqlc                        |
+| Frontend     | Next.js (static export), React 19, TypeScript, Tailwind CSS v4, Base UI, TanStack Query, Zustand, Framer Motion, Shiki |
+| Distribution | Single binary via `go:embed`, cross-compiled and released with GoReleaser                           |
 
 ---
 
