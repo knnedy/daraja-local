@@ -13,14 +13,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useActiveProjectStore } from "@/store/active-project";
-import { useProject } from "@/hooks/use-projects";
-import { useDeleteProject } from "@/hooks/use-projects";
+import { Trash2Icon } from "lucide-react";
+import { useDeleteProject, useProject } from "@/hooks/use-projects";
+import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/form";
+import { Section } from "./section";
 
-export default function DangerZoneCard() {
+export default function DangerZoneCard({ slug }: { slug: string }) {
   const router = useRouter();
-  const slug = useActiveProjectStore((s) => s.slug) ?? "";
   const { data: project } = useProject(slug);
   const deleteProject = useDeleteProject();
 
@@ -36,20 +36,16 @@ export default function DangerZoneCard() {
   }
 
   return (
-    <div className="rounded-xl border border-destructive/30 bg-destructive/3 p-4">
-      <span className="text-[13px] font-medium text-destructive">
-        Danger zone
-      </span>
-      <p className="mt-1 mb-3 text-[11.5px] leading-relaxed text-muted-foreground">
-        Deletes this project&apos;s credentials, callback config, and local
-        request history. Cannot be undone.
-      </p>
-
+    <Section
+      tone="danger"
+      title="Delete this project"
+      description="Removes its keys, initiator, accounts, transactions and request log from this machine. There is no undo."
+      footer={
+        <>
+          <p className="text-[12.5px] text-muted-foreground">Other projects aren&apos;t touched.</p>
       <AlertDialog>
-        <AlertDialogTrigger
-          disabled={!project}
-          onClick={() => setConfirmText("")}
-          className="rounded-lg border border-destructive/40 bg-destructive/10 px-3.5 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-50">
+        <AlertDialogTrigger render={<Button variant="destructive" disabled={!project} />} onClick={() => setConfirmText("")}>
+          <Trash2Icon className="size-3.5" />
           Delete project
         </AlertDialogTrigger>
         <AlertDialogContent>
@@ -58,8 +54,8 @@ export default function DangerZoneCard() {
               Delete “{projectName}”?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This permanently removes the project&apos;s credentials, callback
-              configuration, and request log. Type the project name to confirm.
+              This permanently removes its keys, initiator, accounts, transactions and request log. Type the project
+              name to confirm.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <TextInput
@@ -81,6 +77,9 @@ export default function DangerZoneCard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+        </>
+      }>
+      {null}
+    </Section>
   );
 }
