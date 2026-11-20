@@ -180,13 +180,13 @@ func (p *Payments) process(ctx context.Context, project repository.Project, req 
 		ResultType:               0,
 		OriginatorConversationID: accept.OriginatorConversationID,
 		ConversationID:           accept.ConversationID,
-		TransactionID:            daraja.NewTransactionID()[:3] + "0000000",
+		TransactionID:            daraja.NewTransactionID(),
 	}
+	r.ReferenceData.ReferenceItem = referenceItems(req)
 	fail := func(outcome string, code int, desc string) (string, daraja.ResultBody) {
 		r.ResultCode, r.ResultDesc = code, desc
 		// Safaricom's failure sample sends a single parameter, not a list.
 		r.ResultParameters = &daraja.ResultParameters{ResultParameter: daraja.Param("BOCompletedTime", mustInt(now.Format("20060102150405")))}
-		r.ReferenceData.ReferenceItem = daraja.Param("QueueTimeoutURL", req.QueueTimeOutURL)
 		return outcome, daraja.ResultBody{Result: r}
 	}
 
@@ -233,11 +233,23 @@ func (p *Payments) process(ctx context.Context, project repository.Project, req 
 		daraja.Param("Currency", "KES"),
 		daraja.Param("InitiatorAccountCurrentBalance", balance),
 	}}
-	r.ReferenceData.ReferenceItem = []daraja.KeyValue{
-		daraja.Param("BillReferenceNumber", req.AccountReference),
-		daraja.Param("QueueTimeoutURL", req.QueueTimeOutURL),
-	}
 	return OutcomeCompleted, daraja.ResultBody{Result: r}
+}
+
+// sandboxQueueTimeoutURL is what the sandbox reports, whatever QueueTimeOutURL was sent.
+const sandboxQueueTimeoutURL = "https://internalsandbox.safaricom.co.ke/mpesa/b2bresults/v1/submit"
+
+// referenceItems mirrors the sandbox: an all-digit reference is sent as a number.
+func referenceItems(req PaymentRequest) []daraja.KeyValue {
+	var ref any = req.AccountReference
+	if n, err := strconv.ParseInt(req.AccountReference, 10, 64); err == nil && strconv.FormatInt(n, 10) == req.AccountReference {
+		ref = n
+	}
+	return []daraja.KeyValue{
+		daraja.Param("BillReferenceNumber", ref),
+		daraja.Param("QueueTimeoutURL", sandboxQueueTimeoutURL),
+		daraja.Param("Occassion", optional(req.Occassion)),
+	}
 }
 
 // braced is Daraja's B2B balance format; MinimumAmount is in cents.
@@ -248,4 +260,12 @@ func braced(cents int64) string {
 func mustInt(s string) int64 {
 	n, _ := strconv.ParseInt(s, 10, 64)
 	return n
+}
+
+// optional omits an empty Value, as Daraja does.
+func optional(s string) any {
+	if s == "" {
+		return nil
+	}
+	return s
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 
@@ -188,5 +189,35 @@ func TestRequestValidation(t *testing.T) {
 	req.RecieverIdentifierType, req.ReceiverIdentifierTypeCorrect = "", "4"
 	if _, vErr := f.payments.Request(context.Background(), f.project, req); vErr != nil {
 		t.Errorf("usual spellings refused: %+v", vErr)
+	}
+}
+
+// Captured from the sandbox on 2026-11-20 (a failed BusinessPayBill).
+func TestReferenceDataMatchesTheSandbox(t *testing.T) {
+	f := newFixture(t)
+	ctx := context.Background()
+	want := `[{"Key":"BillReferenceNumber","Value":353353},` +
+		`{"Key":"QueueTimeoutURL","Value":"https://internalsandbox.safaricom.co.ke/mpesa/b2bresults/v1/submit"},` +
+		`{"Key":"Occassion"}]`
+
+	if _, vErr := f.payments.Request(ctx, f.project, f.request("239")); vErr != nil {
+		t.Fatal(vErr)
+	}
+	failed := f.lastResult(t)
+	if failed.ResultCode == float64(0) || string(failed.ReferenceData.ReferenceItem) != want {
+		t.Errorf("failure ReferenceItem = %s", failed.ReferenceData.ReferenceItem)
+	}
+	if len(failed.TransactionID) != 10 || strings.HasSuffix(failed.TransactionID, "0000000") {
+		t.Errorf("failure TransactionID = %q, want a receipt-like ID", failed.TransactionID)
+	}
+
+	if _, err := f.ledger.SetBalance(ctx, f.project.ID, ledger.Working, 100000); err != nil {
+		t.Fatal(err)
+	}
+	if _, vErr := f.payments.Request(ctx, f.project, f.request("239")); vErr != nil {
+		t.Fatal(vErr)
+	}
+	if got := string(f.lastResult(t).ReferenceData.ReferenceItem); got != want {
+		t.Errorf("success ReferenceItem = %s", got)
 	}
 }
