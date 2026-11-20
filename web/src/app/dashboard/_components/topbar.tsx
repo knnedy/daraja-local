@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
-import { BookOpenIcon, MoonIcon, SearchIcon, SunIcon } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { BookOpenIcon, SearchIcon } from "lucide-react";
 import { pageIcons } from "@/lib/page-icons";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useActiveProjectStore } from "@/store/active-project";
@@ -54,7 +54,6 @@ export function DashboardTopbar() {
   const normalizedPath = pathname ? stripTrailingSlash(pathname) : "";
   const slug = useActiveProjectStore((s) => s.slug);
   const { data: project } = useProject(slug ?? "");
-  const { theme, setTheme } = useTheme();
   const page = pages[normalizedPath];
   const shortcutHint = useShortcutHint();
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -107,14 +106,7 @@ export function DashboardTopbar() {
           Docs
         </a>
 
-        <button
-          type="button"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          aria-label="Toggle theme"
-          className="relative flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-foreground/[0.045] hover:text-foreground">
-          <SunIcon className="size-4 transition-[scale,rotate] duration-200 motion-reduce:transition-none dark:scale-0 dark:-rotate-90" />
-          <MoonIcon className="absolute size-4 scale-0 rotate-90 transition-[scale,rotate] duration-200 motion-reduce:transition-none dark:scale-100 dark:rotate-0" />
-        </button>
+        <ThemeToggle />
       </div>
 
       <CommandPalette
