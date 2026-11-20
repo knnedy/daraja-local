@@ -3,11 +3,10 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { ChevronRightIcon, MoonIcon, SearchIcon, SunIcon } from "lucide-react";
+import { BookOpenIcon, MoonIcon, SearchIcon, SunIcon } from "lucide-react";
 import { pageIcons } from "@/lib/page-icons";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useActiveProjectStore } from "@/store/active-project";
-import { useApiPort } from "@/hooks/use-api-port";
 import { useProject } from "@/hooks/use-projects";
 import { stripTrailingSlash } from "@/lib/utils";
 import CommandPalette from "@/components/command-palette";
@@ -39,10 +38,6 @@ const commandItems = Object.entries(pages).map(([href, page]) => ({
   icon: page.icon,
 }));
 
-function VerticalDivider() {
-  return <div className="h-5 w-px shrink-0 bg-border-strong" />;
-}
-
 const subscribeNoop = () => () => {};
 
 function useShortcutHint() {
@@ -59,7 +54,6 @@ export function DashboardTopbar() {
   const normalizedPath = pathname ? stripTrailingSlash(pathname) : "";
   const slug = useActiveProjectStore((s) => s.slug);
   const { data: project } = useProject(slug ?? "");
-  const port = useApiPort();
   const { theme, setTheme } = useTheme();
   const page = pages[normalizedPath];
   const shortcutHint = useShortcutHint();
@@ -78,64 +72,48 @@ export function DashboardTopbar() {
   }, []);
 
   return (
-    <header className="flex h-13 shrink-0 items-center gap-3 border-b border-border bg-surface-2 px-5">
-      <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-      <VerticalDivider />
+    <header className="sticky top-0 z-20 flex h-12 shrink-0 items-center gap-2 border-b border-border/80 bg-background/80 px-4 backdrop-blur-md supports-backdrop-filter:bg-background/70">
+      <SidebarTrigger className="size-7 text-muted-foreground hover:text-foreground" />
+      <div className="mx-1 h-4 w-px bg-border-strong" />
 
-      <div className="flex min-w-0 items-center gap-1.5">
-        <span className="truncate text-xs text-muted-foreground">
-          {project?.name ?? "…"}
-        </span>
-        <ChevronRightIcon className="size-3 shrink-0 text-muted-foreground/60" />
+      <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-[13px]">
+        <span className="truncate text-muted-foreground">{project?.name ?? "…"}</span>
+        <span className="text-muted-foreground/50">/</span>
         {page && (
-          <span className="flex shrink-0 items-center gap-1.5 text-[13px] font-medium text-foreground">
-            <page.icon className="size-3.5 text-muted-foreground" />
+          <span aria-current="page" className="flex shrink-0 items-center gap-1.5 font-medium text-foreground">
             {page.label}
           </span>
         )}
-      </div>
+      </nav>
 
-      <div className="ml-auto flex items-center gap-3">
+      <div className="ml-auto flex items-center gap-1.5">
         <button
           type="button"
           onClick={() => setPaletteOpen(true)}
-          className="flex items-center gap-2 rounded-md border border-border-strong bg-surface-1 px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <SearchIcon className="size-3.5" />
-          <span>Search</span>
-          <kbd className="rounded border border-border-strong bg-surface-2 px-1 font-mono text-[10px] leading-none text-muted-foreground">
+          className="flex h-8 w-60 items-center gap-2 rounded-lg border border-border bg-surface-1 pr-1.5 pl-2.5 text-[13px] text-muted-foreground shadow-xs transition-colors hover:border-border-strong hover:text-foreground max-md:w-8 max-md:justify-center max-md:px-0">
+          <SearchIcon className="size-3.5 shrink-0" />
+          <span className="flex-1 text-left max-md:hidden">Jump to…</span>
+          <kbd className="rounded-md border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-[10.5px] leading-none text-muted-foreground max-md:hidden">
             {shortcutHint}
           </kbd>
         </button>
 
-        <div className="flex items-center gap-2 rounded-full border border-green-mid bg-green-light px-3 py-1.5">
-          <span className="relative flex size-1.75 shrink-0 items-center justify-center">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green opacity-50" />
-            <span className="relative inline-flex size-1.75 rounded-full bg-green" />
-          </span>
-          <span className="text-[11px] font-medium whitespace-nowrap text-green">
-            sandbox
-          </span>
-          <span className="text-[11px] text-green/40">·</span>
-          <span className="font-mono text-[11px] whitespace-nowrap text-green/80">
-            :{port}
-          </span>
-        </div>
-
-        <VerticalDivider />
+        <a
+          href="https://github.com/knnedy/daraja-local/tree/main/docs"
+          target="_blank"
+          rel="noreferrer"
+          className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] text-muted-foreground transition-colors hover:bg-foreground/[0.045] hover:text-foreground max-sm:hidden">
+          <BookOpenIcon className="size-3.5" />
+          Docs
+        </a>
 
         <button
           type="button"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="relative flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-surface-1 hover:text-foreground"
-        >
-          <span className="absolute inset-0 flex items-center justify-center">
-            <SunIcon className="size-4 scale-100 rotate-0 transition-[transform,scale,rotate] duration-200 motion-reduce:transition-none dark:scale-0 dark:-rotate-90" />
-          </span>
-          <span className="absolute inset-0 flex items-center justify-center">
-            <MoonIcon className="size-4 scale-0 rotate-90 transition-[transform,scale,rotate] duration-200 motion-reduce:transition-none dark:scale-100 dark:rotate-0" />
-          </span>
-          <span className="sr-only">Toggle theme</span>
+          aria-label="Toggle theme"
+          className="relative flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-foreground/[0.045] hover:text-foreground">
+          <SunIcon className="size-4 transition-[scale,rotate] duration-200 motion-reduce:transition-none dark:scale-0 dark:-rotate-90" />
+          <MoonIcon className="absolute size-4 scale-0 rotate-90 transition-[scale,rotate] duration-200 motion-reduce:transition-none dark:scale-100 dark:rotate-0" />
         </button>
       </div>
 

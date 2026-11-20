@@ -53,17 +53,13 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <DashboardSidebar />
-      <SidebarInset className="h-svh overflow-hidden">
+      <SidebarInset className="h-svh overflow-hidden bg-background">
         <DashboardTopbar />
-        <main
-          className="min-h-0 flex-1 overflow-y-auto p-6"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle, color-mix(in oklch, var(--border) 55%, transparent) 1px, transparent 1px)",
-            backgroundSize: "22px 22px",
-          }}>
-          {children}
-        </main>
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="mx-auto w-full max-w-[1360px] px-8 pt-7 pb-16 max-md:px-4">
+            {children}
+          </div>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );
