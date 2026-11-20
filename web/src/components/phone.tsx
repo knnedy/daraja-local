@@ -2,7 +2,7 @@
 
 import { forwardRef } from "react";
 import { motion } from "framer-motion";
-import { CheckIcon, DeleteIcon, MessageSquareTextIcon } from "lucide-react";
+import { CheckIcon, DeleteIcon, LockIcon, MessageSquareTextIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatShortTime } from "@/lib/format";
 
@@ -258,6 +258,58 @@ export function SmsCard({
       <p className={cn("mt-0.5 text-[12px] leading-snug", elevated ? "line-clamp-4 opacity-85" : "line-clamp-2 text-white/85")}>
         {text}
       </p>
+    </div>
+  );
+}
+
+export type LockMessage = { id: string; at: number; text: string };
+
+/** Lock screen: big clock, recent SMS, and an idle chip saying what the phone waits for. */
+export function LockScreen({
+  now,
+  idleLabel,
+  messages,
+  dimmed,
+}: {
+  now: number;
+  /** Shown at the bottom while nothing is happening; null hides it. */
+  idleLabel: string | null;
+  messages: LockMessage[];
+  dimmed: boolean;
+}) {
+  const [hh, mm] = formatShortTime(now).split(":");
+  return (
+    <div
+      className={cn("absolute inset-0 flex flex-col px-5 pt-14 transition-[filter] duration-200", dimmed && "blur-[1.5px]")}
+      aria-hidden={dimmed}>
+      <p className="text-[12.5px] font-medium text-white/85">
+        {new Date(now).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
+        <span className="text-white/55"> · Safaricom</span>
+      </p>
+      <p className="mt-1 text-[92px] leading-[0.86] font-light tracking-[-0.04em] text-[#d9f7e3] tabular-nums">
+        {hh}
+        <br />
+        {mm}
+      </p>
+
+      <div className="mt-6 flex flex-col gap-1.5">
+        {messages.slice(0, idleLabel ? 1 : 2).map((m) => (
+          <SmsCard key={m.id} text={m.text} at={m.at} now={now} />
+        ))}
+      </div>
+
+      {idleLabel && (
+        <div className="absolute inset-x-0 bottom-9 flex flex-col items-center gap-3">
+          <div className="flex items-center gap-2 rounded-full bg-black/25 px-3.5 py-1.5 text-[11.5px] font-medium text-white/90 ring-1 ring-white/10 backdrop-blur-md">
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-[#4ee08a] opacity-60 motion-reduce:hidden" />
+              <span className="relative inline-flex size-2 rounded-full bg-[#4ee08a]" />
+            </span>
+            {idleLabel}
+          </div>
+          <LockIcon className="size-4 text-white/70" />
+        </div>
+      )}
     </div>
   );
 }

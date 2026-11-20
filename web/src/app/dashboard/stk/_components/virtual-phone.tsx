@@ -2,17 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useAnimate, useReducedMotion } from "framer-motion";
-import { LockIcon } from "lucide-react";
 import { useNow } from "@/hooks/use-now";
 import type { PendingSession, StkOutcome } from "@/lib/types/stk";
 import { cn } from "@/lib/utils";
-import { formatKes, formatShortTime } from "@/lib/format";
+import { formatKes } from "@/lib/format";
 import {
   DialogBody,
   DialogButton,
   EASE_DRAWER,
   EASE_OUT,
   HomeIndicator,
+  LockScreen,
   Keypad,
   PhoneFrame,
   PinField,
@@ -145,8 +145,8 @@ export default function VirtualPhone({
 
       <LockScreen
         now={now}
-        listening={!session && !failure}
-        messages={banner ? messages.slice(1) : messages}
+        idleLabel={!session && !failure ? "Waiting for an STK Push" : null}
+        messages={(banner ? messages.slice(1) : messages).map((m) => ({ id: m.id, at: m.at, text: smsText(m) }))}
         dimmed={showDialog}
       />
 
@@ -283,53 +283,5 @@ export default function VirtualPhone({
 
       {!prompting && <HomeIndicator />}
     </PhoneFrame>
-  );
-}
-
-function LockScreen({
-  now,
-  listening,
-  messages,
-  dimmed,
-}: {
-  now: number;
-  listening: boolean;
-  messages: PhoneMessage[];
-  dimmed: boolean;
-}) {
-  const [hh, mm] = formatShortTime(now).split(":");
-  return (
-    <div
-      className={cn("absolute inset-0 flex flex-col px-5 pt-14 transition-[filter] duration-200", dimmed && "blur-[1.5px]")}
-      aria-hidden={dimmed}>
-      <p className="text-[12.5px] font-medium text-white/85">
-        {new Date(now).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
-        <span className="text-white/55"> · Safaricom</span>
-      </p>
-      <p className="mt-1 text-[92px] leading-[0.86] font-light tracking-[-0.04em] text-[#d9f7e3] tabular-nums">
-        {hh}
-        <br />
-        {mm}
-      </p>
-
-      <div className="mt-6 flex flex-col gap-1.5">
-        {messages.slice(0, 2).map((m) => (
-          <SmsCard key={m.id} text={smsText(m)} at={m.at} now={now} />
-        ))}
-      </div>
-
-      {listening && (
-        <div className="absolute inset-x-0 bottom-9 flex flex-col items-center gap-3">
-          <div className="flex items-center gap-2 rounded-full bg-black/25 px-3.5 py-1.5 text-[11.5px] font-medium text-white/90 ring-1 ring-white/10 backdrop-blur-md">
-            <span className="relative flex size-2">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-[#4ee08a] opacity-60 motion-reduce:hidden" />
-              <span className="relative inline-flex size-2 rounded-full bg-[#4ee08a]" />
-            </span>
-            Waiting for an STK Push
-          </div>
-          <LockIcon className="size-4 text-white/70" />
-        </div>
-      )}
-    </div>
   );
 }
