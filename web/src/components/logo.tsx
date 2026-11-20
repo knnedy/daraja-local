@@ -1,7 +1,7 @@
 import { useId } from "react";
 import { cn } from "@/lib/utils";
 
-/** The Daraja Local mark: a suspension bridge ("daraja"), on an M-PESA green tile. */
+/** The Daraja Local mark: a D whose counter is an arch ("daraja" is bridge), on an M-PESA green tile. */
 export function LogoMark({ className, title }: { className?: string; title?: string }) {
   const gid = `dl-tile-${useId().replace(/:/g, "")}`;
   return (
@@ -15,12 +15,7 @@ export function LogoMark({ className, title }: { className?: string; title?: str
       </defs>
       <rect width="32" height="32" rx="8.5" fill={`url(#${gid})`} />
       <rect x="0.5" y="0.5" width="31" height="31" rx="8" fill="none" stroke="white" strokeOpacity="0.14" />
-      <g stroke="white" strokeLinecap="round" strokeLinejoin="round" fill="none">
-        <path d="M12.5 13.4V20.5M16 15V20.5M19.5 13.4V20.5" strokeWidth="1.3" strokeOpacity="0.7" />
-        <path d="M3.5 16.5L9.5 8Q16 22 22.5 8L28.5 16.5" strokeWidth="1.9" />
-        <path d="M9.5 7V25M22.5 7V25" strokeWidth="2.7" />
-        <path d="M3.5 20.5H28.5" strokeWidth="2.7" />
-      </g>
+      <path fill="white" fillRule="evenodd" d="M8.5 7h6.5a9 9 0 0 1 0 18H8.5Z M12.25 21.75v-4a3.75 3.75 0 0 1 7.5 0v4Z" />
     </svg>
   );
 }
