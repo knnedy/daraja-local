@@ -1,77 +1,48 @@
-import { ArrowRightIcon } from "lucide-react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { cn } from "@/lib/utils";
+"use client";
 
-const steps = [
+import { GuideSheet, type GuideOutcome, type GuideStep } from "../../_components/guide-sheet";
+
+const steps: GuideStep[] = [
   {
-    from: "You",
-    to: "daraja-local",
-    title: "Send consumer key + secret, Basic Auth",
+    who: "Your app → Daraja",
+    title: "Ask for a token with Basic auth",
     detail:
-      "Combine key:secret, base64-encode it, send as Authorization: Basic <encoded> to /oauth/v1/generate. This is the only Daraja call that uses Basic Auth instead of Bearer.",
+      "Base64-encode consumer_key:consumer_secret and send it as Authorization: Basic to GET /oauth/v1/generate?grant_type=client_credentials.",
   },
   {
-    from: "daraja-local",
-    to: "You",
-    title: "Access token comes back",
-    detail:
-      "Real Daraja tokens last roughly 3600 seconds. Your app should refetch on an auth error, not just once at startup.",
+    who: "Daraja → your app",
+    title: "A token, valid for 3599 seconds",
+    detail: "expires_in comes back as a string. Cache the token and reuse it instead of fetching one per request.",
   },
   {
-    from: "You",
-    to: "daraja-local",
-    title: "Every other call uses it as Bearer auth",
+    who: "Your app → Daraja",
+    title: "Bearer auth on everything else",
     detail:
-      "STK Push, C2B, and every other Daraja endpoint expect Authorization: Bearer <token> — not enforced here yet, since STK/C2B don't exist server-side yet, but worth exercising your app's token-fetch step ahead of that.",
+      "STK Push, C2B, B2C, B2B and the rest need Authorization: Bearer <token>. A missing or expired token is refused before the request is even read.",
+  },
+  {
+    who: "Your app",
+    title: "Sign initiator requests",
+    detail:
+      "B2C, B2B, Account Balance, Transaction Status and Reversal also carry an InitiatorName and a SecurityCredential: the initiator password encrypted with the certificate.",
   },
 ];
 
-export default function HowItWorksAccordion() {
+const outcomes: GuideOutcome[] = [
+  { code: "200", meaning: "Token issued", how: "Right key and secret", ok: true },
+  { code: "400.008.01", meaning: "Invalid authentication", how: "Wrong key or secret" },
+  { code: "404.001.03", meaning: "Invalid access token", how: "Expired or made-up Bearer token" },
+];
+
+export default function HowItWorks() {
   return (
-    <Accordion className="panel">
-      <AccordionItem value="how-it-works" className="px-4">
-        <AccordionTrigger className="text-[13px] font-medium text-foreground">
-          How token authentication works
-        </AccordionTrigger>
-        <AccordionContent>
-          <div className="-mx-4">
-            {steps.map((step, i) => (
-              <div
-                key={step.title}
-                className={cn(
-                  "flex gap-3 px-4 py-3",
-                  i < steps.length - 1 && "border-b border-border/60",
-                )}>
-                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-surface-2 font-mono text-[10px] text-muted-foreground">
-                  {i + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="mb-0.5 flex items-center gap-1.5">
-                    <span className="font-mono text-[11px] text-blue">
-                      {step.from}
-                    </span>
-                    <ArrowRightIcon className="size-3 text-muted-foreground/50" />
-                    <span className="font-mono text-[11px] text-green">
-                      {step.to}
-                    </span>
-                    <span className="ml-1 text-[12.5px] font-medium text-foreground">
-                      {step.title}
-                    </span>
-                  </div>
-                  <p className="text-[11.5px] leading-relaxed text-muted-foreground">
-                    {step.detail}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+    <GuideSheet
+      title="How Daraja authentication works"
+      description="One call gets a token; every other call carries it. Initiator requests are signed on top."
+      steps={steps}
+      outcomes={outcomes}
+      outcomesTitle="What auth can answer"
+      codeLabel="Code"
+    />
   );
 }

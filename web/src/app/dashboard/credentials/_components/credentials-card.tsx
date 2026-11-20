@@ -12,66 +12,63 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import CredentialRow from "./credential-row";
-import { useActiveProjectStore } from "@/store/active-project";
-import { useProject } from "@/hooks/use-projects";
-import { useRegenerateCredentials } from "@/hooks/use-projects";
+import { Button } from "@/components/ui/button";
+import { useProject, useRegenerateCredentials } from "@/hooks/use-projects";
+import KeyField from "./key-field";
 
-export default function CredentialsCard() {
-  const slug = useActiveProjectStore((s) => s.slug) ?? "";
+/** The app keys a Daraja app is issued: what each is for, and rotating them. */
+export default function CredentialsCard({ slug }: { slug: string }) {
   const { data: project } = useProject(slug);
   const regenerate = useRegenerateCredentials(slug);
 
   return (
-    <div className="panel">
-      <div className="border-b border-border px-4 py-2.5">
-        <span className="text-[13px] font-medium text-foreground">
-          Credentials
-        </span>
-      </div>
-
-      <div className="divide-y divide-border/60">
-        <CredentialRow label="Shortcode" value={project?.shortCode ?? "…"} />
-        <CredentialRow
-          label="Consumer key"
-          value={project?.consumerKey ?? "…"}
-          secret
-        />
-        <CredentialRow
-          label="Consumer secret"
-          value={project?.consumerSecret ?? "…"}
-          secret
-        />
-        <CredentialRow label="Passkey" value={project?.passkey ?? "…"} secret />
-      </div>
-
-      <div className="border-t border-border px-4 py-3">
+    <section className="panel overflow-hidden" aria-labelledby="keys-title">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
+        <div>
+          <h2 id="keys-title" className="text-[15px] font-semibold tracking-[-0.01em] text-foreground">
+            App keys
+          </h2>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">
+            Generated for this project, the way the Daraja portal issues them for an app.
+          </p>
+        </div>
         <AlertDialog>
-          <AlertDialogTrigger
-            disabled={regenerate.isPending}
-            className="flex w-full items-center justify-center gap-1.5 rounded-md border border-border-strong bg-surface-2 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface-2/70 disabled:opacity-60">
+          <AlertDialogTrigger render={<Button variant="outline" disabled={regenerate.isPending} />}>
             <RefreshCwIcon className="size-3.5" />
-            {regenerate.isPending ? "Regenerating…" : "Regenerate credentials"}
+            {regenerate.isPending ? "Rotating…" : "Rotate keys"}
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Regenerate credentials?</AlertDialogTitle>
+              <AlertDialogTitle>Rotate the app keys?</AlertDialogTitle>
               <AlertDialogDescription>
-                Consumer key, consumer secret, and passkey all rotate together.
-                Anything using the current values — your backend&apos;s .env,
-                other tools, in-flight STK requests — breaks until you update
-                them there too.
+                The consumer key, consumer secret and passkey all change together. Tokens issued with the old keys keep
+                working until they expire, but your app&apos;s .env needs the new values to get another one.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => regenerate.mutate()}>
-                Regenerate
-              </AlertDialogAction>
+              <AlertDialogAction onClick={() => regenerate.mutate()}>Rotate keys</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </div>
+
+      <div className="divide-y divide-border">
+        <KeyField label="Shortcode" hint="Your PayBill or Till; BusinessShortCode and PartyA." value={project?.shortCode} />
+        <KeyField label="Consumer key" hint="With the secret, gets an access token." value={project?.consumerKey} secret />
+        <KeyField label="Consumer secret" hint="Never ship it to a browser or app." value={project?.consumerSecret} secret />
+        <KeyField
+          label="Passkey"
+          hint={
+            <>
+              Builds the STK Push <span className="font-mono">Password</span>.
+            </>
+          }
+          value={project?.passkey}
+          secret
+        />
+      </div>
+      {regenerate.isError && <p className="px-5 pb-4 text-[12px] text-red">{regenerate.error.message}</p>}
+    </section>
   );
 }

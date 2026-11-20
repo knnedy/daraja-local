@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useId } from "react";
 import { CheckIcon, CopyIcon, InfoIcon } from "lucide-react";
 import { useCopy } from "@/hooks/use-copy";
 import { cn } from "@/lib/utils";
@@ -48,21 +48,24 @@ export function C({ children }: { children: React.ReactNode }) {
 
 /** The "Integrate" card: one tab per step of the integration. */
 export function IntegrateCard<T extends string>({
+  title = "Integrate",
   description,
   tabs,
   render,
 }: {
+  title?: string;
   description: string;
   tabs: readonly { id: T; label: string }[];
   render: (tab: T) => React.ReactNode;
 }) {
   const [tab, setTab] = useState<T>(tabs[0].id);
+  const titleId = useId();
   return (
-    <section className="panel overflow-hidden" aria-labelledby="integrate-title">
+    <section className="panel overflow-hidden" aria-labelledby={titleId}>
       <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border px-5 pt-4">
         <div className="pb-3.5">
-          <h2 id="integrate-title" className="text-[15px] font-semibold tracking-[-0.01em] text-foreground">
-            Integrate
+          <h2 id={titleId} className="text-[15px] font-semibold tracking-[-0.01em] text-foreground">
+            {title}
           </h2>
           <p className="mt-0.5 text-[13px] text-muted-foreground">{description}</p>
         </div>
