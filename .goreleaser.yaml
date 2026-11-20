@@ -55,4 +55,4 @@ release:
     name: daraja-local
   draft: false
   prerelease: auto
-  name_template: "Daraja Local {{.Version}}"
+  name_template: "Daraja Local {{.Tag}}"
