@@ -450,7 +450,9 @@ function Key({
       ) : (
         <>
           <span className="text-[19px] leading-none">{value}</span>
-          {letters && <span className="w-7 text-[8.5px] font-medium tracking-[0.06em] opacity-50">{letters}</span>}
+          <span aria-hidden className="w-7 text-[8.5px] font-medium tracking-[0.06em] opacity-50">
+            {letters}
+          </span>
         </>
       )}
     </button>
