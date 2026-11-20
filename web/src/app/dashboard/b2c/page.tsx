@@ -1,12 +1,10 @@
 "use client";
 
-import RequestBar from "../_components/request-bar";
-import PayloadConsole from "../_components/payload-console";
 import HowItWorks from "./_components/how-it-works";
 import IntegrationPanel from "./_components/integration-panel";
-import AccountCard from "./_components/account-card";
-import PayoutCard from "./_components/payout-card";
-import PayoutFlow from "./_components/payout-flow";
+import ActivityPanel from "./_components/activity-panel";
+import RecipientCard from "./_components/recipient-card";
+import SendTestPayout from "./_components/send-test-payout";
 import { derivePayouts } from "./lib/payouts";
 import { useLiveRequestLog } from "@/hooks/use-request-log";
 import { useActiveProjectStore } from "@/store/active-project";
@@ -18,37 +16,29 @@ export default function B2CPage() {
 
   if (!slug) return null;
 
+  const payouts = derivePayouts(entries);
+
   return (
-    <div className="flex flex-col gap-5">
-      <PageHeader
-        page="b2c"
-        title="B2C"
-        description={<>Pay out from your shortcode to a customer&apos;s phone, then watch the result arrive at your ResultURL.</>}
-      />
-
-      <HowItWorks />
-
-      <RequestBar path="/mpesa/b2c/v3/paymentrequest" label="payout" />
-
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px] lg:items-start">
-        <div className="flex min-w-0 flex-col gap-5">
-          <IntegrationPanel />
-          <PayoutFlow payouts={derivePayouts(entries)} />
-        </div>
-        <div className="flex flex-col gap-5">
-          <PayoutCard slug={slug} />
-          <AccountCard slug={slug} />
-        </div>
+    <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="flex min-w-0 flex-col gap-6">
+        <PageHeader
+          eyebrow="Business to Customer"
+          title="B2C"
+          description="Pay out from your shortcode to a customer's phone: refunds, salaries, promotions. Choose how the next payout ends, then follow the result to your ResultURL."
+          actions={
+            <>
+              <HowItWorks />
+              <SendTestPayout slug={slug} />
+            </>
+          }
+        />
+        <ActivityPanel payouts={payouts} />
+        <IntegrationPanel />
       </div>
 
-      <PayloadConsole
-        entries={entries}
-        title="result log"
-        emptyState={[
-          "waiting for a payout…",
-          "call paymentrequest, or send a test payout",
-        ]}
-      />
+      <div className="xl:sticky xl:top-0">
+        <RecipientCard slug={slug} payouts={payouts} />
+      </div>
     </div>
   );
 }

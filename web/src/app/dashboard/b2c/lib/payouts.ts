@@ -35,6 +35,10 @@ export type PayoutSession = {
   amount: string;
   partyB: string;
   remarks: string;
+  /** The paymentrequest body, pretty-printed. */
+  request: string;
+  /** The synchronous reply: acceptance, or the rejection error. */
+  response: { at: string; body: string } | null;
   result: PayoutResult | null;
 };
 
@@ -89,6 +93,8 @@ export function derivePayouts(entries: RequestLogEntry[]): PayoutSession[] {
       amount: String(body?.Amount ?? "0"),
       partyB: String(body?.PartyB ?? ""),
       remarks: body?.Remarks ?? "",
+      request: pretty(body) || entry.payload,
+      response: null,
       result: null,
     };
 
@@ -96,6 +102,7 @@ export function derivePayouts(entries: RequestLogEntry[]): PayoutSession[] {
     if (session.rejected) {
       const rejection = byId.get(entry.id + 1);
       if (rejection?.step === "rejection") {
+        session.response = { at: rejection.createdAt, body: pretty(parse(rejection.payload)) || rejection.payload };
         session.rejectionMessage =
           parse<{ errorMessage?: string }>(rejection.payload)?.errorMessage ??
           null;
@@ -103,6 +110,10 @@ export function derivePayouts(entries: RequestLogEntry[]): PayoutSession[] {
     }
 
     for (const row of rows.get(session.id) ?? []) {
+      if (row.step === "acceptance") {
+        session.response = { at: row.createdAt, body: pretty(parse(row.payload)) || row.payload };
+        continue;
+      }
       if (row.step !== "result" && row.step !== "timeout") continue;
       const delivery = parse<{
         payload?: ResultBody;

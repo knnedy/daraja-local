@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import CodeSnippets from "../../_components/code-snippets";
+import { CodeBlock } from "@/components/code-block";
+import { useApiPort } from "@/hooks/use-api-port";
+import { C, Endpoint, IntegrateCard, Note, Prose } from "../../_components/integrate";
 
-const tabs = ["Request", "Result", "Failure"] as const;
+const tabs = [
+  { id: "request", label: "Request" },
+  { id: "result", label: "Result" },
+  { id: "failure", label: "Failure" },
+] as const;
 
 const resultBody = `{
   "Result": {
@@ -47,79 +52,56 @@ const failureBody = `{
   }
 }`;
 
-const code =
-  "overflow-x-auto rounded-md border border-terminal-border bg-terminal-bg p-3.5 font-mono text-[12px] leading-relaxed text-terminal-green";
-
 export default function IntegrationPanel() {
-  const [tab, setTab] = useState<(typeof tabs)[number]>("Request");
+  const base = `http://127.0.0.1:${useApiPort()}`;
 
   return (
-    <div className="flex flex-col panel">
-      <div className="flex border-b border-border">
-        {tabs.map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={cn(
-              "relative px-4 py-2.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground",
-              tab === t &&
-                "text-foreground after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-green",
-            )}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
-      <div className="p-4">
-        {tab === "Request" && (
-          <>
-            <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
-              Use v3 and send your own unique{" "}
-              <span className="font-mono text-foreground">
-                OriginatorConversationID
-              </span>
-              ; sending the same one twice is rejected as a duplicate. Your
-              initiator name, password and certificate are on the{" "}
-              <Link
-                href="/dashboard/credentials"
-                className="text-green underline-offset-2 hover:underline"
-              >
-                Credentials
-              </Link>{" "}
-              page, with code that builds the SecurityCredential.
-            </p>
-            <CodeSnippets request="b2c" />
-            <p className="mt-2 text-[11px] text-amber">
-              CommandID is SalaryPayment, BusinessPayment or PromotionPayment.
-              Remarks must be 2 to 100 characters.
-            </p>
-          </>
-        )}
-        {tab === "Result" && (
-          <>
-            <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
-              POSTed to your ResultURL once the payout completes. ResultCode is
-              a number, and amounts and balances arrive as numbers too.
-            </p>
-            <pre className={code}>{resultBody}</pre>
-          </>
-        )}
-        {tab === "Failure" && (
-          <>
-            <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
-              A failure also goes to your ResultURL, with no ResultParameters.
-              Check ResultCode: 1 is an insufficient balance, 2001 a wrong
-              initiator password, 2040 a recipient who can&apos;t receive.
-            </p>
-            <pre className={code}>{failureBody}</pre>
-            <p className="mt-2 text-[11px] text-amber">
-              Safaricom does not document the QueueTimeOutURL body. Daraja Local
-              sends the same Result shape with ResultCode 1037, which is a
-              guess.
-            </p>
-          </>
-        )}
-      </div>
-    </div>
+    <IntegrateCard
+      description="Send a payout, then handle the result at your ResultURL."
+      tabs={tabs}
+      render={(tab) => (
+        <>
+          {tab === "request" && (
+            <>
+              <Endpoint url={`${base}/mpesa/b2c/v3/paymentrequest`} />
+              <Prose>
+                Use v3 and send your own unique <C>OriginatorConversationID</C>; the same one twice is rejected as a
+                duplicate. Your initiator name, password and certificate are on{" "}
+                <Link href="/dashboard/credentials" className="font-medium text-green underline-offset-2 hover:underline">
+                  Credentials
+                </Link>
+                , with code that builds the <C>SecurityCredential</C>.
+              </Prose>
+              <CodeSnippets request="b2c" />
+              <Note>CommandID is SalaryPayment, BusinessPayment or PromotionPayment. Remarks must be 2 to 100 characters.</Note>
+            </>
+          )}
+
+          {tab === "result" && (
+            <>
+              <Prose>
+                POSTed to your ResultURL once the payout completes. <C>ResultCode</C> is a number, and amounts and
+                balances arrive as numbers too.
+              </Prose>
+              <CodeBlock code={resultBody} lang="json" />
+            </>
+          )}
+
+          {tab === "failure" && (
+            <>
+              <Prose>
+                A failure also goes to your ResultURL, with no <C>ResultParameters</C>. Check <C>ResultCode</C>: 1 is an
+                insufficient balance, 2001 a wrong initiator password, 2040 a recipient who can&apos;t receive.
+              </Prose>
+              <CodeBlock code={failureBody} lang="json" />
+              <Note>
+                Safaricom doesn&apos;t document the QueueTimeOutURL body. Daraja Local sends the same Result shape with
+                ResultCode 1037, which is a guess.
+              </Note>
+            </>
+          )}
+        </>
+      )}
+    />
   );
 }
