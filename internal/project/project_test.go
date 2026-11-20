@@ -61,6 +61,30 @@ func TestRegenerateCredentialsKeepsTheShortcode(t *testing.T) {
 	}
 }
 
+func ptr(s string) *string { return &s }
+
+func TestUpdateChangesOnlyTheFieldsGiven(t *testing.T) {
+	ctx := context.Background()
+	projects := newProjects(t)
+	created, _ := projects.Create(ctx, CreateInput{Name: "Shop", CallbackBaseUrl: "http://localhost:8000"})
+
+	renamed, err := projects.Update(ctx, created.Slug, UpdateInput{Name: ptr("Duka")})
+	if err != nil {
+		t.Fatalf("rename: %v", err)
+	}
+	if renamed.Name != "Duka" || renamed.CallbackBaseUrl != "http://localhost:8000" {
+		t.Errorf("after rename = %q, %q", renamed.Name, renamed.CallbackBaseUrl)
+	}
+
+	moved, err := projects.Update(ctx, created.Slug, UpdateInput{CallbackBaseUrl: ptr("https://duka.ngrok.app")})
+	if err != nil {
+		t.Fatalf("move: %v", err)
+	}
+	if moved.Name != "Duka" || moved.CallbackBaseUrl != "https://duka.ngrok.app" {
+		t.Errorf("after move = %q, %q", moved.Name, moved.CallbackBaseUrl)
+	}
+}
+
 func TestAnUnknownSlugIsNotFound(t *testing.T) {
 	ctx := context.Background()
 	projects := newProjects(t)
@@ -68,8 +92,8 @@ func TestAnUnknownSlugIsNotFound(t *testing.T) {
 	if _, err := projects.Get(ctx, "nope"); !errors.Is(err, response.ErrNotFound) {
 		t.Errorf("Get: err = %v", err)
 	}
-	if _, err := projects.UpdateName(ctx, "nope", UpdateNameInput{Name: "X"}); !errors.Is(err, response.ErrNotFound) {
-		t.Errorf("UpdateName: err = %v", err)
+	if _, err := projects.Update(ctx, "nope", UpdateInput{Name: ptr("X")}); !errors.Is(err, response.ErrNotFound) {
+		t.Errorf("Update: err = %v", err)
 	}
 	if _, err := projects.RegenerateCredentials(ctx, "nope"); !errors.Is(err, response.ErrNotFound) {
 		t.Errorf("RegenerateCredentials: err = %v", err)

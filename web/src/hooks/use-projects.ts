@@ -31,7 +31,8 @@ export function useCreateProject() {
   });
 }
 
-export function useUpdateProjectName(slug: string) {
+/** Changes the project's name and/or callback base URL. */
+export function useUpdateProject(slug: string) {
   const queryClient = useQueryClient();
 
   return useMutation({

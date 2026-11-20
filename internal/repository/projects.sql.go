@@ -7,6 +7,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createProject = `-- name: CreateProject :one
@@ -229,20 +230,22 @@ func (q *Queries) TouchProjectLastActive(ctx context.Context, slug string) error
 	return err
 }
 
-const updateProjectName = `-- name: UpdateProjectName :one
+const updateProject = `-- name: UpdateProject :one
 UPDATE projects
-SET name = ?
-WHERE slug = ?
+SET name = COALESCE(?1, name),
+    callback_base_url = COALESCE(?2, callback_base_url)
+WHERE slug = ?3
 RETURNING id, slug, name, short_code, consumer_key, consumer_secret, passkey, callback_base_url, created_at, last_active_at
 `
 
-type UpdateProjectNameParams struct {
-	Name string
-	Slug string
+type UpdateProjectParams struct {
+	Name            sql.NullString
+	CallbackBaseUrl sql.NullString
+	Slug            string
 }
 
-func (q *Queries) UpdateProjectName(ctx context.Context, arg UpdateProjectNameParams) (Project, error) {
-	row := q.db.QueryRowContext(ctx, updateProjectName, arg.Name, arg.Slug)
+func (q *Queries) UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error) {
+	row := q.db.QueryRowContext(ctx, updateProject, arg.Name, arg.CallbackBaseUrl, arg.Slug)
 	var i Project
 	err := row.Scan(
 		&i.ID,

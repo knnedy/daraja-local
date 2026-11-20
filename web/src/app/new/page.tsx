@@ -98,7 +98,7 @@ export default function NewProjectPage() {
             )}
 
             <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-5">
-              <p className="text-[12.5px] text-muted-foreground">You can rename it and rotate keys later.</p>
+              <p className="text-[12.5px] text-muted-foreground">You can change both later in Settings.</p>
               <Button type="submit" size="lg" disabled={busy}>
                 {busy ? "Creating…" : "Create project"}
                 <ArrowRightIcon className="size-4" />

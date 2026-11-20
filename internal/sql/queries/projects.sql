@@ -3,10 +3,11 @@ INSERT INTO "projects" ("slug", "name", "short_code", "consumer_key", "consumer_
 VALUES (?, ?, ?, ?, ?, ?, ?)
 RETURNING *;
 
--- name: UpdateProjectName :one
+-- name: UpdateProject :one
 UPDATE projects
-SET name = ?
-WHERE slug = ?
+SET name = COALESCE(sqlc.narg('name'), name),
+    callback_base_url = COALESCE(sqlc.narg('callback_base_url'), callback_base_url)
+WHERE slug = sqlc.arg('slug')
 RETURNING *;
 
 -- name: GetProjectByID :one

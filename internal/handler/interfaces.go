@@ -11,7 +11,7 @@ import (
 
 type ProjectService interface {
 	Create(ctx context.Context, input project.CreateInput) (repository.Project, error)
-	UpdateName(ctx context.Context, slug string, input project.UpdateNameInput) (repository.Project, error)
+	Update(ctx context.Context, slug string, input project.UpdateInput) (repository.Project, error)
 	List(ctx context.Context) ([]repository.Project, error)
 	Get(ctx context.Context, slug string) (repository.Project, error)
 	Touch(ctx context.Context, slug string) error

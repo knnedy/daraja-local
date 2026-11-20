@@ -99,16 +99,26 @@ func (s *Projects) Touch(ctx context.Context, slug string) error {
 	return s.db.Queries().TouchProjectLastActive(ctx, slug)
 }
 
-type UpdateNameInput struct {
-	Name string
+// UpdateInput changes only the fields that are set.
+type UpdateInput struct {
+	Name            *string
+	CallbackBaseUrl *string
 }
 
-func (s *Projects) UpdateName(ctx context.Context, slug string, input UpdateNameInput) (repository.Project, error) {
-	project, err := s.db.Queries().UpdateProjectName(ctx, repository.UpdateProjectNameParams{
-		Name: input.Name,
-		Slug: slug,
+func (s *Projects) Update(ctx context.Context, slug string, input UpdateInput) (repository.Project, error) {
+	project, err := s.db.Queries().UpdateProject(ctx, repository.UpdateProjectParams{
+		Name:            nullable(input.Name),
+		CallbackBaseUrl: nullable(input.CallbackBaseUrl),
+		Slug:            slug,
 	})
 	return project, notFoundIfNoRows(err)
+}
+
+func nullable(s *string) sql.NullString {
+	if s == nil {
+		return sql.NullString{}
+	}
+	return sql.NullString{String: *s, Valid: true}
 }
 
 // RegenerateCredentials rotates consumer key, consumer secret, and

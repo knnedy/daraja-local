@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
@@ -129,10 +131,11 @@ func (h *ProjectHandler) Touch(w http.ResponseWriter, r *http.Request) {
 }
 
 type updateProjectRequest struct {
-	Name string `json:"name"`
+	Name            *string `json:"name"`
+	CallbackBaseUrl *string `json:"callbackBaseUrl"`
 }
 
-// Update handles PATCH /api/projects/{slug}.
+// Update handles PATCH /api/projects/{slug}; only the fields sent change.
 func (h *ProjectHandler) Update(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 
@@ -141,17 +144,30 @@ func (h *ProjectHandler) Update(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	if len(req.Name) < 2 {
+	if req.Name != nil && len(strings.TrimSpace(*req.Name)) < 2 {
 		response.Error(w, http.StatusUnprocessableEntity, "name must be at least 2 characters")
 		return
 	}
+	if req.CallbackBaseUrl != nil {
+		trimmed := strings.TrimRight(strings.TrimSpace(*req.CallbackBaseUrl), "/")
+		if !validCallbackBase(trimmed) {
+			response.Error(w, http.StatusUnprocessableEntity, "callbackBaseUrl must be an http or https URL")
+			return
+		}
+		req.CallbackBaseUrl = &trimmed
+	}
 
-	project, err := h.service.UpdateName(r.Context(), slug, project.UpdateNameInput{Name: req.Name})
+	project, err := h.service.Update(r.Context(), slug, project.UpdateInput{Name: req.Name, CallbackBaseUrl: req.CallbackBaseUrl})
 	if err != nil {
 		writeServiceError(w, err, "failed to update project")
 		return
 	}
 	response.JSON(w, http.StatusOK, toProjectResponse(project))
+}
+
+func validCallbackBase(raw string) bool {
+	u, err := url.Parse(raw)
+	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != ""
 }
 
 // RegenerateCredentials handles POST /api/projects/{slug}/credentials/regenerate
