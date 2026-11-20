@@ -34,6 +34,10 @@ const deliveryGrace = 10 * time.Second
 const initiatorAPIDelay = 2 * time.Second
 
 func main() {
+	if len(os.Args) > 1 && (os.Args[1] == "--version" || os.Args[1] == "-v" || os.Args[1] == "version") {
+		fmt.Println("daraja-local version " + Version)
+		return
+	}
 	if err := run(); err != nil {
 		slog.Error("daraja-local: fatal", "error", err)
 		os.Exit(1)
